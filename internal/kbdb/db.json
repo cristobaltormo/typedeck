@@ -1,0 +1,17 @@
+{
+  "note": "Fabricantes por identificador USB (USB-IF). Los 'chip' son fabricantes de controladores que usan cientos de marcas: con ellos el VID no dice la marca.",
+  "vendors": {
+    "046d": "Logitech", "045e": "Microsoft", "05ac": "Apple", "1532": "Razer", "1b1c": "Corsair", "1038": "SteelSeries",
+    "0951": "HyperX (Kingston)", "3434": "Keychron", "046a": "Cherry", "04f2": "Chicony", "413c": "Dell", "17ef": "Lenovo",
+    "0b05": "ASUS", "2516": "Cooler Master", "1e7d": "ROCCAT", "320f": "Evision", "03f0": "HP", "3297": "ZSA",
+    "1ea7": "Sharkoon", "04ca": "Lite-On", "0461": "Primax", "0d62": "Darfon", "062a": "MosArt", "1241": "Belkin",
+    "feed": "QMK (identificador de pruebas)", "03a8": "QMK", "1209": "pid.codes (proyectos abiertos)"
+  },
+  "chip_vendors": {
+    "258a": "SINO WEALTH", "04d9": "Holtek", "0c45": "Microdia", "1a2c": "China Resource Semico", "3151": "YICHIP",
+    "0416": "Winbond", "1c4f": "SiGma Micro", "04b4": "Cypress / Infineon", "0e6a": "Megawin", "1bcf": "Sunplus"
+  },
+  "models": [
+    {"vid": "258a", "pid": "0016", "mfr": "BY Tech", "prod": "Usb Gaming Keyboard", "brand": "BY Tech", "model": "Usb Gaming Keyboard", "layout": "full-iso"}
+  ]
+}
