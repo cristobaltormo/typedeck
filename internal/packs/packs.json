@@ -1,0 +1,5064 @@
+{
+ "categories": [
+  {
+   "id": "streaming",
+   "icon": "camera",
+   "name": {
+    "es": "Streaming y vídeo en directo",
+    "en": "Streaming and live video"
+   }
+  },
+  {
+   "id": "comms",
+   "icon": "chat",
+   "name": {
+    "es": "Reuniones y mensajes",
+    "en": "Meetings and messaging"
+   }
+  },
+  {
+   "id": "creative",
+   "icon": "edit",
+   "name": {
+    "es": "Diseño, foto y vídeo",
+    "en": "Design, photo and video"
+   }
+  },
+  {
+   "id": "dev",
+   "icon": "code",
+   "name": {
+    "es": "Desarrollo",
+    "en": "Development"
+   }
+  },
+  {
+   "id": "work",
+   "icon": "clock",
+   "name": {
+    "es": "Productividad y ventanas",
+    "en": "Productivity and windows"
+   }
+  },
+  {
+   "id": "media",
+   "icon": "music",
+   "name": {
+    "es": "Música y vídeo",
+    "en": "Music and video"
+   }
+  },
+  {
+   "id": "system",
+   "icon": "monitor",
+   "name": {
+    "es": "Sistema del Mac",
+    "en": "Mac system"
+   }
+  },
+  {
+   "id": "home",
+   "icon": "server",
+   "name": {
+    "es": "Casa y servidores",
+    "en": "Home and servers"
+   }
+  },
+  {
+   "id": "text",
+   "icon": "type",
+   "name": {
+    "es": "Texto y escritura",
+    "en": "Text and writing"
+   }
+  },
+  {
+   "id": "study",
+   "icon": "bookmark",
+   "name": {
+    "es": "Estudio",
+    "en": "Study"
+   }
+  },
+  {
+   "id": "gaming",
+   "icon": "bolt",
+   "name": {
+    "es": "Juegos",
+    "en": "Gaming"
+   }
+  }
+ ],
+ "packs": [
+  {
+   "id": "obs",
+   "category": "streaming",
+   "icon": "camera",
+   "color": "#cc4848",
+   "name": {
+    "es": "OBS Studio",
+    "en": "OBS Studio"
+   },
+   "description": {
+    "es": "Escenas, directo, grabación, silenciar micro y guardar el replay.",
+    "en": "Scenes, going live, recording, mic mute and saving the replay."
+   },
+   "region": "numpad",
+   "macros": [
+    {
+     "label": {
+      "es": "Escena 1",
+      "en": "Scene 1"
+     },
+     "icon": "monitor",
+     "color": "#2563eb",
+     "tap": {
+      "type": "hotkey",
+      "keys": "ctrl+alt+cmd+1"
+     }
+    },
+    {
+     "label": {
+      "es": "Escena 2",
+      "en": "Scene 2"
+     },
+     "icon": "monitor",
+     "color": "#2563eb",
+     "tap": {
+      "type": "hotkey",
+      "keys": "ctrl+alt+cmd+2"
+     }
+    },
+    {
+     "label": {
+      "es": "Escena 3",
+      "en": "Scene 3"
+     },
+     "icon": "monitor",
+     "color": "#2563eb",
+     "tap": {
+      "type": "hotkey",
+      "keys": "ctrl+alt+cmd+3"
+     }
+    },
+    {
+     "label": {
+      "es": "Escena 4",
+      "en": "Scene 4"
+     },
+     "icon": "monitor",
+     "color": "#2563eb",
+     "tap": {
+      "type": "hotkey",
+      "keys": "ctrl+alt+cmd+4"
+     }
+    },
+    {
+     "label": {
+      "es": "Directo",
+      "en": "Go live"
+     },
+     "icon": "wifi",
+     "color": "#cc4848",
+     "tap": {
+      "type": "hotkey",
+      "keys": "ctrl+alt+cmd+s",
+      "confirm": true
+     }
+    },
+    {
+     "label": {
+      "es": "Grabar",
+      "en": "Record"
+     },
+     "icon": "play",
+     "color": "#cc4848",
+     "tap": {
+      "type": "hotkey",
+      "keys": "ctrl+alt+cmd+r"
+     }
+    },
+    {
+     "label": {
+      "es": "Pausar grabación",
+      "en": "Pause recording"
+     },
+     "icon": "pause",
+     "color": "#f59e0b",
+     "tap": {
+      "type": "hotkey",
+      "keys": "ctrl+alt+cmd+p"
+     }
+    },
+    {
+     "label": {
+      "es": "Silenciar micro",
+      "en": "Mute mic"
+     },
+     "icon": "mic",
+     "color": "#f59e0b",
+     "tap": {
+      "type": "hotkey",
+      "keys": "ctrl+alt+cmd+m"
+     }
+    },
+    {
+     "label": {
+      "es": "Silenciar escritorio",
+      "en": "Mute desktop"
+     },
+     "icon": "volume-mute",
+     "color": "#f59e0b",
+     "tap": {
+      "type": "hotkey",
+      "keys": "ctrl+alt+cmd+d"
+     }
+    },
+    {
+     "label": {
+      "es": "Guardar replay",
+      "en": "Save replay"
+     },
+     "icon": "download",
+     "color": "#16a34a",
+     "tap": {
+      "type": "hotkey",
+      "keys": "ctrl+alt+cmd+b"
+     }
+    },
+    {
+     "label": {
+      "es": "Abrir OBS",
+      "en": "Open OBS"
+     },
+     "icon": "grid",
+     "color": "#64748b",
+     "tap": {
+      "type": "app",
+      "app": "OBS",
+      "mode": "toggle"
+     }
+    }
+   ],
+   "notes": {
+    "es": "OBS Studio no trae atajos de serie. En OBS abre Ajustes, Atajos, y asigna a cada acción el mismo atajo que ves aquí (Ctrl, Opción y Comando más la tecla).",
+    "en": "OBS Studio ships with no hotkeys. In OBS open Settings, Hotkeys, and give each action the same shortcut shown here (Control, Option and Command plus the key)."
+   },
+   "apps": [
+    "OBS Studio"
+   ],
+   "auto_apps": [
+    "OBS"
+   ],
+   "tags": [
+    "stream",
+    "twitch",
+    "youtube",
+    "grabar",
+    "record"
+   ]
+  },
+  {
+   "id": "discord",
+   "category": "streaming",
+   "icon": "chat",
+   "color": "#8b5cf6",
+   "name": {
+    "es": "Discord",
+    "en": "Discord"
+   },
+   "description": {
+    "es": "Silenciar, ensordecerte, cambiar de servidor y de canal sin salir del juego.",
+    "en": "Mute, deafen, and switch servers and channels without leaving your game."
+   },
+   "region": "numpad",
+   "macros": [
+    {
+     "label": {
+      "es": "Silenciar",
+      "en": "Mute"
+     },
+     "icon": "mic",
+     "color": "#cc4848",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+shift+m"
+     }
+    },
+    {
+     "label": {
+      "es": "Ensordecer",
+      "en": "Deafen"
+     },
+     "icon": "volume-mute",
+     "color": "#cc4848",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+shift+d"
+     }
+    },
+    {
+     "label": {
+      "es": "Buscar",
+      "en": "Quick switcher"
+     },
+     "icon": "search",
+     "color": "#2563eb",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+k"
+     }
+    },
+    {
+     "label": {
+      "es": "Servidor arriba",
+      "en": "Server up"
+     },
+     "icon": "arrow-up",
+     "color": "#8b5cf6",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+alt+up"
+     }
+    },
+    {
+     "label": {
+      "es": "Servidor abajo",
+      "en": "Server down"
+     },
+     "icon": "arrow-down",
+     "color": "#8b5cf6",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+alt+down"
+     }
+    },
+    {
+     "label": {
+      "es": "Canal arriba",
+      "en": "Channel up"
+     },
+     "icon": "arrow-up",
+     "color": "#8b5cf6",
+     "tap": {
+      "type": "hotkey",
+      "keys": "alt+up"
+     }
+    },
+    {
+     "label": {
+      "es": "Canal abajo",
+      "en": "Channel down"
+     },
+     "icon": "arrow-down",
+     "color": "#8b5cf6",
+     "tap": {
+      "type": "hotkey",
+      "keys": "alt+down"
+     }
+    },
+    {
+     "label": {
+      "es": "Subir archivo",
+      "en": "Upload file"
+     },
+     "icon": "upload",
+     "color": "#0ea5e9",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+shift+u"
+     }
+    },
+    {
+     "label": {
+      "es": "Abrir Discord",
+      "en": "Open Discord"
+     },
+     "icon": "chat",
+     "color": "#64748b",
+     "tap": {
+      "type": "app",
+      "app": "Discord",
+      "mode": "toggle"
+     }
+    }
+   ],
+   "notes": {
+    "es": "Los atajos son los de Discord para Mac por defecto. Silenciar y ensordecer son globales en Discord solo si activas la opción en sus ajustes.",
+    "en": "Shortcuts are Discord's Mac defaults. Mute and deafen only work from other apps if you enable that in Discord's settings."
+   },
+   "apps": [
+    "Discord"
+   ],
+   "auto_apps": [
+    "Discord"
+   ],
+   "tags": [
+    "voz",
+    "voice",
+    "gaming"
+   ]
+  },
+  {
+   "id": "obs-discord",
+   "category": "streaming",
+   "icon": "camera",
+   "color": "#8b5cf6",
+   "name": {
+    "es": "OBS Studio + Discord",
+    "en": "OBS Studio + Discord"
+   },
+   "description": {
+    "es": "Lo esencial de los dos: escenas y directo en OBS, silencio y buscar en Discord.",
+    "en": "The essentials of both: scenes and going live in OBS, mute and quick switch in Discord."
+   },
+   "region": "numpad",
+   "macros": [
+    {
+     "label": {
+      "es": "Escena 1",
+      "en": "Scene 1"
+     },
+     "icon": "monitor",
+     "color": "#2563eb",
+     "tap": {
+      "type": "hotkey",
+      "keys": "ctrl+alt+cmd+1"
+     }
+    },
+    {
+     "label": {
+      "es": "Escena 2",
+      "en": "Scene 2"
+     },
+     "icon": "monitor",
+     "color": "#2563eb",
+     "tap": {
+      "type": "hotkey",
+      "keys": "ctrl+alt+cmd+2"
+     }
+    },
+    {
+     "label": {
+      "es": "Escena 3",
+      "en": "Scene 3"
+     },
+     "icon": "monitor",
+     "color": "#2563eb",
+     "tap": {
+      "type": "hotkey",
+      "keys": "ctrl+alt+cmd+3"
+     }
+    },
+    {
+     "label": {
+      "es": "Directo",
+      "en": "Go live"
+     },
+     "icon": "wifi",
+     "color": "#cc4848",
+     "tap": {
+      "type": "hotkey",
+      "keys": "ctrl+alt+cmd+s",
+      "confirm": true
+     }
+    },
+    {
+     "label": {
+      "es": "Grabar",
+      "en": "Record"
+     },
+     "icon": "play",
+     "color": "#cc4848",
+     "tap": {
+      "type": "hotkey",
+      "keys": "ctrl+alt+cmd+r"
+     }
+    },
+    {
+     "label": {
+      "es": "Micro OBS",
+      "en": "OBS mic"
+     },
+     "icon": "mic",
+     "color": "#f59e0b",
+     "tap": {
+      "type": "hotkey",
+      "keys": "ctrl+alt+cmd+m"
+     }
+    },
+    {
+     "label": {
+      "es": "Silenciar Discord",
+      "en": "Discord mute"
+     },
+     "icon": "mic",
+     "color": "#8b5cf6",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+shift+m"
+     }
+    },
+    {
+     "label": {
+      "es": "Ensordecer Discord",
+      "en": "Discord deafen"
+     },
+     "icon": "volume-mute",
+     "color": "#8b5cf6",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+shift+d"
+     }
+    },
+    {
+     "label": {
+      "es": "Buscar Discord",
+      "en": "Discord search"
+     },
+     "icon": "search",
+     "color": "#8b5cf6",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+k"
+     }
+    },
+    {
+     "label": {
+      "es": "Guardar replay",
+      "en": "Save replay"
+     },
+     "icon": "download",
+     "color": "#16a34a",
+     "tap": {
+      "type": "hotkey",
+      "keys": "ctrl+alt+cmd+b"
+     }
+    },
+    {
+     "label": {
+      "es": "OBS",
+      "en": "OBS"
+     },
+     "icon": "camera",
+     "color": "#64748b",
+     "tap": {
+      "type": "app",
+      "app": "OBS",
+      "mode": "toggle"
+     }
+    },
+    {
+     "label": {
+      "es": "Discord",
+      "en": "Discord"
+     },
+     "icon": "chat",
+     "color": "#64748b",
+     "tap": {
+      "type": "app",
+      "app": "Discord",
+      "mode": "toggle"
+     }
+    }
+   ],
+   "notes": {
+    "es": "OBS Studio no trae atajos de serie. En OBS abre Ajustes, Atajos, y asigna a cada acción el mismo atajo que ves aquí (Ctrl, Opción y Comando más la tecla).",
+    "en": "OBS Studio ships with no hotkeys. In OBS open Settings, Hotkeys, and give each action the same shortcut shown here (Control, Option and Command plus the key)."
+   },
+   "apps": [
+    "OBS Studio",
+    "Discord"
+   ],
+   "auto_apps": [
+    "OBS"
+   ],
+   "tags": [
+    "stream",
+    "directo",
+    "twitch"
+   ]
+  },
+  {
+   "id": "streamer-pro",
+   "category": "streaming",
+   "icon": "bolt",
+   "color": "#ec4899",
+   "name": {
+    "es": "Streamer completo",
+    "en": "Full streamer"
+   },
+   "description": {
+    "es": "OBS, Discord y música en una capa: escenas, directo, silencio, pista siguiente y volumen.",
+    "en": "OBS, Discord and music in one layer: scenes, going live, mute, next track and volume."
+   },
+   "region": "numpad",
+   "macros": [
+    {
+     "label": {
+      "es": "Escena 1",
+      "en": "Scene 1"
+     },
+     "icon": "monitor",
+     "color": "#2563eb",
+     "tap": {
+      "type": "hotkey",
+      "keys": "ctrl+alt+cmd+1"
+     }
+    },
+    {
+     "label": {
+      "es": "Escena 2",
+      "en": "Scene 2"
+     },
+     "icon": "monitor",
+     "color": "#2563eb",
+     "tap": {
+      "type": "hotkey",
+      "keys": "ctrl+alt+cmd+2"
+     }
+    },
+    {
+     "label": {
+      "es": "Directo",
+      "en": "Go live"
+     },
+     "icon": "wifi",
+     "color": "#cc4848",
+     "tap": {
+      "type": "hotkey",
+      "keys": "ctrl+alt+cmd+s",
+      "confirm": true
+     }
+    },
+    {
+     "label": {
+      "es": "Micro OBS",
+      "en": "OBS mic"
+     },
+     "icon": "mic",
+     "color": "#f59e0b",
+     "tap": {
+      "type": "hotkey",
+      "keys": "ctrl+alt+cmd+m"
+     }
+    },
+    {
+     "label": {
+      "es": "Silenciar Discord",
+      "en": "Discord mute"
+     },
+     "icon": "mic",
+     "color": "#8b5cf6",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+shift+m"
+     }
+    },
+    {
+     "label": {
+      "es": "Ensordecer",
+      "en": "Deafen"
+     },
+     "icon": "volume-mute",
+     "color": "#8b5cf6",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+shift+d"
+     }
+    },
+    {
+     "label": {
+      "es": "Reproducir",
+      "en": "Play"
+     },
+     "icon": "play",
+     "color": "#16a34a",
+     "tap": {
+      "type": "media",
+      "cmd": "playpause"
+     }
+    },
+    {
+     "label": {
+      "es": "Siguiente",
+      "en": "Next"
+     },
+     "icon": "skip-next",
+     "color": "#16a34a",
+     "tap": {
+      "type": "media",
+      "cmd": "next"
+     }
+    },
+    {
+     "label": {
+      "es": "Volumen -",
+      "en": "Volume -"
+     },
+     "icon": "volume",
+     "color": "#64748b",
+     "tap": {
+      "type": "media",
+      "cmd": "voldown"
+     }
+    },
+    {
+     "label": {
+      "es": "Volumen +",
+      "en": "Volume +"
+     },
+     "icon": "volume",
+     "color": "#64748b",
+     "tap": {
+      "type": "media",
+      "cmd": "volup"
+     }
+    },
+    {
+     "label": {
+      "es": "Guardar replay",
+      "en": "Save replay"
+     },
+     "icon": "download",
+     "color": "#16a34a",
+     "tap": {
+      "type": "hotkey",
+      "keys": "ctrl+alt+cmd+b"
+     }
+    },
+    {
+     "label": {
+      "es": "Captura",
+      "en": "Screenshot"
+     },
+     "icon": "camera",
+     "color": "#0ea5e9",
+     "tap": {
+      "type": "system",
+      "cmd": "screenshot"
+     }
+    }
+   ],
+   "notes": {
+    "es": "OBS Studio no trae atajos de serie. En OBS abre Ajustes, Atajos, y asigna a cada acción el mismo atajo que ves aquí (Ctrl, Opción y Comando más la tecla).",
+    "en": "OBS Studio ships with no hotkeys. In OBS open Settings, Hotkeys, and give each action the same shortcut shown here (Control, Option and Command plus the key)."
+   },
+   "apps": [
+    "OBS Studio",
+    "Discord"
+   ],
+   "tags": [
+    "stream",
+    "twitch"
+   ]
+  },
+  {
+   "id": "zoom",
+   "category": "comms",
+   "icon": "camera",
+   "color": "#2563eb",
+   "name": {
+    "es": "Zoom",
+    "en": "Zoom"
+   },
+   "description": {
+    "es": "Micro, cámara, compartir pantalla, grabar y levantar la mano.",
+    "en": "Mic, camera, screen share, record and raise hand."
+   },
+   "region": "numpad",
+   "macros": [
+    {
+     "label": {
+      "es": "Micro",
+      "en": "Mic"
+     },
+     "icon": "mic",
+     "color": "#cc4848",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+shift+a"
+     }
+    },
+    {
+     "label": {
+      "es": "Cámara",
+      "en": "Camera"
+     },
+     "icon": "camera",
+     "color": "#2563eb",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+shift+v"
+     }
+    },
+    {
+     "label": {
+      "es": "Compartir",
+      "en": "Share screen"
+     },
+     "icon": "monitor",
+     "color": "#16a34a",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+shift+s"
+     }
+    },
+    {
+     "label": {
+      "es": "Grabar",
+      "en": "Record"
+     },
+     "icon": "play",
+     "color": "#cc4848",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+shift+r"
+     }
+    },
+    {
+     "label": {
+      "es": "Mano",
+      "en": "Raise hand"
+     },
+     "icon": "star",
+     "color": "#f59e0b",
+     "tap": {
+      "type": "hotkey",
+      "keys": "alt+y"
+     }
+    },
+    {
+     "label": {
+      "es": "Participantes",
+      "en": "Participants"
+     },
+     "icon": "grid",
+     "color": "#64748b",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+u"
+     }
+    },
+    {
+     "label": {
+      "es": "Chat",
+      "en": "Chat"
+     },
+     "icon": "chat",
+     "color": "#0ea5e9",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+shift+h"
+     }
+    },
+    {
+     "label": {
+      "es": "Salir",
+      "en": "Leave"
+     },
+     "icon": "power",
+     "color": "#cc4848",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+w",
+      "confirm": true
+     }
+    },
+    {
+     "label": {
+      "es": "Abrir Zoom",
+      "en": "Open Zoom"
+     },
+     "icon": "grid",
+     "color": "#64748b",
+     "tap": {
+      "type": "app",
+      "app": "zoom.us",
+      "mode": "toggle"
+     }
+    }
+   ],
+   "apps": [
+    "Zoom"
+   ],
+   "auto_apps": [
+    "zoom.us"
+   ],
+   "tags": [
+    "reunion",
+    "meeting",
+    "videollamada"
+   ]
+  },
+  {
+   "id": "meet",
+   "category": "comms",
+   "icon": "camera",
+   "color": "#16a34a",
+   "name": {
+    "es": "Google Meet",
+    "en": "Google Meet"
+   },
+   "description": {
+    "es": "Micro y cámara con una tecla, también con la pestaña en segundo plano.",
+    "en": "Mic and camera with one key."
+   },
+   "region": "numpad",
+   "macros": [
+    {
+     "label": {
+      "es": "Micro",
+      "en": "Mic"
+     },
+     "icon": "mic",
+     "color": "#cc4848",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+d"
+     }
+    },
+    {
+     "label": {
+      "es": "Cámara",
+      "en": "Camera"
+     },
+     "icon": "camera",
+     "color": "#2563eb",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+e"
+     }
+    },
+    {
+     "label": {
+      "es": "Mano",
+      "en": "Raise hand"
+     },
+     "icon": "star",
+     "color": "#f59e0b",
+     "tap": {
+      "type": "hotkey",
+      "keys": "ctrl+cmd+h"
+     }
+    },
+    {
+     "label": {
+      "es": "Chat",
+      "en": "Chat"
+     },
+     "icon": "chat",
+     "color": "#0ea5e9",
+     "tap": {
+      "type": "hotkey",
+      "keys": "ctrl+cmd+c"
+     }
+    },
+    {
+     "label": {
+      "es": "Abrir Chrome",
+      "en": "Open Chrome"
+     },
+     "icon": "globe",
+     "color": "#64748b",
+     "tap": {
+      "type": "app",
+      "app": "Google Chrome",
+      "mode": "toggle"
+     }
+    }
+   ],
+   "notes": {
+    "es": "Funciona en el navegador con la pestaña de Meet activa.",
+    "en": "Works in the browser with the Meet tab active."
+   },
+   "apps": [
+    "Google Meet",
+    "Google Chrome"
+   ],
+   "tags": [
+    "reunion",
+    "meeting"
+   ]
+  },
+  {
+   "id": "teams",
+   "category": "comms",
+   "icon": "chat",
+   "color": "#2563eb",
+   "name": {
+    "es": "Microsoft Teams",
+    "en": "Microsoft Teams"
+   },
+   "description": {
+    "es": "Micro, cámara, compartir, mano y colgar.",
+    "en": "Mic, camera, share, hand and hang up."
+   },
+   "region": "numpad",
+   "macros": [
+    {
+     "label": {
+      "es": "Micro",
+      "en": "Mic"
+     },
+     "icon": "mic",
+     "color": "#cc4848",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+shift+m"
+     }
+    },
+    {
+     "label": {
+      "es": "Cámara",
+      "en": "Camera"
+     },
+     "icon": "camera",
+     "color": "#2563eb",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+shift+o"
+     }
+    },
+    {
+     "label": {
+      "es": "Compartir",
+      "en": "Share"
+     },
+     "icon": "monitor",
+     "color": "#16a34a",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+shift+e"
+     }
+    },
+    {
+     "label": {
+      "es": "Mano",
+      "en": "Raise hand"
+     },
+     "icon": "star",
+     "color": "#f59e0b",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+shift+k"
+     }
+    },
+    {
+     "label": {
+      "es": "Colgar",
+      "en": "Hang up"
+     },
+     "icon": "power",
+     "color": "#cc4848",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+shift+h",
+      "confirm": true
+     }
+    },
+    {
+     "label": {
+      "es": "Abrir Teams",
+      "en": "Open Teams"
+     },
+     "icon": "grid",
+     "color": "#64748b",
+     "tap": {
+      "type": "app",
+      "app": "Microsoft Teams",
+      "mode": "toggle"
+     }
+    }
+   ],
+   "apps": [
+    "Microsoft Teams"
+   ],
+   "auto_apps": [
+    "Microsoft Teams"
+   ],
+   "tags": [
+    "reunion",
+    "meeting"
+   ]
+  },
+  {
+   "id": "slack",
+   "category": "comms",
+   "icon": "chat",
+   "color": "#8b5cf6",
+   "name": {
+    "es": "Slack",
+    "en": "Slack"
+   },
+   "description": {
+    "es": "Saltar entre conversaciones, hilos, menciones y no leídos.",
+    "en": "Jump between conversations, threads, mentions and unreads."
+   },
+   "region": "numpad",
+   "macros": [
+    {
+     "label": {
+      "es": "Buscar",
+      "en": "Quick switcher"
+     },
+     "icon": "search",
+     "color": "#2563eb",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+k"
+     }
+    },
+    {
+     "label": {
+      "es": "Mensajes",
+      "en": "DMs"
+     },
+     "icon": "chat",
+     "color": "#8b5cf6",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+shift+k"
+     }
+    },
+    {
+     "label": {
+      "es": "Hilos",
+      "en": "Threads"
+     },
+     "icon": "list",
+     "color": "#8b5cf6",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+shift+t"
+     }
+    },
+    {
+     "label": {
+      "es": "Menciones",
+      "en": "Mentions"
+     },
+     "icon": "bell",
+     "color": "#f59e0b",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+shift+m"
+     }
+    },
+    {
+     "label": {
+      "es": "No leídos",
+      "en": "Unreads"
+     },
+     "icon": "mail",
+     "color": "#f59e0b",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+shift+a"
+     }
+    },
+    {
+     "label": {
+      "es": "Huddle",
+      "en": "Huddle"
+     },
+     "icon": "mic",
+     "color": "#16a34a",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+shift+h"
+     }
+    },
+    {
+     "label": {
+      "es": "Canal arriba",
+      "en": "Channel up"
+     },
+     "icon": "arrow-up",
+     "color": "#64748b",
+     "tap": {
+      "type": "hotkey",
+      "keys": "alt+up"
+     }
+    },
+    {
+     "label": {
+      "es": "Canal abajo",
+      "en": "Channel down"
+     },
+     "icon": "arrow-down",
+     "color": "#64748b",
+     "tap": {
+      "type": "hotkey",
+      "keys": "alt+down"
+     }
+    },
+    {
+     "label": {
+      "es": "Abrir Slack",
+      "en": "Open Slack"
+     },
+     "icon": "grid",
+     "color": "#64748b",
+     "tap": {
+      "type": "app",
+      "app": "Slack",
+      "mode": "toggle"
+     }
+    }
+   ],
+   "apps": [
+    "Slack"
+   ],
+   "auto_apps": [
+    "Slack"
+   ],
+   "tags": [
+    "trabajo",
+    "work"
+   ]
+  },
+  {
+   "id": "mail",
+   "category": "comms",
+   "icon": "mail",
+   "color": "#0ea5e9",
+   "name": {
+    "es": "Correo (Mail)",
+    "en": "Mail"
+   },
+   "description": {
+    "es": "Redactar, responder, reenviar, archivar y marcar.",
+    "en": "Compose, reply, forward, archive and flag."
+   },
+   "region": "numpad",
+   "macros": [
+    {
+     "label": {
+      "es": "Nuevo",
+      "en": "New"
+     },
+     "icon": "edit",
+     "color": "#2563eb",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+n"
+     }
+    },
+    {
+     "label": {
+      "es": "Responder",
+      "en": "Reply"
+     },
+     "icon": "arrow-left",
+     "color": "#2563eb",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+r"
+     }
+    },
+    {
+     "label": {
+      "es": "Responder a todos",
+      "en": "Reply all"
+     },
+     "icon": "arrow-left",
+     "color": "#2563eb",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+shift+r"
+     }
+    },
+    {
+     "label": {
+      "es": "Reenviar",
+      "en": "Forward"
+     },
+     "icon": "arrow-right",
+     "color": "#2563eb",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+shift+f"
+     }
+    },
+    {
+     "label": {
+      "es": "Enviar",
+      "en": "Send"
+     },
+     "icon": "send",
+     "color": "#16a34a",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+shift+d"
+     }
+    },
+    {
+     "label": {
+      "es": "Archivar",
+      "en": "Archive"
+     },
+     "icon": "download",
+     "color": "#f59e0b",
+     "tap": {
+      "type": "hotkey",
+      "keys": "ctrl+cmd+a"
+     }
+    },
+    {
+     "label": {
+      "es": "Marcar",
+      "en": "Flag"
+     },
+     "icon": "bookmark",
+     "color": "#f97316",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+shift+l"
+     }
+    },
+    {
+     "label": {
+      "es": "Abrir Mail",
+      "en": "Open Mail"
+     },
+     "icon": "mail",
+     "color": "#64748b",
+     "tap": {
+      "type": "app",
+      "app": "Mail",
+      "mode": "toggle"
+     }
+    }
+   ],
+   "apps": [
+    "Mail"
+   ],
+   "auto_apps": [
+    "Mail"
+   ],
+   "tags": [
+    "email",
+    "correo"
+   ]
+  },
+  {
+   "id": "photoshop",
+   "category": "creative",
+   "icon": "edit",
+   "color": "#2563eb",
+   "name": {
+    "es": "Photoshop",
+    "en": "Photoshop"
+   },
+   "description": {
+    "es": "Herramientas de una letra, deshacer y capas nuevas.",
+    "en": "One-letter tools, undo and new layers."
+   },
+   "region": "numpad",
+   "macros": [
+    {
+     "label": {
+      "es": "Mover",
+      "en": "Move"
+     },
+     "icon": "grid",
+     "color": "#2563eb",
+     "tap": {
+      "type": "hotkey",
+      "keys": "v"
+     }
+    },
+    {
+     "label": {
+      "es": "Pincel",
+      "en": "Brush"
+     },
+     "icon": "edit",
+     "color": "#2563eb",
+     "tap": {
+      "type": "hotkey",
+      "keys": "b"
+     }
+    },
+    {
+     "label": {
+      "es": "Borrador",
+      "en": "Eraser"
+     },
+     "icon": "trash",
+     "color": "#2563eb",
+     "tap": {
+      "type": "hotkey",
+      "keys": "e"
+     }
+    },
+    {
+     "label": {
+      "es": "Selección",
+      "en": "Marquee"
+     },
+     "icon": "grid",
+     "color": "#2563eb",
+     "tap": {
+      "type": "hotkey",
+      "keys": "m"
+     }
+    },
+    {
+     "label": {
+      "es": "Texto",
+      "en": "Type"
+     },
+     "icon": "type",
+     "color": "#2563eb",
+     "tap": {
+      "type": "hotkey",
+      "keys": "t"
+     }
+    },
+    {
+     "label": {
+      "es": "Mano",
+      "en": "Hand"
+     },
+     "icon": "grid",
+     "color": "#64748b",
+     "tap": {
+      "type": "hotkey",
+      "keys": "h"
+     }
+    },
+    {
+     "label": {
+      "es": "Deshacer",
+      "en": "Undo"
+     },
+     "icon": "undo",
+     "color": "#f59e0b",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+z"
+     }
+    },
+    {
+     "label": {
+      "es": "Capa nueva",
+      "en": "New layer"
+     },
+     "icon": "plus",
+     "color": "#16a34a",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+shift+n"
+     }
+    },
+    {
+     "label": {
+      "es": "Exportar web",
+      "en": "Save for web"
+     },
+     "icon": "download",
+     "color": "#16a34a",
+     "tap": {
+      "type": "hotkey",
+      "keys": "alt+shift+cmd+s"
+     }
+    },
+    {
+     "label": {
+      "es": "Ajustar a ventana",
+      "en": "Fit on screen"
+     },
+     "icon": "monitor",
+     "color": "#64748b",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+0"
+     }
+    }
+   ],
+   "notes": {
+    "es": "Funciona en la app que tengas delante: no hace falta indicar el nombre exacto de Photoshop.",
+    "en": "Works in whichever app is in front: no need to name Photoshop exactly."
+   },
+   "apps": [
+    "Adobe Photoshop"
+   ],
+   "tags": [
+    "foto",
+    "diseño",
+    "adobe"
+   ]
+  },
+  {
+   "id": "illustrator",
+   "category": "creative",
+   "icon": "edit",
+   "color": "#f97316",
+   "name": {
+    "es": "Illustrator",
+    "en": "Illustrator"
+   },
+   "description": {
+    "es": "Selección, pluma, forma, texto y zoom con una tecla.",
+    "en": "Selection, pen, shape, type and zoom with one key."
+   },
+   "region": "numpad",
+   "macros": [
+    {
+     "label": {
+      "es": "Selección",
+      "en": "Selection"
+     },
+     "icon": "grid",
+     "color": "#2563eb",
+     "tap": {
+      "type": "hotkey",
+      "keys": "v"
+     }
+    },
+    {
+     "label": {
+      "es": "Selección directa",
+      "en": "Direct selection"
+     },
+     "icon": "grid",
+     "color": "#2563eb",
+     "tap": {
+      "type": "hotkey",
+      "keys": "a"
+     }
+    },
+    {
+     "label": {
+      "es": "Pluma",
+      "en": "Pen"
+     },
+     "icon": "edit",
+     "color": "#f97316",
+     "tap": {
+      "type": "hotkey",
+      "keys": "p"
+     }
+    },
+    {
+     "label": {
+      "es": "Texto",
+      "en": "Type"
+     },
+     "icon": "type",
+     "color": "#f97316",
+     "tap": {
+      "type": "hotkey",
+      "keys": "t"
+     }
+    },
+    {
+     "label": {
+      "es": "Rectángulo",
+      "en": "Rectangle"
+     },
+     "icon": "grid",
+     "color": "#f97316",
+     "tap": {
+      "type": "hotkey",
+      "keys": "m"
+     }
+    },
+    {
+     "label": {
+      "es": "Elipse",
+      "en": "Ellipse"
+     },
+     "icon": "grid",
+     "color": "#f97316",
+     "tap": {
+      "type": "hotkey",
+      "keys": "l"
+     }
+    },
+    {
+     "label": {
+      "es": "Pincel",
+      "en": "Brush"
+     },
+     "icon": "edit",
+     "color": "#f97316",
+     "tap": {
+      "type": "hotkey",
+      "keys": "b"
+     }
+    },
+    {
+     "label": {
+      "es": "Zoom",
+      "en": "Zoom"
+     },
+     "icon": "search",
+     "color": "#64748b",
+     "tap": {
+      "type": "hotkey",
+      "keys": "z"
+     }
+    },
+    {
+     "label": {
+      "es": "Mano",
+      "en": "Hand"
+     },
+     "icon": "grid",
+     "color": "#64748b",
+     "tap": {
+      "type": "hotkey",
+      "keys": "h"
+     }
+    },
+    {
+     "label": {
+      "es": "Deshacer",
+      "en": "Undo"
+     },
+     "icon": "undo",
+     "color": "#f59e0b",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+z"
+     }
+    }
+   ],
+   "apps": [
+    "Adobe Illustrator"
+   ],
+   "tags": [
+    "vector",
+    "adobe"
+   ]
+  },
+  {
+   "id": "figma",
+   "category": "creative",
+   "icon": "edit",
+   "color": "#8b5cf6",
+   "name": {
+    "es": "Figma",
+    "en": "Figma"
+   },
+   "description": {
+    "es": "Herramientas, duplicar, agrupar y ajustar el zoom.",
+    "en": "Tools, duplicate, group and zoom."
+   },
+   "region": "numpad",
+   "macros": [
+    {
+     "label": {
+      "es": "Mover",
+      "en": "Move"
+     },
+     "icon": "grid",
+     "color": "#2563eb",
+     "tap": {
+      "type": "hotkey",
+      "keys": "v"
+     }
+    },
+    {
+     "label": {
+      "es": "Marco",
+      "en": "Frame"
+     },
+     "icon": "grid",
+     "color": "#8b5cf6",
+     "tap": {
+      "type": "hotkey",
+      "keys": "f"
+     }
+    },
+    {
+     "label": {
+      "es": "Rectángulo",
+      "en": "Rectangle"
+     },
+     "icon": "grid",
+     "color": "#8b5cf6",
+     "tap": {
+      "type": "hotkey",
+      "keys": "r"
+     }
+    },
+    {
+     "label": {
+      "es": "Elipse",
+      "en": "Ellipse"
+     },
+     "icon": "grid",
+     "color": "#8b5cf6",
+     "tap": {
+      "type": "hotkey",
+      "keys": "o"
+     }
+    },
+    {
+     "label": {
+      "es": "Texto",
+      "en": "Text"
+     },
+     "icon": "type",
+     "color": "#8b5cf6",
+     "tap": {
+      "type": "hotkey",
+      "keys": "t"
+     }
+    },
+    {
+     "label": {
+      "es": "Pluma",
+      "en": "Pen"
+     },
+     "icon": "edit",
+     "color": "#8b5cf6",
+     "tap": {
+      "type": "hotkey",
+      "keys": "p"
+     }
+    },
+    {
+     "label": {
+      "es": "Duplicar",
+      "en": "Duplicate"
+     },
+     "icon": "copy",
+     "color": "#16a34a",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+d"
+     }
+    },
+    {
+     "label": {
+      "es": "Agrupar",
+      "en": "Group"
+     },
+     "icon": "layers",
+     "color": "#16a34a",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+g"
+     }
+    },
+    {
+     "label": {
+      "es": "Zoom 100%",
+      "en": "Zoom 100%"
+     },
+     "icon": "search",
+     "color": "#64748b",
+     "tap": {
+      "type": "hotkey",
+      "keys": "shift+0"
+     }
+    },
+    {
+     "label": {
+      "es": "Ajustar",
+      "en": "Zoom to fit"
+     },
+     "icon": "monitor",
+     "color": "#64748b",
+     "tap": {
+      "type": "hotkey",
+      "keys": "shift+1"
+     }
+    }
+   ],
+   "apps": [
+    "Figma"
+   ],
+   "auto_apps": [
+    "Figma"
+   ],
+   "tags": [
+    "ui",
+    "diseño",
+    "design"
+   ]
+  },
+  {
+   "id": "premiere",
+   "category": "creative",
+   "icon": "play",
+   "color": "#8b5cf6",
+   "name": {
+    "es": "Premiere Pro",
+    "en": "Premiere Pro"
+   },
+   "description": {
+    "es": "Corte, selección, reproducir con J K L y marcadores.",
+    "en": "Razor, select, J K L playback and markers."
+   },
+   "region": "numpad",
+   "macros": [
+    {
+     "label": {
+      "es": "Selección",
+      "en": "Selection"
+     },
+     "icon": "grid",
+     "color": "#2563eb",
+     "tap": {
+      "type": "hotkey",
+      "keys": "v"
+     }
+    },
+    {
+     "label": {
+      "es": "Cuchilla",
+      "en": "Razor"
+     },
+     "icon": "edit",
+     "color": "#cc4848",
+     "tap": {
+      "type": "hotkey",
+      "keys": "c"
+     }
+    },
+    {
+     "label": {
+      "es": "Atrás",
+      "en": "Reverse"
+     },
+     "icon": "skip-prev",
+     "color": "#8b5cf6",
+     "tap": {
+      "type": "hotkey",
+      "keys": "j"
+     }
+    },
+    {
+     "label": {
+      "es": "Parar",
+      "en": "Stop"
+     },
+     "icon": "pause",
+     "color": "#8b5cf6",
+     "tap": {
+      "type": "hotkey",
+      "keys": "k"
+     }
+    },
+    {
+     "label": {
+      "es": "Adelante",
+      "en": "Forward"
+     },
+     "icon": "skip-next",
+     "color": "#8b5cf6",
+     "tap": {
+      "type": "hotkey",
+      "keys": "l"
+     }
+    },
+    {
+     "label": {
+      "es": "Reproducir",
+      "en": "Play"
+     },
+     "icon": "play",
+     "color": "#16a34a",
+     "tap": {
+      "type": "hotkey",
+      "keys": "space"
+     }
+    },
+    {
+     "label": {
+      "es": "Cortar aquí",
+      "en": "Add edit"
+     },
+     "icon": "edit",
+     "color": "#cc4848",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+k"
+     }
+    },
+    {
+     "label": {
+      "es": "Marcador",
+      "en": "Marker"
+     },
+     "icon": "bookmark",
+     "color": "#f59e0b",
+     "tap": {
+      "type": "hotkey",
+      "keys": "m"
+     }
+    },
+    {
+     "label": {
+      "es": "Entrada",
+      "en": "Mark in"
+     },
+     "icon": "arrow-right",
+     "color": "#64748b",
+     "tap": {
+      "type": "hotkey",
+      "keys": "i"
+     }
+    },
+    {
+     "label": {
+      "es": "Salida",
+      "en": "Mark out"
+     },
+     "icon": "arrow-left",
+     "color": "#64748b",
+     "tap": {
+      "type": "hotkey",
+      "keys": "o"
+     }
+    },
+    {
+     "label": {
+      "es": "Borrar y cerrar",
+      "en": "Ripple delete"
+     },
+     "icon": "trash",
+     "color": "#cc4848",
+     "tap": {
+      "type": "hotkey",
+      "keys": "shift+delete"
+     }
+    }
+   ],
+   "apps": [
+    "Adobe Premiere Pro"
+   ],
+   "tags": [
+    "video",
+    "edicion",
+    "editing",
+    "adobe"
+   ]
+  },
+  {
+   "id": "finalcut",
+   "category": "creative",
+   "icon": "play",
+   "color": "#2563eb",
+   "name": {
+    "es": "Final Cut Pro",
+    "en": "Final Cut Pro"
+   },
+   "description": {
+    "es": "Selección, cuchilla, J K L, marcadores y cortar en el cursor.",
+    "en": "Select, blade, J K L, markers and split at playhead."
+   },
+   "region": "numpad",
+   "macros": [
+    {
+     "label": {
+      "es": "Selección",
+      "en": "Select"
+     },
+     "icon": "grid",
+     "color": "#2563eb",
+     "tap": {
+      "type": "hotkey",
+      "keys": "a"
+     }
+    },
+    {
+     "label": {
+      "es": "Cuchilla",
+      "en": "Blade"
+     },
+     "icon": "edit",
+     "color": "#cc4848",
+     "tap": {
+      "type": "hotkey",
+      "keys": "b"
+     }
+    },
+    {
+     "label": {
+      "es": "Atrás",
+      "en": "Reverse"
+     },
+     "icon": "skip-prev",
+     "color": "#8b5cf6",
+     "tap": {
+      "type": "hotkey",
+      "keys": "j"
+     }
+    },
+    {
+     "label": {
+      "es": "Parar",
+      "en": "Stop"
+     },
+     "icon": "pause",
+     "color": "#8b5cf6",
+     "tap": {
+      "type": "hotkey",
+      "keys": "k"
+     }
+    },
+    {
+     "label": {
+      "es": "Adelante",
+      "en": "Forward"
+     },
+     "icon": "skip-next",
+     "color": "#8b5cf6",
+     "tap": {
+      "type": "hotkey",
+      "keys": "l"
+     }
+    },
+    {
+     "label": {
+      "es": "Reproducir",
+      "en": "Play"
+     },
+     "icon": "play",
+     "color": "#16a34a",
+     "tap": {
+      "type": "hotkey",
+      "keys": "space"
+     }
+    },
+    {
+     "label": {
+      "es": "Cortar aquí",
+      "en": "Split"
+     },
+     "icon": "edit",
+     "color": "#cc4848",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+b"
+     }
+    },
+    {
+     "label": {
+      "es": "Marcador",
+      "en": "Marker"
+     },
+     "icon": "bookmark",
+     "color": "#f59e0b",
+     "tap": {
+      "type": "hotkey",
+      "keys": "m"
+     }
+    },
+    {
+     "label": {
+      "es": "Entrada",
+      "en": "Mark in"
+     },
+     "icon": "arrow-right",
+     "color": "#64748b",
+     "tap": {
+      "type": "hotkey",
+      "keys": "i"
+     }
+    },
+    {
+     "label": {
+      "es": "Salida",
+      "en": "Mark out"
+     },
+     "icon": "arrow-left",
+     "color": "#64748b",
+     "tap": {
+      "type": "hotkey",
+      "keys": "o"
+     }
+    }
+   ],
+   "apps": [
+    "Final Cut Pro"
+   ],
+   "auto_apps": [
+    "Final Cut Pro"
+   ],
+   "tags": [
+    "video",
+    "edicion",
+    "editing"
+   ]
+  },
+  {
+   "id": "blender",
+   "category": "creative",
+   "icon": "cpu",
+   "color": "#f97316",
+   "name": {
+    "es": "Blender",
+    "en": "Blender"
+   },
+   "description": {
+    "es": "Mover, rotar, escalar, modo edición y menú de añadir.",
+    "en": "Grab, rotate, scale, edit mode and the add menu."
+   },
+   "region": "numpad",
+   "macros": [
+    {
+     "label": {
+      "es": "Mover",
+      "en": "Grab"
+     },
+     "icon": "grid",
+     "color": "#2563eb",
+     "tap": {
+      "type": "hotkey",
+      "keys": "g"
+     }
+    },
+    {
+     "label": {
+      "es": "Rotar",
+      "en": "Rotate"
+     },
+     "icon": "grid",
+     "color": "#2563eb",
+     "tap": {
+      "type": "hotkey",
+      "keys": "r"
+     }
+    },
+    {
+     "label": {
+      "es": "Escalar",
+      "en": "Scale"
+     },
+     "icon": "grid",
+     "color": "#2563eb",
+     "tap": {
+      "type": "hotkey",
+      "keys": "s"
+     }
+    },
+    {
+     "label": {
+      "es": "Modo edición",
+      "en": "Edit mode"
+     },
+     "icon": "edit",
+     "color": "#f97316",
+     "tap": {
+      "type": "hotkey",
+      "keys": "tab"
+     }
+    },
+    {
+     "label": {
+      "es": "Añadir",
+      "en": "Add"
+     },
+     "icon": "plus",
+     "color": "#16a34a",
+     "tap": {
+      "type": "hotkey",
+      "keys": "shift+a"
+     }
+    },
+    {
+     "label": {
+      "es": "Duplicar",
+      "en": "Duplicate"
+     },
+     "icon": "copy",
+     "color": "#16a34a",
+     "tap": {
+      "type": "hotkey",
+      "keys": "shift+d"
+     }
+    },
+    {
+     "label": {
+      "es": "Seleccionar todo",
+      "en": "Select all"
+     },
+     "icon": "grid",
+     "color": "#64748b",
+     "tap": {
+      "type": "hotkey",
+      "keys": "a"
+     }
+    },
+    {
+     "label": {
+      "es": "Panel lateral",
+      "en": "Sidebar"
+     },
+     "icon": "monitor",
+     "color": "#64748b",
+     "tap": {
+      "type": "hotkey",
+      "keys": "n"
+     }
+    },
+    {
+     "label": {
+      "es": "Buscar",
+      "en": "Search"
+     },
+     "icon": "search",
+     "color": "#f59e0b",
+     "tap": {
+      "type": "hotkey",
+      "keys": "f3"
+     }
+    },
+    {
+     "label": {
+      "es": "Deshacer",
+      "en": "Undo"
+     },
+     "icon": "undo",
+     "color": "#f59e0b",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+z"
+     }
+    }
+   ],
+   "apps": [
+    "Blender"
+   ],
+   "auto_apps": [
+    "Blender"
+   ],
+   "tags": [
+    "3d"
+   ]
+  },
+  {
+   "id": "lightroom",
+   "category": "creative",
+   "icon": "camera",
+   "color": "#0ea5e9",
+   "name": {
+    "es": "Lightroom Classic",
+    "en": "Lightroom Classic"
+   },
+   "description": {
+    "es": "Marcar, rechazar y puntuar fotos con una tecla.",
+    "en": "Flag, reject and rate photos with one key."
+   },
+   "region": "numpad",
+   "macros": [
+    {
+     "label": {
+      "es": "Elegir",
+      "en": "Pick"
+     },
+     "icon": "check",
+     "color": "#16a34a",
+     "tap": {
+      "type": "hotkey",
+      "keys": "p"
+     }
+    },
+    {
+     "label": {
+      "es": "Rechazar",
+      "en": "Reject"
+     },
+     "icon": "x",
+     "color": "#cc4848",
+     "tap": {
+      "type": "hotkey",
+      "keys": "x"
+     }
+    },
+    {
+     "label": {
+      "es": "Quitar marca",
+      "en": "Unflag"
+     },
+     "icon": "minus",
+     "color": "#64748b",
+     "tap": {
+      "type": "hotkey",
+      "keys": "u"
+     }
+    },
+    {
+     "label": {
+      "es": "1 estrella",
+      "en": "1 star"
+     },
+     "icon": "star",
+     "color": "#f59e0b",
+     "tap": {
+      "type": "hotkey",
+      "keys": "1"
+     }
+    },
+    {
+     "label": {
+      "es": "2 estrellas",
+      "en": "2 stars"
+     },
+     "icon": "star",
+     "color": "#f59e0b",
+     "tap": {
+      "type": "hotkey",
+      "keys": "2"
+     }
+    },
+    {
+     "label": {
+      "es": "3 estrellas",
+      "en": "3 stars"
+     },
+     "icon": "star",
+     "color": "#f59e0b",
+     "tap": {
+      "type": "hotkey",
+      "keys": "3"
+     }
+    },
+    {
+     "label": {
+      "es": "4 estrellas",
+      "en": "4 stars"
+     },
+     "icon": "star",
+     "color": "#f59e0b",
+     "tap": {
+      "type": "hotkey",
+      "keys": "4"
+     }
+    },
+    {
+     "label": {
+      "es": "5 estrellas",
+      "en": "5 stars"
+     },
+     "icon": "star",
+     "color": "#f59e0b",
+     "tap": {
+      "type": "hotkey",
+      "keys": "5"
+     }
+    },
+    {
+     "label": {
+      "es": "Cuadrícula",
+      "en": "Grid"
+     },
+     "icon": "grid",
+     "color": "#2563eb",
+     "tap": {
+      "type": "hotkey",
+      "keys": "g"
+     }
+    },
+    {
+     "label": {
+      "es": "Lupa",
+      "en": "Loupe"
+     },
+     "icon": "search",
+     "color": "#2563eb",
+     "tap": {
+      "type": "hotkey",
+      "keys": "e"
+     }
+    },
+    {
+     "label": {
+      "es": "Revelar",
+      "en": "Develop"
+     },
+     "icon": "sliders",
+     "color": "#8b5cf6",
+     "tap": {
+      "type": "hotkey",
+      "keys": "d"
+     }
+    }
+   ],
+   "apps": [
+    "Adobe Lightroom Classic"
+   ],
+   "tags": [
+    "foto",
+    "photo",
+    "adobe"
+   ]
+  },
+  {
+   "id": "vscode",
+   "category": "dev",
+   "icon": "code",
+   "color": "#2563eb",
+   "name": {
+    "es": "Visual Studio Code",
+    "en": "Visual Studio Code"
+   },
+   "description": {
+    "es": "Abrir archivo, paleta, paneles, buscar, renombrar y formatear.",
+    "en": "Open file, palette, panels, search, rename and format."
+   },
+   "region": "numpad",
+   "macros": [
+    {
+     "label": {
+      "es": "Abrir archivo",
+      "en": "Quick open"
+     },
+     "icon": "folder",
+     "color": "#2563eb",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+p"
+     }
+    },
+    {
+     "label": {
+      "es": "Paleta",
+      "en": "Command palette"
+     },
+     "icon": "search",
+     "color": "#2563eb",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+shift+p"
+     }
+    },
+    {
+     "label": {
+      "es": "Barra lateral",
+      "en": "Sidebar"
+     },
+     "icon": "monitor",
+     "color": "#64748b",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+b"
+     }
+    },
+    {
+     "label": {
+      "es": "Panel",
+      "en": "Panel"
+     },
+     "icon": "terminal",
+     "color": "#64748b",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+j"
+     }
+    },
+    {
+     "label": {
+      "es": "Buscar en todo",
+      "en": "Search all"
+     },
+     "icon": "search",
+     "color": "#f59e0b",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+shift+f"
+     }
+    },
+    {
+     "label": {
+      "es": "Siguiente ocurrencia",
+      "en": "Next match"
+     },
+     "icon": "edit",
+     "color": "#16a34a",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+d"
+     }
+    },
+    {
+     "label": {
+      "es": "Renombrar",
+      "en": "Rename"
+     },
+     "icon": "edit",
+     "color": "#16a34a",
+     "tap": {
+      "type": "hotkey",
+      "keys": "f2"
+     }
+    },
+    {
+     "label": {
+      "es": "Ir a definición",
+      "en": "Go to definition"
+     },
+     "icon": "code",
+     "color": "#8b5cf6",
+     "tap": {
+      "type": "hotkey",
+      "keys": "f12"
+     }
+    },
+    {
+     "label": {
+      "es": "Formatear",
+      "en": "Format"
+     },
+     "icon": "sliders",
+     "color": "#16a34a",
+     "tap": {
+      "type": "hotkey",
+      "keys": "alt+shift+f"
+     }
+    },
+    {
+     "label": {
+      "es": "Mover línea arriba",
+      "en": "Move line up"
+     },
+     "icon": "arrow-up",
+     "color": "#64748b",
+     "tap": {
+      "type": "hotkey",
+      "keys": "alt+up"
+     }
+    },
+    {
+     "label": {
+      "es": "Mover línea abajo",
+      "en": "Move line down"
+     },
+     "icon": "arrow-down",
+     "color": "#64748b",
+     "tap": {
+      "type": "hotkey",
+      "keys": "alt+down"
+     }
+    },
+    {
+     "label": {
+      "es": "Abrir VS Code",
+      "en": "Open VS Code"
+     },
+     "icon": "code",
+     "color": "#64748b",
+     "tap": {
+      "type": "app",
+      "app": "Visual Studio Code",
+      "mode": "toggle"
+     }
+    }
+   ],
+   "apps": [
+    "Visual Studio Code"
+   ],
+   "auto_apps": [
+    "Visual Studio Code",
+    "Code"
+   ],
+   "tags": [
+    "editor",
+    "programar"
+   ]
+  },
+  {
+   "id": "xcode",
+   "category": "dev",
+   "icon": "cpu",
+   "color": "#2563eb",
+   "name": {
+    "es": "Xcode",
+    "en": "Xcode"
+   },
+   "description": {
+    "es": "Compilar, ejecutar, parar, probar y navegar.",
+    "en": "Build, run, stop, test and navigate."
+   },
+   "region": "numpad",
+   "macros": [
+    {
+     "label": {
+      "es": "Compilar",
+      "en": "Build"
+     },
+     "icon": "cpu",
+     "color": "#2563eb",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+b"
+     }
+    },
+    {
+     "label": {
+      "es": "Ejecutar",
+      "en": "Run"
+     },
+     "icon": "play",
+     "color": "#16a34a",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+r"
+     }
+    },
+    {
+     "label": {
+      "es": "Parar",
+      "en": "Stop"
+     },
+     "icon": "pause",
+     "color": "#cc4848",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+."
+     }
+    },
+    {
+     "label": {
+      "es": "Probar",
+      "en": "Test"
+     },
+     "icon": "check",
+     "color": "#16a34a",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+u"
+     }
+    },
+    {
+     "label": {
+      "es": "Limpiar",
+      "en": "Clean"
+     },
+     "icon": "trash",
+     "color": "#f59e0b",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+shift+k",
+      "confirm": true
+     }
+    },
+    {
+     "label": {
+      "es": "Abrir rápido",
+      "en": "Open quickly"
+     },
+     "icon": "search",
+     "color": "#2563eb",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+shift+o"
+     }
+    },
+    {
+     "label": {
+      "es": "Ir a definición",
+      "en": "Jump to definition"
+     },
+     "icon": "code",
+     "color": "#8b5cf6",
+     "tap": {
+      "type": "hotkey",
+      "keys": "ctrl+cmd+j"
+     }
+    },
+    {
+     "label": {
+      "es": "Navegador",
+      "en": "Navigator"
+     },
+     "icon": "folder",
+     "color": "#64748b",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+0"
+     }
+    },
+    {
+     "label": {
+      "es": "Inspector",
+      "en": "Utilities"
+     },
+     "icon": "sliders",
+     "color": "#64748b",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+alt+0"
+     }
+    },
+    {
+     "label": {
+      "es": "Consola",
+      "en": "Debug area"
+     },
+     "icon": "terminal",
+     "color": "#64748b",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+shift+y"
+     }
+    }
+   ],
+   "apps": [
+    "Xcode"
+   ],
+   "auto_apps": [
+    "Xcode"
+   ],
+   "tags": [
+    "ios",
+    "swift",
+    "apple"
+   ]
+  },
+  {
+   "id": "jetbrains",
+   "category": "dev",
+   "icon": "code",
+   "color": "#ec4899",
+   "name": {
+    "es": "JetBrains (IntelliJ, PyCharm, WebStorm)",
+    "en": "JetBrains (IntelliJ, PyCharm, WebStorm)"
+   },
+   "description": {
+    "es": "Buscar acción, archivos recientes, ejecutar, depurar y refactorizar.",
+    "en": "Find action, recent files, run, debug and refactor."
+   },
+   "region": "numpad",
+   "macros": [
+    {
+     "label": {
+      "es": "Buscar acción",
+      "en": "Find action"
+     },
+     "icon": "search",
+     "color": "#2563eb",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+shift+a"
+     }
+    },
+    {
+     "label": {
+      "es": "Recientes",
+      "en": "Recent files"
+     },
+     "icon": "clock",
+     "color": "#2563eb",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+e"
+     }
+    },
+    {
+     "label": {
+      "es": "Ejecutar",
+      "en": "Run"
+     },
+     "icon": "play",
+     "color": "#16a34a",
+     "tap": {
+      "type": "hotkey",
+      "keys": "ctrl+r"
+     }
+    },
+    {
+     "label": {
+      "es": "Depurar",
+      "en": "Debug"
+     },
+     "icon": "cpu",
+     "color": "#16a34a",
+     "tap": {
+      "type": "hotkey",
+      "keys": "ctrl+d"
+     }
+    },
+    {
+     "label": {
+      "es": "Formatear",
+      "en": "Reformat"
+     },
+     "icon": "sliders",
+     "color": "#8b5cf6",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+alt+l"
+     }
+    },
+    {
+     "label": {
+      "es": "Renombrar",
+      "en": "Rename"
+     },
+     "icon": "edit",
+     "color": "#8b5cf6",
+     "tap": {
+      "type": "hotkey",
+      "keys": "shift+f6"
+     }
+    },
+    {
+     "label": {
+      "es": "Ir a declaración",
+      "en": "Go to declaration"
+     },
+     "icon": "code",
+     "color": "#8b5cf6",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+b"
+     }
+    },
+    {
+     "label": {
+      "es": "Buscar en ruta",
+      "en": "Find in path"
+     },
+     "icon": "search",
+     "color": "#f59e0b",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+shift+f"
+     }
+    }
+   ],
+   "apps": [
+    "IntelliJ IDEA",
+    "PyCharm",
+    "WebStorm"
+   ],
+   "tags": [
+    "java",
+    "python",
+    "kotlin"
+   ]
+  },
+  {
+   "id": "terminal",
+   "category": "dev",
+   "icon": "terminal",
+   "color": "#16a34a",
+   "name": {
+    "es": "Terminal y pestañas",
+    "en": "Terminal and tabs"
+   },
+   "description": {
+    "es": "Pestañas, limpiar, interrumpir y buscar en la terminal.",
+    "en": "Tabs, clear, interrupt and search in the terminal."
+   },
+   "region": "numpad",
+   "macros": [
+    {
+     "label": {
+      "es": "Pestaña nueva",
+      "en": "New tab"
+     },
+     "icon": "plus",
+     "color": "#2563eb",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+t"
+     }
+    },
+    {
+     "label": {
+      "es": "Cerrar pestaña",
+      "en": "Close tab"
+     },
+     "icon": "x",
+     "color": "#cc4848",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+w"
+     }
+    },
+    {
+     "label": {
+      "es": "Ventana nueva",
+      "en": "New window"
+     },
+     "icon": "terminal",
+     "color": "#2563eb",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+n"
+     }
+    },
+    {
+     "label": {
+      "es": "Limpiar",
+      "en": "Clear"
+     },
+     "icon": "trash",
+     "color": "#f59e0b",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+k"
+     }
+    },
+    {
+     "label": {
+      "es": "Interrumpir",
+      "en": "Interrupt"
+     },
+     "icon": "power",
+     "color": "#cc4848",
+     "tap": {
+      "type": "hotkey",
+      "keys": "ctrl+c",
+      "confirm": true
+     }
+    },
+    {
+     "label": {
+      "es": "Buscar",
+      "en": "Find"
+     },
+     "icon": "search",
+     "color": "#64748b",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+f"
+     }
+    },
+    {
+     "label": {
+      "es": "Siguiente pestaña",
+      "en": "Next tab"
+     },
+     "icon": "arrow-right",
+     "color": "#64748b",
+     "tap": {
+      "type": "hotkey",
+      "keys": "ctrl+tab"
+     }
+    },
+    {
+     "label": {
+      "es": "Abrir Terminal",
+      "en": "Open Terminal"
+     },
+     "icon": "terminal",
+     "color": "#64748b",
+     "tap": {
+      "type": "app",
+      "app": "Terminal",
+      "mode": "toggle"
+     }
+    }
+   ],
+   "apps": [
+    "Terminal",
+    "iTerm2"
+   ],
+   "tags": [
+    "consola",
+    "shell"
+   ]
+  },
+  {
+   "id": "git",
+   "category": "dev",
+   "icon": "code",
+   "color": "#f97316",
+   "name": {
+    "es": "Git en la terminal",
+    "en": "Git in the terminal"
+   },
+   "description": {
+    "es": "Escribe los comandos de Git más usados en la terminal que tengas delante.",
+    "en": "Types the most common Git commands into whichever terminal is in front."
+   },
+   "region": "numpad",
+   "macros": [
+    {
+     "label": {
+      "es": "status",
+      "en": "status"
+     },
+     "icon": "list",
+     "color": "#2563eb",
+     "tap": {
+      "type": "text",
+      "text": "git status\n"
+     }
+    },
+    {
+     "label": {
+      "es": "diff",
+      "en": "diff"
+     },
+     "icon": "code",
+     "color": "#2563eb",
+     "tap": {
+      "type": "text",
+      "text": "git diff\n"
+     }
+    },
+    {
+     "label": {
+      "es": "pull",
+      "en": "pull"
+     },
+     "icon": "download",
+     "color": "#16a34a",
+     "tap": {
+      "type": "text",
+      "text": "git pull\n"
+     }
+    },
+    {
+     "label": {
+      "es": "push",
+      "en": "push"
+     },
+     "icon": "upload",
+     "color": "#cc4848",
+     "tap": {
+      "type": "text",
+      "text": "git push\n",
+      "confirm": true
+     }
+    },
+    {
+     "label": {
+      "es": "add todo",
+      "en": "add all"
+     },
+     "icon": "plus",
+     "color": "#16a34a",
+     "tap": {
+      "type": "text",
+      "text": "git add -A\n"
+     }
+    },
+    {
+     "label": {
+      "es": "commit",
+      "en": "commit"
+     },
+     "icon": "check",
+     "color": "#f59e0b",
+     "tap": {
+      "type": "text",
+      "text": "git commit -m \""
+     }
+    },
+    {
+     "label": {
+      "es": "log",
+      "en": "log"
+     },
+     "icon": "clock",
+     "color": "#64748b",
+     "tap": {
+      "type": "text",
+      "text": "git log --oneline -15\n"
+     }
+    },
+    {
+     "label": {
+      "es": "rama nueva",
+      "en": "new branch"
+     },
+     "icon": "layers",
+     "color": "#8b5cf6",
+     "tap": {
+      "type": "text",
+      "text": "git checkout -b "
+     }
+    },
+    {
+     "label": {
+      "es": "stash",
+      "en": "stash"
+     },
+     "icon": "folder",
+     "color": "#64748b",
+     "tap": {
+      "type": "text",
+      "text": "git stash\n"
+     }
+    }
+   ],
+   "notes": {
+    "es": "Cada macro escribe el texto como si lo teclearas, así que la terminal debe estar delante. 'commit' deja abiertas las comillas para que escribas el mensaje.",
+    "en": "Each macro types the text as if you typed it, so the terminal must be in front. 'commit' leaves the quote open so you can type the message."
+   },
+   "apps": [
+    "Terminal",
+    "iTerm2"
+   ],
+   "tags": [
+    "git",
+    "versiones"
+   ]
+  },
+  {
+   "id": "browser",
+   "category": "dev",
+   "icon": "globe",
+   "color": "#f59e0b",
+   "name": {
+    "es": "Navegador y herramientas web",
+    "en": "Browser and web tools"
+   },
+   "description": {
+    "es": "Pestañas, barra de direcciones, consola de desarrollo y recarga forzada.",
+    "en": "Tabs, address bar, dev tools and hard reload."
+   },
+   "region": "numpad",
+   "macros": [
+    {
+     "label": {
+      "es": "Pestaña nueva",
+      "en": "New tab"
+     },
+     "icon": "plus",
+     "color": "#2563eb",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+t"
+     }
+    },
+    {
+     "label": {
+      "es": "Cerrar",
+      "en": "Close"
+     },
+     "icon": "x",
+     "color": "#cc4848",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+w"
+     }
+    },
+    {
+     "label": {
+      "es": "Reabrir",
+      "en": "Reopen"
+     },
+     "icon": "undo",
+     "color": "#f59e0b",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+shift+t"
+     }
+    },
+    {
+     "label": {
+      "es": "Barra de direcciones",
+      "en": "Address bar"
+     },
+     "icon": "search",
+     "color": "#2563eb",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+l"
+     }
+    },
+    {
+     "label": {
+      "es": "Herramientas",
+      "en": "Dev tools"
+     },
+     "icon": "code",
+     "color": "#8b5cf6",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+alt+i"
+     }
+    },
+    {
+     "label": {
+      "es": "Recargar",
+      "en": "Reload"
+     },
+     "icon": "redo",
+     "color": "#16a34a",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+r"
+     }
+    },
+    {
+     "label": {
+      "es": "Recarga forzada",
+      "en": "Hard reload"
+     },
+     "icon": "redo",
+     "color": "#16a34a",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+shift+r"
+     }
+    },
+    {
+     "label": {
+      "es": "Incógnito",
+      "en": "Incognito"
+     },
+     "icon": "eye",
+     "color": "#64748b",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+shift+n"
+     }
+    },
+    {
+     "label": {
+      "es": "Pestaña siguiente",
+      "en": "Next tab"
+     },
+     "icon": "arrow-right",
+     "color": "#64748b",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+alt+right"
+     }
+    },
+    {
+     "label": {
+      "es": "Pestaña anterior",
+      "en": "Previous tab"
+     },
+     "icon": "arrow-left",
+     "color": "#64748b",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+alt+left"
+     }
+    }
+   ],
+   "apps": [
+    "Google Chrome",
+    "Safari"
+   ],
+   "tags": [
+    "web",
+    "chrome"
+   ]
+  },
+  {
+   "id": "homelab",
+   "category": "home",
+   "icon": "server",
+   "color": "#16a34a",
+   "name": {
+    "es": "Servidor por SSH",
+    "en": "Server over SSH"
+   },
+   "description": {
+    "es": "Plantilla: cambia mi-servidor por tu alias de SSH. El resultado sale en el cartel.",
+    "en": "Template: replace mi-servidor with your SSH alias. The result shows on screen."
+   },
+   "region": "numpad",
+   "macros": [
+    {
+     "label": {
+      "es": "Uptime",
+      "en": "Uptime"
+     },
+     "icon": "clock",
+     "color": "#16a34a",
+     "tap": {
+      "type": "ssh",
+      "host": "mi-servidor",
+      "cmd": "uptime -p",
+      "show_output": true
+     }
+    },
+    {
+     "label": {
+      "es": "Disco",
+      "en": "Disk"
+     },
+     "icon": "database",
+     "color": "#2563eb",
+     "tap": {
+      "type": "ssh",
+      "host": "mi-servidor",
+      "cmd": "df -h / | tail -1 | awk '{print $5 \" usado\"}'",
+      "show_output": true
+     }
+    },
+    {
+     "label": {
+      "es": "Memoria",
+      "en": "Memory"
+     },
+     "icon": "cpu",
+     "color": "#f59e0b",
+     "tap": {
+      "type": "ssh",
+      "host": "mi-servidor",
+      "cmd": "free -h | awk '/Mem/ {print $3 \" de \" $2}'",
+      "show_output": true
+     }
+    },
+    {
+     "label": {
+      "es": "Carga",
+      "en": "Load"
+     },
+     "icon": "activity",
+     "color": "#8b5cf6",
+     "tap": {
+      "type": "ssh",
+      "host": "mi-servidor",
+      "cmd": "cut -d' ' -f1-3 /proc/loadavg",
+      "show_output": true
+     }
+    },
+    {
+     "label": {
+      "es": "Servicios caídos",
+      "en": "Failed services"
+     },
+     "icon": "shield",
+     "color": "#cc4848",
+     "tap": {
+      "type": "ssh",
+      "host": "mi-servidor",
+      "cmd": "systemctl --failed --no-legend | wc -l",
+      "show_output": true
+     }
+    },
+    {
+     "label": {
+      "es": "Reiniciar",
+      "en": "Reboot"
+     },
+     "icon": "power",
+     "color": "#cc4848",
+     "tap": {
+      "type": "ssh",
+      "host": "mi-servidor",
+      "cmd": "sudo reboot",
+      "show_output": true,
+      "confirm": true
+     }
+    }
+   ],
+   "notes": {
+    "es": "Necesita acceso por SSH con clave (sin contraseña) y un alias en ~/.ssh/config. 'Reiniciar' pide doble pulsación.",
+    "en": "Needs SSH key access (no password) and an alias in ~/.ssh/config. 'Reboot' asks for a double press."
+   },
+   "apps": [
+    "SSH"
+   ],
+   "tags": [
+    "linux",
+    "proxmox",
+    "homelab"
+   ]
+  },
+  {
+   "id": "docker",
+   "category": "home",
+   "icon": "server",
+   "color": "#0ea5e9",
+   "name": {
+    "es": "Docker por SSH",
+    "en": "Docker over SSH"
+   },
+   "description": {
+    "es": "Contenedores en marcha, estadísticas y reinicios en un servidor con Docker.",
+    "en": "Running containers, stats and restarts on a Docker host."
+   },
+   "region": "numpad",
+   "macros": [
+    {
+     "label": {
+      "es": "Contenedores",
+      "en": "Containers"
+     },
+     "icon": "list",
+     "color": "#2563eb",
+     "tap": {
+      "type": "ssh",
+      "host": "mi-servidor",
+      "cmd": "docker ps --format '{{.Names}}: {{.Status}}' | head -3",
+      "show_output": true
+     }
+    },
+    {
+     "label": {
+      "es": "Cuántos",
+      "en": "How many"
+     },
+     "icon": "grid",
+     "color": "#16a34a",
+     "tap": {
+      "type": "ssh",
+      "host": "mi-servidor",
+      "cmd": "docker ps -q | wc -l",
+      "show_output": true
+     }
+    },
+    {
+     "label": {
+      "es": "Parados",
+      "en": "Stopped"
+     },
+     "icon": "pause",
+     "color": "#f59e0b",
+     "tap": {
+      "type": "ssh",
+      "host": "mi-servidor",
+      "cmd": "docker ps -aq --filter status=exited | wc -l",
+      "show_output": true
+     }
+    },
+    {
+     "label": {
+      "es": "Espacio",
+      "en": "Disk use"
+     },
+     "icon": "database",
+     "color": "#64748b",
+     "tap": {
+      "type": "ssh",
+      "host": "mi-servidor",
+      "cmd": "docker system df --format '{{.Type}}: {{.Size}}' | head -2",
+      "show_output": true
+     }
+    },
+    {
+     "label": {
+      "es": "Limpiar",
+      "en": "Prune"
+     },
+     "icon": "trash",
+     "color": "#cc4848",
+     "tap": {
+      "type": "ssh",
+      "host": "mi-servidor",
+      "cmd": "docker system prune -f | tail -1",
+      "show_output": true,
+      "confirm": true
+     }
+    }
+   ],
+   "notes": {
+    "es": "Cambia mi-servidor por tu alias de SSH.",
+    "en": "Replace mi-servidor with your SSH alias."
+   },
+   "apps": [
+    "Docker"
+   ],
+   "tags": [
+    "contenedores",
+    "containers"
+   ]
+  },
+  {
+   "id": "smart-home",
+   "category": "home",
+   "icon": "bolt",
+   "color": "#f59e0b",
+   "name": {
+    "es": "Casa conectada (HTTP)",
+    "en": "Smart home (HTTP)"
+   },
+   "description": {
+    "es": "Plantilla para enchufes y luces con API web: Shelly, Tasmota y Home Assistant.",
+    "en": "Template for plugs and lights with a web API: Shelly, Tasmota and Home Assistant."
+   },
+   "region": "numpad",
+   "macros": [
+    {
+     "label": {
+      "es": "Shelly on/off",
+      "en": "Shelly toggle"
+     },
+     "icon": "bolt",
+     "color": "#f59e0b",
+     "tap": {
+      "type": "http",
+      "method": "GET",
+      "url": "http://192.168.1.50/relay/0?turn=toggle",
+      "body": ""
+     }
+    },
+    {
+     "label": {
+      "es": "Tasmota on/off",
+      "en": "Tasmota toggle"
+     },
+     "icon": "bolt",
+     "color": "#f59e0b",
+     "tap": {
+      "type": "http",
+      "method": "GET",
+      "url": "http://192.168.1.51/cm?cmnd=Power%20Toggle",
+      "body": ""
+     }
+    },
+    {
+     "label": {
+      "es": "Home Assistant",
+      "en": "Home Assistant"
+     },
+     "icon": "home",
+     "color": "#2563eb",
+     "tap": {
+      "type": "http",
+      "method": "POST",
+      "url": "http://homeassistant.local:8123/api/webhook/TU_ID",
+      "body": ""
+     }
+    },
+    {
+     "label": {
+      "es": "Luz salón",
+      "en": "Living room light"
+     },
+     "icon": "sun",
+     "color": "#f59e0b",
+     "tap": {
+      "type": "http",
+      "method": "GET",
+      "url": "http://192.168.1.52/relay/0?turn=toggle",
+      "body": ""
+     }
+    }
+   ],
+   "notes": {
+    "es": "Las direcciones son ejemplos: cambia las IP y el identificador del webhook por los tuyos.",
+    "en": "The addresses are examples: replace the IPs and the webhook id with yours."
+   },
+   "apps": [
+    "Home Assistant"
+   ],
+   "tags": [
+    "domotica",
+    "domotics",
+    "iot"
+   ]
+  },
+  {
+   "id": "mac-productivity",
+   "category": "work",
+   "icon": "monitor",
+   "color": "#2563eb",
+   "name": {
+    "es": "Mac: escritorios y apps",
+    "en": "Mac: spaces and apps"
+   },
+   "description": {
+    "es": "Mission Control, escritorios, Spotlight, forzar salida y emojis.",
+    "en": "Mission Control, spaces, Spotlight, force quit and emoji."
+   },
+   "region": "numpad",
+   "macros": [
+    {
+     "label": {
+      "es": "Mission Control",
+      "en": "Mission Control"
+     },
+     "icon": "layers",
+     "color": "#2563eb",
+     "tap": {
+      "type": "hotkey",
+      "keys": "ctrl+up"
+     }
+    },
+    {
+     "label": {
+      "es": "Ventanas de la app",
+      "en": "App windows"
+     },
+     "icon": "grid",
+     "color": "#2563eb",
+     "tap": {
+      "type": "hotkey",
+      "keys": "ctrl+down"
+     }
+    },
+    {
+     "label": {
+      "es": "Escritorio izq.",
+      "en": "Space left"
+     },
+     "icon": "arrow-left",
+     "color": "#64748b",
+     "tap": {
+      "type": "hotkey",
+      "keys": "ctrl+left"
+     }
+    },
+    {
+     "label": {
+      "es": "Escritorio der.",
+      "en": "Space right"
+     },
+     "icon": "arrow-right",
+     "color": "#64748b",
+     "tap": {
+      "type": "hotkey",
+      "keys": "ctrl+right"
+     }
+    },
+    {
+     "label": {
+      "es": "Spotlight",
+      "en": "Spotlight"
+     },
+     "icon": "search",
+     "color": "#8b5cf6",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+space"
+     }
+    },
+    {
+     "label": {
+      "es": "Forzar salida",
+      "en": "Force quit"
+     },
+     "icon": "power",
+     "color": "#cc4848",
+     "tap": {
+      "type": "hotkey",
+      "keys": "alt+cmd+escape"
+     }
+    },
+    {
+     "label": {
+      "es": "Emojis",
+      "en": "Emoji picker"
+     },
+     "icon": "star",
+     "color": "#f59e0b",
+     "tap": {
+      "type": "hotkey",
+      "keys": "ctrl+cmd+space"
+     }
+    },
+    {
+     "label": {
+      "es": "Captura",
+      "en": "Screenshot"
+     },
+     "icon": "camera",
+     "color": "#0ea5e9",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+shift+4"
+     }
+    },
+    {
+     "label": {
+      "es": "Bloquear",
+      "en": "Lock"
+     },
+     "icon": "lock",
+     "color": "#cc4848",
+     "tap": {
+      "type": "system",
+      "cmd": "lock",
+      "confirm": true
+     }
+    }
+   ],
+   "tags": [
+    "mac",
+    "macos"
+   ]
+  },
+  {
+   "id": "windows",
+   "category": "work",
+   "icon": "monitor",
+   "color": "#0ea5a4",
+   "name": {
+    "es": "Ventanas (Rectangle)",
+    "en": "Window tiling (Rectangle)"
+   },
+   "description": {
+    "es": "Mitades, maximizar, centrar y cambiar de pantalla con Rectangle.",
+    "en": "Halves, maximize, center and move between displays with Rectangle."
+   },
+   "region": "numpad",
+   "macros": [
+    {
+     "label": {
+      "es": "Mitad izquierda",
+      "en": "Left half"
+     },
+     "icon": "arrow-left",
+     "color": "#0ea5a4",
+     "tap": {
+      "type": "hotkey",
+      "keys": "ctrl+alt+left"
+     }
+    },
+    {
+     "label": {
+      "es": "Mitad derecha",
+      "en": "Right half"
+     },
+     "icon": "arrow-right",
+     "color": "#0ea5a4",
+     "tap": {
+      "type": "hotkey",
+      "keys": "ctrl+alt+right"
+     }
+    },
+    {
+     "label": {
+      "es": "Mitad superior",
+      "en": "Top half"
+     },
+     "icon": "arrow-up",
+     "color": "#0ea5a4",
+     "tap": {
+      "type": "hotkey",
+      "keys": "ctrl+alt+up"
+     }
+    },
+    {
+     "label": {
+      "es": "Mitad inferior",
+      "en": "Bottom half"
+     },
+     "icon": "arrow-down",
+     "color": "#0ea5a4",
+     "tap": {
+      "type": "hotkey",
+      "keys": "ctrl+alt+down"
+     }
+    },
+    {
+     "label": {
+      "es": "Maximizar",
+      "en": "Maximize"
+     },
+     "icon": "monitor",
+     "color": "#2563eb",
+     "tap": {
+      "type": "hotkey",
+      "keys": "ctrl+alt+return"
+     }
+    },
+    {
+     "label": {
+      "es": "Centrar",
+      "en": "Center"
+     },
+     "icon": "grid",
+     "color": "#2563eb",
+     "tap": {
+      "type": "hotkey",
+      "keys": "ctrl+alt+c"
+     }
+    },
+    {
+     "label": {
+      "es": "Otra pantalla",
+      "en": "Next display"
+     },
+     "icon": "arrow-right",
+     "color": "#8b5cf6",
+     "tap": {
+      "type": "hotkey",
+      "keys": "ctrl+alt+cmd+right"
+     }
+    },
+    {
+     "label": {
+      "es": "Restaurar",
+      "en": "Restore"
+     },
+     "icon": "undo",
+     "color": "#64748b",
+     "tap": {
+      "type": "hotkey",
+      "keys": "ctrl+alt+delete"
+     }
+    }
+   ],
+   "notes": {
+    "es": "Necesita Rectangle (gratuito, rectangleapp.com) con sus atajos por defecto.",
+    "en": "Needs Rectangle (free) with its default shortcuts."
+   },
+   "apps": [
+    "Rectangle"
+   ],
+   "tags": [
+    "ventanas",
+    "windows"
+   ]
+  },
+  {
+   "id": "obsidian",
+   "category": "work",
+   "icon": "edit",
+   "color": "#8b5cf6",
+   "name": {
+    "es": "Obsidian",
+    "en": "Obsidian"
+   },
+   "description": {
+    "es": "Buscar nota, paleta, nota nueva, editar o ver y búsqueda.",
+    "en": "Quick switcher, palette, new note, edit or preview and search."
+   },
+   "region": "numpad",
+   "macros": [
+    {
+     "label": {
+      "es": "Buscar nota",
+      "en": "Quick switcher"
+     },
+     "icon": "search",
+     "color": "#2563eb",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+o"
+     }
+    },
+    {
+     "label": {
+      "es": "Paleta",
+      "en": "Command palette"
+     },
+     "icon": "command",
+     "color": "#2563eb",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+p"
+     }
+    },
+    {
+     "label": {
+      "es": "Nota nueva",
+      "en": "New note"
+     },
+     "icon": "plus",
+     "color": "#16a34a",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+n"
+     }
+    },
+    {
+     "label": {
+      "es": "Editar o ver",
+      "en": "Edit / preview"
+     },
+     "icon": "edit",
+     "color": "#8b5cf6",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+e"
+     }
+    },
+    {
+     "label": {
+      "es": "Buscar",
+      "en": "Search"
+     },
+     "icon": "search",
+     "color": "#f59e0b",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+shift+f"
+     }
+    },
+    {
+     "label": {
+      "es": "Abrir Obsidian",
+      "en": "Open Obsidian"
+     },
+     "icon": "folder",
+     "color": "#64748b",
+     "tap": {
+      "type": "app",
+      "app": "Obsidian",
+      "mode": "toggle"
+     }
+    }
+   ],
+   "apps": [
+    "Obsidian"
+   ],
+   "auto_apps": [
+    "Obsidian"
+   ],
+   "tags": [
+    "notas",
+    "notes"
+   ]
+  },
+  {
+   "id": "focus",
+   "category": "work",
+   "icon": "clock",
+   "color": "#cc4848",
+   "name": {
+    "es": "Foco y pomodoro",
+    "en": "Focus and pomodoro"
+   },
+   "description": {
+    "es": "Temporizadores, silenciar y cerrar distracciones con una tecla.",
+    "en": "Timers, mute and closing distractions with one key."
+   },
+   "region": "numpad",
+   "macros": [
+    {
+     "label": {
+      "es": "Pomodoro 25",
+      "en": "Pomodoro 25"
+     },
+     "icon": "clock",
+     "color": "#cc4848",
+     "tap": {
+      "type": "timer",
+      "minutes": 25,
+      "label": "Pomodoro"
+     }
+    },
+    {
+     "label": {
+      "es": "Descanso 5",
+      "en": "Break 5"
+     },
+     "icon": "clock",
+     "color": "#16a34a",
+     "tap": {
+      "type": "timer",
+      "minutes": 5,
+      "label": "Descanso"
+     }
+    },
+    {
+     "label": {
+      "es": "Descanso 15",
+      "en": "Break 15"
+     },
+     "icon": "clock",
+     "color": "#0ea5a4",
+     "tap": {
+      "type": "timer",
+      "minutes": 15,
+      "label": "Descanso largo"
+     }
+    },
+    {
+     "label": {
+      "es": "Empezar foco",
+      "en": "Start focus"
+     },
+     "icon": "bolt",
+     "color": "#8b5cf6",
+     "tap": {
+      "type": "sequence",
+      "steps": [
+       {
+        "type": "media",
+        "cmd": "mute"
+       },
+       {
+        "type": "hud",
+        "text": "Foco"
+       },
+       {
+        "type": "timer",
+        "minutes": 25,
+        "label": "Foco"
+       }
+      ]
+     }
+    },
+    {
+     "label": {
+      "es": "Cerrar distracciones",
+      "en": "Close distractions"
+     },
+     "icon": "power",
+     "color": "#f59e0b",
+     "tap": {
+      "type": "sequence",
+      "steps": [
+       {
+        "type": "app",
+        "app": "Discord",
+        "mode": "quit"
+       },
+       {
+        "type": "app",
+        "app": "Slack",
+        "mode": "quit"
+       },
+       {
+        "type": "app",
+        "app": "WhatsApp",
+        "mode": "quit"
+       }
+      ],
+      "confirm": true
+     }
+    },
+    {
+     "label": {
+      "es": "Mantener despierto",
+      "en": "Stay awake"
+     },
+     "icon": "bolt",
+     "color": "#0ea5e9",
+     "tap": {
+      "type": "system",
+      "cmd": "caffeinate"
+     }
+    }
+   ],
+   "notes": {
+    "es": "'Cerrar distracciones' cierra Discord, Slack y WhatsApp y pide doble pulsación. Edita la lista a tu gusto.",
+    "en": "'Close distractions' quits Discord, Slack and WhatsApp and asks for a double press. Edit the list to taste."
+   },
+   "tags": [
+    "pomodoro",
+    "concentracion",
+    "focus"
+   ]
+  },
+  {
+   "id": "media",
+   "category": "media",
+   "icon": "music",
+   "color": "#8b5cf6",
+   "name": {
+    "es": "Multimedia",
+    "en": "Media"
+   },
+   "description": {
+    "es": "Reproducción y volumen para Spotify o Música.",
+    "en": "Playback and volume for Spotify or Music."
+   },
+   "region": "numpad",
+   "macros": [
+    {
+     "label": {
+      "es": "Anterior",
+      "en": "Previous"
+     },
+     "icon": "skip-prev",
+     "color": "#2563eb",
+     "tap": {
+      "type": "media",
+      "cmd": "prev"
+     }
+    },
+    {
+     "label": {
+      "es": "Reproducir",
+      "en": "Play"
+     },
+     "icon": "play",
+     "color": "#8b5cf6",
+     "tap": {
+      "type": "media",
+      "cmd": "playpause"
+     },
+     "hold": {
+      "type": "media",
+      "cmd": "next"
+     }
+    },
+    {
+     "label": {
+      "es": "Siguiente",
+      "en": "Next"
+     },
+     "icon": "skip-next",
+     "color": "#2563eb",
+     "tap": {
+      "type": "media",
+      "cmd": "next"
+     }
+    },
+    {
+     "label": {
+      "es": "Volumen -",
+      "en": "Volume -"
+     },
+     "icon": "volume",
+     "color": "#64748b",
+     "tap": {
+      "type": "media",
+      "cmd": "voldown"
+     }
+    },
+    {
+     "label": {
+      "es": "Silenciar",
+      "en": "Mute"
+     },
+     "icon": "volume-mute",
+     "color": "#cc4848",
+     "tap": {
+      "type": "media",
+      "cmd": "mute"
+     }
+    },
+    {
+     "label": {
+      "es": "Volumen +",
+      "en": "Volume +"
+     },
+     "icon": "volume",
+     "color": "#64748b",
+     "tap": {
+      "type": "media",
+      "cmd": "volup"
+     }
+    },
+    {
+     "label": {
+      "es": "Abrir Spotify",
+      "en": "Open Spotify"
+     },
+     "icon": "music",
+     "color": "#16a34a",
+     "tap": {
+      "type": "app",
+      "app": "Spotify",
+      "mode": "toggle"
+     }
+    }
+   ],
+   "apps": [
+    "Spotify",
+    "Music"
+   ],
+   "auto_apps": [
+    "Spotify"
+   ],
+   "tags": [
+    "musica",
+    "music",
+    "volumen"
+   ]
+  },
+  {
+   "id": "youtube",
+   "category": "media",
+   "icon": "play",
+   "color": "#cc4848",
+   "name": {
+    "es": "YouTube en el navegador",
+    "en": "YouTube in the browser"
+   },
+   "description": {
+    "es": "Pausa, saltar 10 s, pantalla completa y silencio, con la pestaña de YouTube delante.",
+    "en": "Pause, skip 10 s, fullscreen and mute, with the YouTube tab in front."
+   },
+   "region": "numpad",
+   "macros": [
+    {
+     "label": {
+      "es": "Pausa",
+      "en": "Pause"
+     },
+     "icon": "pause",
+     "color": "#cc4848",
+     "tap": {
+      "type": "hotkey",
+      "keys": "k"
+     }
+    },
+    {
+     "label": {
+      "es": "Atrás 10 s",
+      "en": "Back 10 s"
+     },
+     "icon": "skip-prev",
+     "color": "#2563eb",
+     "tap": {
+      "type": "hotkey",
+      "keys": "j"
+     }
+    },
+    {
+     "label": {
+      "es": "Adelante 10 s",
+      "en": "Forward 10 s"
+     },
+     "icon": "skip-next",
+     "color": "#2563eb",
+     "tap": {
+      "type": "hotkey",
+      "keys": "l"
+     }
+    },
+    {
+     "label": {
+      "es": "Pantalla completa",
+      "en": "Fullscreen"
+     },
+     "icon": "monitor",
+     "color": "#16a34a",
+     "tap": {
+      "type": "hotkey",
+      "keys": "f"
+     }
+    },
+    {
+     "label": {
+      "es": "Silencio",
+      "en": "Mute"
+     },
+     "icon": "volume-mute",
+     "color": "#f59e0b",
+     "tap": {
+      "type": "hotkey",
+      "keys": "m"
+     }
+    },
+    {
+     "label": {
+      "es": "Siguiente vídeo",
+      "en": "Next video"
+     },
+     "icon": "arrow-right",
+     "color": "#8b5cf6",
+     "tap": {
+      "type": "hotkey",
+      "keys": "shift+n"
+     }
+    }
+   ],
+   "apps": [
+    "YouTube"
+   ],
+   "tags": [
+    "video"
+   ]
+  },
+  {
+   "id": "system",
+   "category": "system",
+   "icon": "monitor",
+   "color": "#0ea5a4",
+   "name": {
+    "es": "Sistema del Mac",
+    "en": "Mac system"
+   },
+   "description": {
+    "es": "Captura, bloqueo, modo oscuro y mantener el Mac despierto.",
+    "en": "Screenshot, lock, dark mode and keeping the Mac awake."
+   },
+   "region": "numpad",
+   "macros": [
+    {
+     "label": {
+      "es": "Captura",
+      "en": "Screenshot"
+     },
+     "icon": "camera",
+     "color": "#0ea5e9",
+     "tap": {
+      "type": "system",
+      "cmd": "screenshot"
+     }
+    },
+    {
+     "label": {
+      "es": "Salvapantallas",
+      "en": "Screen saver"
+     },
+     "icon": "moon",
+     "color": "#64748b",
+     "tap": {
+      "type": "system",
+      "cmd": "screensaver"
+     }
+    },
+    {
+     "label": {
+      "es": "Bloquear",
+      "en": "Lock"
+     },
+     "icon": "lock",
+     "color": "#cc4848",
+     "tap": {
+      "type": "system",
+      "cmd": "lock",
+      "confirm": true
+     }
+    },
+    {
+     "label": {
+      "es": "Modo oscuro",
+      "en": "Dark mode"
+     },
+     "icon": "sun",
+     "color": "#f59e0b",
+     "tap": {
+      "type": "system",
+      "cmd": "darkmode"
+     }
+    },
+    {
+     "label": {
+      "es": "Despierto",
+      "en": "Stay awake"
+     },
+     "icon": "bolt",
+     "color": "#f59e0b",
+     "tap": {
+      "type": "system",
+      "cmd": "caffeinate"
+     }
+    },
+    {
+     "label": {
+      "es": "Apagar pantalla",
+      "en": "Display off"
+     },
+     "icon": "monitor",
+     "color": "#64748b",
+     "tap": {
+      "type": "system",
+      "cmd": "sleepdisplay"
+     }
+    },
+    {
+     "label": {
+      "es": "Monitor de actividad",
+      "en": "Activity Monitor"
+     },
+     "icon": "cpu",
+     "color": "#2563eb",
+     "tap": {
+      "type": "app",
+      "app": "Activity Monitor",
+      "mode": "toggle"
+     }
+    },
+    {
+     "label": {
+      "es": "Ajustes",
+      "en": "Settings"
+     },
+     "icon": "sliders",
+     "color": "#2563eb",
+     "tap": {
+      "type": "app",
+      "app": "System Settings",
+      "mode": "toggle"
+     }
+    },
+    {
+     "label": {
+      "es": "Terminal",
+      "en": "Terminal"
+     },
+     "icon": "terminal",
+     "color": "#16a34a",
+     "tap": {
+      "type": "app",
+      "app": "Terminal",
+      "mode": "toggle"
+     }
+    }
+   ],
+   "tags": [
+    "mac"
+   ]
+  },
+  {
+   "id": "snippets",
+   "category": "text",
+   "icon": "edit",
+   "color": "#ec4899",
+   "name": {
+    "es": "Texto rápido: fecha y hora",
+    "en": "Quick text: date and time"
+   },
+   "description": {
+    "es": "Fecha, hora y portapapeles como texto limpio.",
+    "en": "Date, time and clipboard as plain text."
+   },
+   "region": "numpad",
+   "macros": [
+    {
+     "label": {
+      "es": "Fecha",
+      "en": "Date"
+     },
+     "icon": "calendar",
+     "color": "#2563eb",
+     "tap": {
+      "type": "text",
+      "text": "{date}"
+     }
+    },
+    {
+     "label": {
+      "es": "Hora",
+      "en": "Time"
+     },
+     "icon": "clock",
+     "color": "#2563eb",
+     "tap": {
+      "type": "text",
+      "text": "{time}"
+     }
+    },
+    {
+     "label": {
+      "es": "Fecha y hora",
+      "en": "Date and time"
+     },
+     "icon": "calendar",
+     "color": "#2563eb",
+     "tap": {
+      "type": "text",
+      "text": "{datetime}"
+     }
+    },
+    {
+     "label": {
+      "es": "Pegar sin formato",
+      "en": "Paste plain"
+     },
+     "icon": "clipboard",
+     "color": "#16a34a",
+     "tap": {
+      "type": "text",
+      "text": "{clipboard}"
+     }
+    }
+   ],
+   "tags": [
+    "fecha",
+    "date"
+   ]
+  },
+  {
+   "id": "email-snippets",
+   "category": "text",
+   "icon": "mail",
+   "color": "#0ea5e9",
+   "name": {
+    "es": "Respuestas de correo",
+    "en": "Email replies"
+   },
+   "description": {
+    "es": "Frases hechas para escribir más rápido. Edítalas con tus datos.",
+    "en": "Ready-made phrases to write faster. Edit them with your details."
+   },
+   "region": "numpad",
+   "macros": [
+    {
+     "label": {
+      "es": "Saludo",
+      "en": "Greeting"
+     },
+     "icon": "mail",
+     "color": "#2563eb",
+     "tap": {
+      "type": "text",
+      "text": "Hola,\n\n"
+     }
+    },
+    {
+     "label": {
+      "es": "Gracias",
+      "en": "Thanks"
+     },
+     "icon": "heart",
+     "color": "#16a34a",
+     "tap": {
+      "type": "text",
+      "text": "Muchas gracias por tu mensaje."
+     }
+    },
+    {
+     "label": {
+      "es": "Lo reviso",
+      "en": "I'll check"
+     },
+     "icon": "check",
+     "color": "#f59e0b",
+     "tap": {
+      "type": "text",
+      "text": "Lo reviso y te digo algo en cuanto pueda."
+     }
+    },
+    {
+     "label": {
+      "es": "Adjunto",
+      "en": "Attached"
+     },
+     "icon": "download",
+     "color": "#64748b",
+     "tap": {
+      "type": "text",
+      "text": "Te adjunto el documento."
+     }
+    },
+    {
+     "label": {
+      "es": "Despedida",
+      "en": "Sign-off"
+     },
+     "icon": "send",
+     "color": "#8b5cf6",
+     "tap": {
+      "type": "text",
+      "text": "\nUn saludo,\n"
+     }
+    },
+    {
+     "label": {
+      "es": "Teléfono",
+      "en": "Phone"
+     },
+     "icon": "bell",
+     "color": "#64748b",
+     "tap": {
+      "type": "text",
+      "text": "600 000 000"
+     }
+    }
+   ],
+   "notes": {
+    "es": "Los datos de ejemplo (teléfono) son falsos: cámbialos. No guardes contraseñas en macros de texto.",
+    "en": "Example details (phone) are fake: change them. Do not store passwords in text macros."
+   },
+   "tags": [
+    "correo",
+    "email"
+   ]
+  },
+  {
+   "id": "code-snippets",
+   "category": "text",
+   "icon": "code",
+   "color": "#16a34a",
+   "name": {
+    "es": "Fragmentos de código",
+    "en": "Code snippets"
+   },
+   "description": {
+    "es": "Esqueletos que se repiten mucho al programar.",
+    "en": "Skeletons you type over and over."
+   },
+   "region": "numpad",
+   "macros": [
+    {
+     "label": {
+      "es": "console.log",
+      "en": "console.log"
+     },
+     "icon": "terminal",
+     "color": "#f59e0b",
+     "tap": {
+      "type": "text",
+      "text": "console.log()"
+     }
+    },
+    {
+     "label": {
+      "es": "if",
+      "en": "if"
+     },
+     "icon": "code",
+     "color": "#2563eb",
+     "tap": {
+      "type": "text",
+      "text": "if () {\n}"
+     }
+    },
+    {
+     "label": {
+      "es": "función",
+      "en": "function"
+     },
+     "icon": "code",
+     "color": "#2563eb",
+     "tap": {
+      "type": "text",
+      "text": "function () {\n}"
+     }
+    },
+    {
+     "label": {
+      "es": "TODO",
+      "en": "TODO"
+     },
+     "icon": "edit",
+     "color": "#cc4848",
+     "tap": {
+      "type": "text",
+      "text": "// TODO: "
+     }
+    },
+    {
+     "label": {
+      "es": "try/catch",
+      "en": "try/catch"
+     },
+     "icon": "shield",
+     "color": "#8b5cf6",
+     "tap": {
+      "type": "text",
+      "text": "try {\n} catch (e) {\n}"
+     }
+    },
+    {
+     "label": {
+      "es": "bucle for",
+      "en": "for loop"
+     },
+     "icon": "redo",
+     "color": "#16a34a",
+     "tap": {
+      "type": "text",
+      "text": "for (let i = 0; i < n; i++) {\n}"
+     }
+    }
+   ],
+   "tags": [
+    "javascript",
+    "programar"
+   ]
+  },
+  {
+   "id": "study",
+   "category": "study",
+   "icon": "bookmark",
+   "color": "#0ea5a4",
+   "name": {
+    "es": "Estudio",
+    "en": "Study"
+   },
+   "description": {
+    "es": "Pomodoro, notas, captura al portapapeles y música para concentrarte.",
+    "en": "Pomodoro, notes, screenshot to clipboard and music to focus."
+   },
+   "region": "numpad",
+   "macros": [
+    {
+     "label": {
+      "es": "Pomodoro 25",
+      "en": "Pomodoro 25"
+     },
+     "icon": "clock",
+     "color": "#cc4848",
+     "tap": {
+      "type": "timer",
+      "minutes": 25,
+      "label": "Estudio"
+     }
+    },
+    {
+     "label": {
+      "es": "Descanso 5",
+      "en": "Break 5"
+     },
+     "icon": "clock",
+     "color": "#16a34a",
+     "tap": {
+      "type": "timer",
+      "minutes": 5,
+      "label": "Descanso"
+     }
+    },
+    {
+     "label": {
+      "es": "Notas",
+      "en": "Notes"
+     },
+     "icon": "edit",
+     "color": "#f59e0b",
+     "tap": {
+      "type": "app",
+      "app": "Notes",
+      "mode": "toggle"
+     }
+    },
+    {
+     "label": {
+      "es": "Nota nueva",
+      "en": "New note"
+     },
+     "icon": "plus",
+     "color": "#f59e0b",
+     "tap": {
+      "type": "sequence",
+      "steps": [
+       {
+        "type": "app",
+        "app": "Notes",
+        "mode": "open"
+       },
+       {
+        "type": "hotkey",
+        "keys": "cmd+n"
+       }
+      ]
+     }
+    },
+    {
+     "label": {
+      "es": "Captura al portapapeles",
+      "en": "Screenshot to clipboard"
+     },
+     "icon": "camera",
+     "color": "#0ea5e9",
+     "tap": {
+      "type": "hotkey",
+      "keys": "ctrl+cmd+shift+4"
+     }
+    },
+    {
+     "label": {
+      "es": "Música",
+      "en": "Music"
+     },
+     "icon": "music",
+     "color": "#8b5cf6",
+     "tap": {
+      "type": "media",
+      "cmd": "playpause"
+     }
+    },
+    {
+     "label": {
+      "es": "Silenciar",
+      "en": "Mute"
+     },
+     "icon": "volume-mute",
+     "color": "#64748b",
+     "tap": {
+      "type": "media",
+      "cmd": "mute"
+     }
+    },
+    {
+     "label": {
+      "es": "Diccionario",
+      "en": "Dictionary"
+     },
+     "icon": "search",
+     "color": "#2563eb",
+     "tap": {
+      "type": "app",
+      "app": "Dictionary",
+      "mode": "toggle"
+     }
+    }
+   ],
+   "apps": [
+    "Notes"
+   ],
+   "tags": [
+    "estudiante",
+    "student",
+    "universidad"
+   ]
+  },
+  {
+   "id": "gaming",
+   "category": "gaming",
+   "icon": "bolt",
+   "color": "#f97316",
+   "name": {
+    "es": "Juegos y charla",
+    "en": "Gaming and chat"
+   },
+   "description": {
+    "es": "Silenciar Discord, guardar el replay de OBS, captura y control de música sin salir del juego.",
+    "en": "Mute Discord, save the OBS replay, screenshot and music control without leaving your game."
+   },
+   "region": "numpad",
+   "macros": [
+    {
+     "label": {
+      "es": "Silenciar Discord",
+      "en": "Discord mute"
+     },
+     "icon": "mic",
+     "color": "#8b5cf6",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+shift+m"
+     }
+    },
+    {
+     "label": {
+      "es": "Ensordecer",
+      "en": "Deafen"
+     },
+     "icon": "volume-mute",
+     "color": "#8b5cf6",
+     "tap": {
+      "type": "hotkey",
+      "keys": "cmd+shift+d"
+     }
+    },
+    {
+     "label": {
+      "es": "Guardar replay",
+      "en": "Save replay"
+     },
+     "icon": "download",
+     "color": "#16a34a",
+     "tap": {
+      "type": "hotkey",
+      "keys": "ctrl+alt+cmd+b"
+     }
+    },
+    {
+     "label": {
+      "es": "Captura",
+      "en": "Screenshot"
+     },
+     "icon": "camera",
+     "color": "#0ea5e9",
+     "tap": {
+      "type": "system",
+      "cmd": "screenshot"
+     }
+    },
+    {
+     "label": {
+      "es": "Música",
+      "en": "Music"
+     },
+     "icon": "music",
+     "color": "#16a34a",
+     "tap": {
+      "type": "media",
+      "cmd": "playpause"
+     }
+    },
+    {
+     "label": {
+      "es": "Siguiente",
+      "en": "Next"
+     },
+     "icon": "skip-next",
+     "color": "#16a34a",
+     "tap": {
+      "type": "media",
+      "cmd": "next"
+     }
+    },
+    {
+     "label": {
+      "es": "Volumen -",
+      "en": "Volume -"
+     },
+     "icon": "volume",
+     "color": "#64748b",
+     "tap": {
+      "type": "media",
+      "cmd": "voldown"
+     }
+    },
+    {
+     "label": {
+      "es": "Volumen +",
+      "en": "Volume +"
+     },
+     "icon": "volume",
+     "color": "#64748b",
+     "tap": {
+      "type": "media",
+      "cmd": "volup"
+     }
+    }
+   ],
+   "notes": {
+    "es": "OBS Studio no trae atajos de serie. En OBS abre Ajustes, Atajos, y asigna a cada acción el mismo atajo que ves aquí (Ctrl, Opción y Comando más la tecla).",
+    "en": "OBS Studio ships with no hotkeys. In OBS open Settings, Hotkeys, and give each action the same shortcut shown here (Control, Option and Command plus the key)."
+   },
+   "apps": [
+    "Discord",
+    "OBS Studio"
+   ],
+   "tags": [
+    "juegos",
+    "games",
+    "gaming"
+   ]
+  },
+  {
+   "id": "launcher",
+   "category": "work",
+   "icon": "keyboard",
+   "color": "#f59e0b",
+   "name": {
+    "es": "Lanzador con Bloq Mayús",
+    "en": "Launcher on Caps Lock"
+   },
+   "description": {
+    "es": "Mantén Bloq Mayús y pulsa una letra para abrir o alternar una app. Una pulsación corta sigue siendo Esc.",
+    "en": "Hold Caps Lock and press a letter to open or toggle an app. A short tap still acts as Esc."
+   },
+   "region": "letters",
+   "macros": [
+    {
+     "label": {
+      "es": "Chrome",
+      "en": "Chrome"
+     },
+     "icon": "globe",
+     "color": "#f59e0b",
+     "tap": {
+      "type": "app",
+      "app": "Google Chrome",
+      "mode": "toggle"
+     },
+     "key": "06"
+    },
+    {
+     "label": {
+      "es": "VS Code",
+      "en": "VS Code"
+     },
+     "icon": "code",
+     "color": "#2563eb",
+     "tap": {
+      "type": "app",
+      "app": "Visual Studio Code",
+      "mode": "toggle"
+     },
+     "key": "19"
+    },
+    {
+     "label": {
+      "es": "Terminal",
+      "en": "Terminal"
+     },
+     "icon": "terminal",
+     "color": "#16a34a",
+     "tap": {
+      "type": "app",
+      "app": "Terminal",
+      "mode": "toggle"
+     },
+     "key": "17"
+    },
+    {
+     "label": {
+      "es": "Spotify",
+      "en": "Spotify"
+     },
+     "icon": "music",
+     "color": "#16a34a",
+     "tap": {
+      "type": "app",
+      "app": "Spotify",
+      "mode": "toggle"
+     },
+     "key": "16"
+    },
+    {
+     "label": {
+      "es": "Discord",
+      "en": "Discord"
+     },
+     "icon": "chat",
+     "color": "#8b5cf6",
+     "tap": {
+      "type": "app",
+      "app": "Discord",
+      "mode": "toggle"
+     },
+     "key": "07"
+    },
+    {
+     "label": {
+      "es": "Finder",
+      "en": "Finder"
+     },
+     "icon": "folder",
+     "color": "#64748b",
+     "tap": {
+      "type": "app",
+      "app": "Finder",
+      "mode": "toggle"
+     },
+     "key": "09"
+    },
+    {
+     "label": {
+      "es": "Notas",
+      "en": "Notas"
+     },
+     "icon": "edit",
+     "color": "#f59e0b",
+     "tap": {
+      "type": "app",
+      "app": "Notes",
+      "mode": "toggle"
+     },
+     "key": "11"
+    },
+    {
+     "label": {
+      "es": "Correo",
+      "en": "Correo"
+     },
+     "icon": "mail",
+     "color": "#0ea5e9",
+     "tap": {
+      "type": "app",
+      "app": "Mail",
+      "mode": "toggle"
+     },
+     "key": "10"
+    },
+    {
+     "label": {
+      "es": "WhatsApp",
+      "en": "WhatsApp"
+     },
+     "icon": "chat",
+     "color": "#16a34a",
+     "tap": {
+      "type": "app",
+      "app": "WhatsApp",
+      "mode": "toggle"
+     },
+     "key": "1A"
+    }
+   ],
+   "notes": {
+    "es": "Las letras se colocan sobre el teclado alfabético: C, V, T, S, D, F, N, M, W. Se puede cambiar la tecla de cada app en el editor.",
+    "en": "Letters are placed on the alphabet keys. You can change each app's key in the editor."
+   },
+   "tags": [
+    "lanzador",
+    "launcher",
+    "bloq mayus",
+    "caps"
+   ],
+   "global": {
+    "39": {
+     "tap": {
+      "type": "hotkey",
+      "keys": "esc"
+     },
+     "hold": {
+      "type": "layer",
+      "to": "next",
+      "momentary": true
+     },
+     "label": "Capa",
+     "icon": "layers"
+    }
+   }
+  }
+ ]
+}
