@@ -1,0 +1,300 @@
+{
+ "status_legend": {
+  "tested": {
+   "es": "Probado",
+   "en": "Tested"
+  },
+  "expected": {
+   "es": "Debería funcionar",
+   "en": "Should work"
+  },
+  "planned": {
+   "es": "Previsto",
+   "en": "Planned"
+  },
+  "no": {
+   "es": "No compatible",
+   "en": "Not supported"
+  }
+ },
+ "groups": [
+  {
+   "id": "board",
+   "name": {
+    "es": "Placa",
+    "en": "Board"
+   },
+   "items": [
+    {
+     "name": "Arduino Leonardo / Keystudio Leonardo R3 (ATmega32U4, 5 V, 16 MHz)",
+     "status": "tested",
+     "note": {
+      "es": "La que usa el autor. Es la opción recomendada.",
+      "en": "The one the author uses. The recommended choice."
+     },
+     "name_en": "Arduino Leonardo / Keystudio Leonardo R3 (ATmega32U4, 5 V, 16 MHz)"
+    },
+    {
+     "name": "Arduino Micro",
+     "status": "expected",
+     "note": {
+      "es": "Mismo microcontrolador y mismo firmware; no se apila sobre el shield, hay que cablear el SPI.",
+      "en": "Same microcontroller and firmware; it does not stack on the shield, so the SPI must be wired."
+     },
+     "name_en": "Arduino Micro"
+    },
+    {
+     "name": "SparkFun Pro Micro y clones de 5 V a 16 MHz",
+     "status": "expected",
+     "note": {
+      "es": "Mismo microcontrolador. Puede hacer falta cambiar los pines del shield en el firmware. Sin probar.",
+      "en": "Same microcontroller. The shield pins may need changing in the firmware. Untested."
+     },
+     "name_en": "SparkFun Pro Micro and 5 V, 16 MHz clones"
+    },
+    {
+     "name": "Teensy 4.x (puerto host nativo)",
+     "status": "planned",
+     "note": {
+      "es": "Sería la mejor opción sin shield: el protocolo serie es el mismo, falta otro firmware.",
+      "en": "Would be the best shield-free option: the serial protocol is the same, only another firmware is needed."
+     },
+     "name_en": "Teensy 4.x (native host port)"
+    },
+    {
+     "name": "Raspberry Pi Pico (PIO-USB)",
+     "status": "planned",
+     "note": {
+      "es": "Mismo protocolo serie con otro firmware.",
+      "en": "Same serial protocol with another firmware."
+     },
+     "name_en": "Raspberry Pi Pico (PIO-USB)"
+    },
+    {
+     "name": "Arduino Uno, Nano, Mega",
+     "status": "no",
+     "note": {
+      "es": "No tienen USB nativo: no pueden hacerse pasar por teclado.",
+      "en": "No native USB: they cannot act as a keyboard."
+     },
+     "name_en": "Arduino Uno, Nano, Mega"
+    },
+    {
+     "name": "ESP32-S3",
+     "status": "no",
+     "note": {
+      "es": "Solo un puerto USB OTG: no puede ser host y teclado a la vez.",
+      "en": "A single USB OTG port: it cannot be host and keyboard at once."
+     },
+     "name_en": "ESP32-S3"
+    }
+   ]
+  },
+  {
+   "id": "shield",
+   "name": {
+    "es": "Shield USB Host",
+    "en": "USB Host Shield"
+   },
+   "items": [
+    {
+     "name": "USB Host Shield 2.0 (MAX3421E) con conector ICSP (Yanmis)",
+     "status": "tested",
+     "note": {
+      "es": "El SPI llega por el conector ICSP, sin cables.",
+      "en": "SPI arrives through the ICSP header, no wires."
+     },
+     "name_en": "USB Host Shield 2.0 (MAX3421E) with ICSP header (Yanmis)"
+    },
+    {
+     "name": "Circuits@Home, SparkFun y otros shields con MAX3421E",
+     "status": "expected",
+     "note": {
+      "es": "Misma librería. Comprueba que tienen ICSP.",
+      "en": "Same library. Check they have an ICSP header."
+     },
+     "name_en": "Circuits@Home, SparkFun and other MAX3421E shields"
+    },
+    {
+     "name": "Shield sin conector ICSP",
+     "status": "expected",
+     "note": {
+      "es": "Funciona cableando MOSI, MISO y SCK de la placa a los pines 11, 12 y 13 del shield.",
+      "en": "Works by wiring MOSI, MISO and SCK from the board to the shield's pins 11, 12 and 13."
+     },
+     "name_en": "Shield without an ICSP header"
+    },
+    {
+     "name": "Shield de 3,3 V con placa de 5 V",
+     "status": "no",
+     "note": {
+      "es": "Puede dañar el shield: usa uno de 5 V o un adaptador de niveles.",
+      "en": "May damage the shield: use a 5 V one or a level shifter."
+     },
+     "name_en": "3.3 V shield with a 5 V board"
+    },
+    {
+     "name": "Concentrador (hub) USB entre el shield y el teclado",
+     "status": "expected",
+     "note": {
+      "es": "La librería lo soporta. Sin probar.",
+      "en": "The library supports it. Untested."
+     },
+     "name_en": "USB hub between the shield and the keyboard"
+    }
+   ]
+  },
+  {
+   "id": "keyboard",
+   "name": {
+    "es": "Teclado",
+    "en": "Keyboard"
+   },
+   "items": [
+    {
+     "name": "Teclado USB con cable que tiene informe de arranque",
+     "status": "tested",
+     "note": {
+      "es": "Probado con un teclado 100% de BY Tech (controlador SINO WEALTH).",
+      "en": "Tested with a full-size BY Tech keyboard (SINO WEALTH controller)."
+     },
+     "name_en": "Wired USB keyboard with a boot report"
+    },
+    {
+     "name": "Teclados mecánicos con QMK, VIA o ZMK por cable",
+     "status": "expected",
+     "note": {
+      "es": "Suelen tener informe de arranque y NKRO en otra interfaz.",
+      "en": "They usually have a boot report and NKRO on another interface."
+     },
+     "name_en": "Wired mechanical keyboards running QMK, VIA or ZMK"
+    },
+    {
+     "name": "Receptor inalámbrico que se presenta como teclado",
+     "status": "expected",
+     "note": {
+      "es": "Sin probar. Los receptores combinados de teclado y ratón pueden necesitar más interfaces.",
+      "en": "Untested. Combined keyboard and mouse receivers may need more interfaces."
+     },
+     "name_en": "Wireless receiver that presents itself as a keyboard"
+    },
+    {
+     "name": "Teclado sin informe de arranque (solo NKRO)",
+     "status": "no",
+     "note": {
+      "es": "Typedeck lo detecta y lo avisa. Previsto leer sus informes por descriptor.",
+      "en": "Typedeck detects it and says so. Reading its reports from the descriptor is planned."
+     },
+     "name_en": "Keyboard without a boot report (NKRO only)"
+    },
+    {
+     "name": "Teclados Bluetooth",
+     "status": "no",
+     "note": {
+      "es": "Necesitarían un módulo Bluetooth host en la placa.",
+      "en": "They would need a Bluetooth host module on the board."
+     },
+     "name_en": "Bluetooth keyboards"
+    },
+    {
+     "name": "Teclas pulsadas a la vez",
+     "status": "expected",
+     "note": {
+      "es": "Hasta 6 a la vez (protocolo de arranque). El modo sin límite está previsto.",
+      "en": "Up to 6 at once (boot protocol). The unlimited mode is planned."
+     },
+     "name_en": "Simultaneous keys"
+    },
+    {
+     "name": "Teclados que piden más de 500 mA",
+     "status": "no",
+     "note": {
+      "es": "Con retroiluminación fuerte pueden reiniciarse. Alimenta la placa desde un puerto con corriente suficiente.",
+      "en": "Strong backlighting can make them reset. Power the board from a port with enough current."
+     },
+     "name_en": "Keyboards that draw more than 500 mA"
+    }
+   ]
+  },
+  {
+   "id": "host",
+   "name": {
+    "es": "Ordenador",
+    "en": "Computer"
+   },
+   "items": [
+    {
+     "name": "macOS 27 en Apple Silicon",
+     "status": "tested",
+     "note": {
+      "es": "El equipo del autor, con disposición Spanish ISO.",
+      "en": "The author's machine, with the Spanish ISO layout."
+     },
+     "name_en": "macOS 27 on Apple Silicon"
+    },
+    {
+     "name": "macOS 12 o posterior, Apple Silicon o Intel",
+     "status": "expected",
+     "note": {
+      "es": "Hay que compilar para tu arquitectura (make build).",
+      "en": "Build for your architecture (make build)."
+     },
+     "name_en": "macOS 12 or later, Apple Silicon or Intel"
+    },
+    {
+     "name": "Windows y Linux",
+     "status": "planned",
+     "note": {
+      "es": "El núcleo es portable (Go). Las acciones de aplicaciones y el cartel son de macOS. La placa funciona como teclado en cualquier sistema.",
+      "en": "The core is portable (Go). Application actions and the popup are macOS-only. The board works as a keyboard on any system."
+     }
+    },
+    {
+     "name": "Conmutador KVM entre el ordenador y la placa",
+     "status": "tested",
+     "note": {
+      "es": "La placa está detrás de un KVM en la instalación del autor.",
+      "en": "The board sits behind a KVM in the author's setup."
+     },
+     "name_en": "KVM switch between the computer and the board"
+    }
+   ]
+  },
+  {
+   "id": "layout",
+   "name": {
+    "es": "Disposición del teclado del Mac",
+    "en": "Mac keyboard layout"
+   },
+   "items": [
+    {
+     "name": "Español ISO y US (inglés)",
+     "status": "tested",
+     "note": {
+      "es": "Texto, símbolos y acentos probados contra el sistema real.",
+      "en": "Text, symbols and accents tested against the real system."
+     },
+     "name_en": "Spanish ISO and US English"
+    },
+    {
+     "name": "Otras disposiciones QWERTY (británico, latino, italiano...)",
+     "status": "expected",
+     "note": {
+      "es": "Letras y cifras por la placa; la puntuación se pega desde el portapapeles (necesita el permiso de Accesibilidad).",
+      "en": "Letters and digits through the board; punctuation is pasted from the clipboard (needs the Accessibility permission)."
+     },
+     "name_en": "Other QWERTY layouts (British, Latin American, Italian...)"
+    },
+    {
+     "name": "AZERTY, QWERTZ, Dvorak, Colemak",
+     "status": "expected",
+     "note": {
+      "es": "Los atajos y el texto se envían por software (necesita el permiso de Accesibilidad).",
+      "en": "Shortcuts and text are sent by software (needs the Accessibility permission)."
+     },
+     "name_en": "AZERTY, QWERTZ, Dvorak, Colemak"
+    }
+   ]
+  }
+ ]
+}
