@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.0 - 2026-08-23
+
+### Added
+- The editor: the keyboard drawn from its real geometry, a key editor with tap, hold and double tap, the gallery, activity and a
+  printable key sheet, diagnostics, compatibility, settings, a command palette, undo and redo, and English and Spanish.
+- A self test for the editor and end-to-end tests against the real board on a Mac.
+- Installation as a macOS login service.
+
 ## 0.1.0 - 2026-08-03
 
 ### Added
