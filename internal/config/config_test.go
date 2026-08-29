@@ -173,3 +173,23 @@ func TestCorruptConfigWithoutBackupsStartsFresh(t *testing.T) {
 		t.Fatalf("%v %q %d", err, note, len(got.Layers))
 	}
 }
+
+func TestOBSActionAndSettings(t *testing.T) {
+	c := Default()
+	c.Settings.OBS = OBS{Host: " bad host/ ", Port: 99999, Password: strings.Repeat("x", 500)}
+	c.Layers[0].Keys["04"] = KeyDef{Tap: &Action{Type: "obs", Cmd: "borrar-todo", Target: "Mic"}}
+	c.Layers[0].Keys["05"] = KeyDef{Tap: &Action{Type: "obs", Cmd: "scene", Target: "#2"}}
+	out, err := Validate(c)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if out.Settings.OBS.Host != "127.0.0.1" || out.Settings.OBS.Port != 65535 || len(out.Settings.OBS.Password) != 200 {
+		t.Fatalf("ajustes de OBS sin acotar: %+v", out.Settings.OBS)
+	}
+	if a := out.Layers[0].Keys["04"].Tap; a.Cmd != "record" {
+		t.Fatalf("una orden desconocida debe volver a la de por defecto: %+v", a)
+	}
+	if a := out.Layers[0].Keys["05"].Tap; a.Cmd != "scene" || a.Target != "#2" {
+		t.Fatalf("acción válida alterada: %+v", a)
+	}
+}

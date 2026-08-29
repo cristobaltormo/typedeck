@@ -27,6 +27,7 @@ import (
 	"github.com/cristobaltormo/typedeck/internal/engine"
 	"github.com/cristobaltormo/typedeck/internal/kbdb"
 	"github.com/cristobaltormo/typedeck/internal/layouts"
+	"github.com/cristobaltormo/typedeck/internal/obs"
 	"github.com/cristobaltormo/typedeck/internal/packs"
 	"github.com/cristobaltormo/typedeck/internal/platform"
 	"github.com/cristobaltormo/typedeck/internal/setup"
@@ -190,6 +191,7 @@ func (s *Server) Handler() http.Handler {
 	})
 	post("/api/test", s.test)
 	post("/api/hud", s.hud)
+	post("/api/obs/probe", s.obsProbe)
 	post("/api/layer", func(w http.ResponseWriter, r *http.Request) {
 		var b struct{ Index int }
 		if json.NewDecoder(io.LimitReader(r.Body, 1<<10)).Decode(&b) != nil {
@@ -319,6 +321,23 @@ func (s *Server) hud(w http.ResponseWriter, r *http.Request) {
 	}
 	s.eng.HUD(clip(b.Title, 60), clip(b.Subtitle, 80), true)
 	writeJSON(w, 200, map[string]bool{"ok": true})
+}
+
+func (s *Server) obsProbe(w http.ResponseWriter, r *http.Request) {
+	var b config.OBS
+	if decode(r, &b) != nil {
+		fail(w, 400, "json")
+		return
+	}
+	if b == (config.OBS{}) {
+		b = s.eng.Config().Settings.OBS
+	}
+	info, err := obs.Probe(obs.Config{Host: b.Host, Port: b.Port, Password: b.Password})
+	if err != nil {
+		writeJSON(w, 200, map[string]any{"ok": false, "error": err.Error()})
+		return
+	}
+	writeJSON(w, 200, map[string]any{"ok": true, "info": info})
 }
 
 func clip(s string, n int) string {

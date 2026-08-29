@@ -11,6 +11,7 @@ import (
 
 	"github.com/cristobaltormo/typedeck/internal/config"
 	"github.com/cristobaltormo/typedeck/internal/hid"
+	"github.com/cristobaltormo/typedeck/internal/obs"
 	"github.com/cristobaltormo/typedeck/internal/platform"
 )
 
@@ -99,6 +100,9 @@ func dispatch(a config.Action, env Env, capture bool) (string, error) {
 		return httpAction(a)
 	case "hotkey":
 		return "", hotkey(a.Keys, env)
+	case "obs":
+		c := env.Settings().OBS
+		return obs.Run(obs.Config{Host: c.Host, Port: c.Port, Password: c.Password}, a.Cmd, Substitute(a.Target, false))
 	case "text":
 		return "", typeText(Substitute(a.Text, false), env)
 	case "media":
@@ -330,6 +334,8 @@ func Describe(a *config.Action) string {
 		return cut(a.Text, 30)
 	case "media", "system":
 		return a.Cmd
+	case "obs":
+		return strings.TrimSpace("OBS " + a.Cmd + " " + a.Target)
 	case "timer":
 		return strconv.FormatFloat(a.Minutes, 'f', -1, 64) + " min"
 	case "sequence":

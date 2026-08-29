@@ -35,6 +35,7 @@ type Action struct {
 	To         any      `json:"to,omitempty"`
 	Momentary  bool     `json:"momentary,omitempty"`
 	Ms         int      `json:"ms,omitempty"`
+	Target     string   `json:"target,omitempty"`
 	Steps      []Action `json:"steps,omitempty"`
 	Confirm    bool     `json:"confirm,omitempty"`
 }
@@ -84,6 +85,13 @@ type Settings struct {
 	VolumeStep   int    `json:"volume_step"`
 	Input        string `json:"input"`
 	TypingLayout string `json:"typing_layout"`
+	OBS          OBS    `json:"obs"`
+}
+
+type OBS struct {
+	Host     string `json:"host"`
+	Port     int    `json:"port"`
+	Password string `json:"password"`
 }
 
 type Keyboard struct {
@@ -145,14 +153,14 @@ func copyDir(src, dst string) error {
 		if err != nil {
 			return err
 		}
-		return os.WriteFile(target, b, 0o644)
+		return os.WriteFile(target, b, 0o600)
 	})
 }
 
 func DefaultSettings() Settings {
 	return Settings{Language: "es", Theme: "auto", Accent: "#2563eb", Density: "comfortable", KeySize: 88,
 		HUD:    HUD{Enabled: true, Position: "bottom", Seconds: 1.2, OnAuto: true},
-		HoldMS: 450, DoubleMS: 280, AutoLayer: true, VolumeStep: 6, Input: "auto", TypingLayout: "auto"}
+		HoldMS: 450, DoubleMS: 280, AutoLayer: true, VolumeStep: 6, Input: "auto", TypingLayout: "auto", OBS: OBS{Host: "127.0.0.1", Port: 4455}}
 }
 
 func Default() Config {
@@ -278,8 +286,9 @@ func cloneMap(m map[string]any) map[string]any {
 
 var (
 	mediaCmds  = set("playpause", "next", "prev", "volup", "voldown", "mute")
+	obsCmds    = set("scene", "scene_next", "scene_prev", "stream", "stream_start", "stream_stop", "record", "record_pause", "mute", "replay_save", "virtualcam", "studio", "studio_transition")
 	systemCmds = set("lock", "sleepdisplay", "sleep", "screensaver", "screenshot", "darkmode", "caffeinate")
-	actionSet  = set("app", "url", "shell", "ssh", "http", "hotkey", "text", "sequence", "media", "system", "timer", "layer", "hud", "wait", "open")
+	actionSet  = set("app", "url", "shell", "ssh", "http", "hotkey", "text", "sequence", "media", "system", "timer", "layer", "hud", "wait", "open", "obs")
 )
 
 func set(xs ...string) map[string]bool {
@@ -368,6 +377,9 @@ func cleanAction(a Action, where string, depth int) (Action, error) {
 			out.To = "next"
 		}
 		out.Momentary = a.Momentary
+	case "obs":
+		out.Cmd = map[bool]string{true: a.Cmd, false: "record"}[obsCmds[a.Cmd]]
+		out.Target = field(a.Target, "target", 200)
 	case "hud":
 		out.Text = field(a.Text, "text", 80)
 	case "wait":
@@ -480,6 +492,14 @@ func Validate(c Config) (Config, error) {
 	s.VolumeStep = clampInt(s.VolumeStep, 1, 25, d.VolumeStep)
 	s.Input = oneOf(s.Input, d.Input, "auto", "hardware", "software")
 	s.TypingLayout = oneOf(s.TypingLayout, d.TypingLayout, "auto", "us", "es-iso")
+	s.OBS.Host = strings.TrimSpace(s.OBS.Host)
+	if s.OBS.Host == "" || len(s.OBS.Host) > 200 || strings.ContainsAny(s.OBS.Host, " /\\") {
+		s.OBS.Host = "127.0.0.1"
+	}
+	s.OBS.Port = clampInt(s.OBS.Port, 1, 65535, 4455)
+	if len(s.OBS.Password) > 200 {
+		s.OBS.Password = s.OBS.Password[:200]
+	}
 	s.HUD.Position = oneOf(s.HUD.Position, d.HUD.Position, "bottom", "top", "center")
 	if s.HUD.Seconds < 0.4 {
 		s.HUD.Seconds = d.HUD.Seconds
@@ -590,7 +610,7 @@ func Save(p Paths, c Config, backup, force bool) error {
 			}
 			if force || !recent {
 				name := filepath.Join(p.Backups(), "config-"+time.Now().Format("20060102-150405")+".json")
-				_ = os.WriteFile(name, old, 0o644)
+				_ = os.WriteFile(name, old, 0o600)
 				files = append(files, name)
 				sort.Strings(files)
 				for len(files) > 40 {
@@ -605,7 +625,7 @@ func Save(p Paths, c Config, backup, force bool) error {
 		return err
 	}
 	tmp := p.Config() + ".tmp"
-	if err := os.WriteFile(tmp, data, 0o644); err != nil {
+	if err := os.WriteFile(tmp, data, 0o600); err != nil {
 		return err
 	}
 	return os.Rename(tmp, p.Config())
