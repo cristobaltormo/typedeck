@@ -50,6 +50,10 @@ export async function run(scene) {
     state.cfg.layers[0].keys["45"] = { tap: { type: "sequence", steps: [app("Zoom"), { type: "wait", ms: 400 }, { type: "media", cmd: "mute" }, { type: "hud", text: "Modo reunión" }] }, icon: "mic", color: "#ec4899", label: "Reunión" };
     state.selKey = "45";
   }
+  if (scene === "obs") {
+    state.cfg.layers[0].keys["45"] = { tap: { type: "obs", cmd: "scene", target: "#2" }, icon: "camera", color: "#cc4848", label: "Escena 2" };
+    state.selKey = "45";
+  }
   if (scene === "hold") state.selKey = "39";
   if (scene === "layer") state.panel = "layer";
   notify("cfg", "replace");

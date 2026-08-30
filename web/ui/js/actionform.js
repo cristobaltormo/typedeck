@@ -1,12 +1,14 @@
 import { h, ic } from "./dom.js";
 import { t } from "./i18n.js";
+import { api } from "./api.js";
 import { toast } from "./toast.js";
 import { field, textInput, area, select, toggle } from "./controls.js";
 import { state, edit, newAction } from "./store.js";
 import { TYPE_ICON } from "./keyboard.js";
 
-export const TYPES = ["app", "url", "shell", "ssh", "http", "hotkey", "text", "sequence", "media", "system", "timer", "layer", "hud"];
+export const TYPES = ["app", "url", "shell", "ssh", "http", "hotkey", "text", "sequence", "media", "system", "obs", "timer", "layer", "hud"];
 const MEDIA = ["playpause", "next", "prev", "volup", "voldown", "mute"];
+const OBS_CMDS = ["scene", "scene_next", "scene_prev", "stream", "stream_start", "stream_stop", "record", "record_pause", "mute", "replay_save", "virtualcam", "studio", "studio_transition"];
 const SYSTEM = ["screenshot", "lock", "screensaver", "sleepdisplay", "sleep", "darkmode", "caffeinate"];
 
 let dl;
@@ -40,6 +42,18 @@ export function actionFields(a, rerender, { gesture = "tap", inSeq = false } = {
     case "text": list.push(area(t("f.text"), a.text, (v) => upd("f:text", () => { a.text = v; }), { placeholder: t("f.text_ph"), help: t("f.text_help") })); break;
     case "media": list.push(select(t("f.control"), a.cmd, MEDIA.map((c) => [c, t("media." + c)]), (v) => upd("", () => { a.cmd = v; }), t("media.help"))); break;
     case "system": list.push(select(t("f.control"), a.cmd, SYSTEM.map((c) => [c, t("system." + c)]), (v) => upd("", () => { a.cmd = v; }), t("system.help"))); break;
+    case "obs": {
+      const info = state.obsInfo;
+      list.push(select(t("f.control"), a.cmd, OBS_CMDS.map((c) => [c, t("obs." + c)]), (v) => { upd("", () => { a.cmd = v; if (v !== "scene" && v !== "mute") delete a.target; }); rerender(); }, t("obs.help")));
+      if (a.cmd === "scene" || a.cmd === "mute") {
+        const kind = a.cmd === "scene" ? "scenes" : "inputs";
+        list.push(textInput(t(a.cmd === "scene" ? "obs.scene_name" : "obs.input_name"), a.target, (v) => upd("f:target", () => { a.target = v; }),
+          { list: "obs-" + kind, placeholder: a.cmd === "scene" ? "Juego" : "Mic/Aux", help: info ? "" : t("obs.no_list") }),
+          h("datalist", { id: "obs-" + kind }, (info?.[kind] || []).map((n) => h("option", { value: n }))));
+      }
+      if (!info) loadObsInfo(rerender);
+      break;
+    }
     case "timer": list.push(h("div", { class: "two" }, textInput(t("f.minutes"), a.minutes, (v) => upd("f:min", () => { a.minutes = Math.max(0.1, parseFloat(v) || 1); }), { type: "number", min: 0.1, step: 1 }), text(t("f.timer_label"), "label", { placeholder: "Pomodoro" }))); break;
     case "layer": {
       const opts = [["next", t("layer.next")], ["prev", t("layer.prev")], ...state.cfg.layers.map((l, i) => [i, l.name])];
@@ -70,6 +84,18 @@ function sequenceEditor(a, rerender) {
   });
   const add = select("", "", [["", t("seq.add")], ...types.map((x) => [x, t("type." + x)])], (v) => { if (!v) return; if (a.steps.length >= 30) return toast(t("seq.max"), "bad"); edit("", () => { a.steps.push(newAction(v)); }); rerender(); });
   return h("div", { class: "stack", style: { gap: "10px" } }, h("p", { class: "help" }, t("seq.help")), box, add);
+}
+
+let obsAsked = false;
+
+async function loadObsInfo(rerender) {
+  if (obsAsked) return;
+  obsAsked = true;
+  try {
+    const r = await api("/api/obs/probe", { method: "POST", body: {} });
+    if (r.ok) { state.obsInfo = r.info; rerender(); }
+  } catch {  }
+  setTimeout(() => { obsAsked = false; }, 30000);
 }
 
 export const typeOptions = () => [["", t("type.none")], ...TYPES.map((x) => [x, t("type." + x)])];

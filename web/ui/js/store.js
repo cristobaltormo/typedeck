@@ -106,6 +106,7 @@ export function newAction(type) {
     case "layer": return { ...base, to: "next" };
     case "hud": return { ...base, text: "" };
     case "wait": return { ...base, ms: 500 };
+    case "obs": return { ...base, cmd: "record", target: "" };
   }
   return base;
 }
@@ -120,6 +121,7 @@ export function describe(a) {
     case "hotkey": return a.keys;
     case "text": return (a.text || "").slice(0, 30);
     case "media": case "system": return t(a.type + "." + a.cmd);
+    case "obs": return a.target ? `${t("obs." + a.cmd)}: ${a.target}` : t("obs." + a.cmd);
     case "timer": return `${a.minutes} min`;
     case "sequence": return `${(a.steps || []).length}`;
     default: return a.type;

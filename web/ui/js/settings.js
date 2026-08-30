@@ -2,7 +2,7 @@ import { h, ic, clear } from "./dom.js";
 import { api } from "./api.js";
 import { t, lang } from "./i18n.js";
 import { toast } from "./toast.js";
-import { toggle, seg, swatches, armed, select } from "./controls.js";
+import { toggle, seg, swatches, armed, select, textInput } from "./controls.js";
 import { state, edit, replaceConfig, settings } from "./store.js";
 
 const section = (title, sub, ...rows) => h("section", { class: "section" }, h("h2", {}, title), sub ? h("p", { class: "sub" }, sub) : null, h("div", {}, rows));
@@ -17,7 +17,7 @@ function slider(value, min, max, step, unit, onInput) {
 
 export function settingsView(root) {
   const s = settings();
-  const set = (path, v) => edit("s:" + path.join("."), (cfg) => { let o = cfg.settings; for (const k of path.slice(0, -1)) o = o[k]; o[path.at(-1)] = v; });
+  const set = (path, v) => edit("s:" + path.join("."), (cfg) => { let o = cfg.settings; for (const k of path.slice(0, -1)) o = (o[k] ??= {}); o[path.at(-1)] = v; });
   const sw = (label, checked, path, sub) => setting(label, toggle("", checked, (v) => set(path, v)), sub);
 
   const backups = h("div", { class: "rowlist" });
@@ -61,6 +61,7 @@ export function settingsView(root) {
       setting(t("hud.position"), seg([["top", t("pos.top")], ["center", t("pos.center")], ["bottom", t("pos.bottom")]], s.hud.position, (v) => set(["hud", "position"], v))),
       setting(t("hud.seconds"), slider(s.hud.seconds, 0.6, 5, 0.2, "s", (v) => set(["hud", "seconds"], v))),
       setting(t("hud.test"), h("button", { type: "button", class: "btn", onclick: () => api("/api/hud", { method: "POST", body: { title: "Typedeck", subtitle: t("diag.hud_sub") } }) }, ic("hud", 16), t("hud.test")))),
+    obsSection(s, set),
     section(t("settings.backups"), t("settings.backups_sub"),
       h("div", { class: "row wrap", style: { padding: "12px 0" } }, h("button", { type: "button", class: "btn sm", onclick: async () => { await api("/api/backups/create", { method: "POST", body: {} }); toast(t("backup.created")); loadBackups(); } }, ic("plus", 15), t("backup.create"))), backups),
     section(t("settings.io"), t("settings.io_sub"),
@@ -73,7 +74,9 @@ export function settingsView(root) {
 }
 
 export function exportConfig() {
-  const blob = new Blob([JSON.stringify(state.cfg, null, 2)], { type: "application/json" });
+  const copy = JSON.parse(JSON.stringify(state.cfg));
+  if (copy.settings?.obs) copy.settings.obs.password = "";
+  const blob = new Blob([JSON.stringify(copy, null, 2)], { type: "application/json" });
   const a = h("a", { href: URL.createObjectURL(blob), download: `typedeck-${new Date().toISOString().slice(0, 10)}.json` });
   a.click(); URL.revokeObjectURL(a.href);
 }
@@ -82,4 +85,24 @@ function resetConfig() {
   const keep = state.cfg.settings;
   replaceConfig({ version: 3, settings: keep, global: { "53": { tap: { type: "layer", to: "next" }, label: "Capa", icon: "layers" } }, layers: [{ name: t("layer.default_name", { n: 1 }), color: "", icon: "", auto_apps: [], keys: {} }], keyboards: state.cfg.keyboards || {} });
   state.scope = 0; toast(t("io.reset_done")); location.hash = "#/keys";
+}
+
+function obsSection(settings, set) {
+  const s = { ...settings, obs: { host: "127.0.0.1", port: 4455, password: "", ...(settings.obs || {}) } };
+  const out = h("div", { class: "console", hidden: true });
+  const field = (label, value, path, o = {}) => h("div", { class: "setting" }, h("div", { class: "what" }, h("b", {}, label), o.sub ? h("small", {}, o.sub) : null),
+    h("div", { class: "ctl" }, textInput("", value, (v) => set(path, o.number ? Number(v) || 4455 : v), { type: o.type || "text", placeholder: o.ph || "" })));
+  const test = async () => {
+    out.hidden = false; out.className = "console"; out.textContent = t("test.running");
+    try {
+      const r = await api("/api/obs/probe", { method: "POST", body: state.cfg.settings.obs });
+      if (!r.ok) { out.className = "console bad"; out.textContent = r.error; return; }
+      state.obsInfo = r.info; out.className = "console ok";
+      out.replaceChildren(h("div", { class: "tag" }, ic("check", 14), t("obs.connected", { v: r.info.version || "" })), t("obs.found", { s: r.info.scenes.length, i: r.info.inputs.length }));
+    } catch (e) { out.className = "console bad"; out.textContent = e.message; }
+  };
+  return h("section", { class: "section" }, h("h2", {}, t("settings.obs")), h("p", { class: "sub" }, t("settings.obs_sub")),
+    h("div", {}, field(t("obs.host"), s.obs.host, ["obs", "host"], { ph: "127.0.0.1" }), field(t("obs.port"), s.obs.port, ["obs", "port"], { type: "number", number: true, ph: "4455" }),
+      field(t("obs.password"), s.obs.password, ["obs", "password"], { type: "password", sub: t("obs.password_sub") })),
+    h("div", { class: "row wrap", style: { padding: "14px 0" } }, h("button", { type: "button", class: "btn", onclick: test }, ic("play", 15), t("obs.test"))), out);
 }

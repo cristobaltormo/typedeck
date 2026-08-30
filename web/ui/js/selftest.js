@@ -59,6 +59,10 @@ export async function run() {
     $$(".swatches .swatch:not(.custom)")[2].click(); await sleep(50);
     ok("color de acento", getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() === state.cfg.settings.accent);
 
+    ok("ajustes de OBS Studio", !!byText("h2", "OBS Studio") && !!byText("button", "Probar conexión"));
+    typeInto($('input[type=password]'), "clave"); await sleep(40);
+    ok("la contraseña de OBS se guarda en los ajustes", state.cfg.settings.obs?.password === "clave");
+
     location.hash = "#/gallery"; await sleep(120);
     ok("galería con paquetes", $$(".pack").length >= 6, $$(".pack").length);
     const layers0 = state.cfg.layers.length;
