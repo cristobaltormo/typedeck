@@ -11,6 +11,12 @@ Typedeck can run commands, so the editor is locked down:
 - `{clipboard}` is quoted when used inside commands, so clipboard contents cannot inject anything.
 - Backup restore only accepts names like `config-YYYYMMDD-HHMMSS.json`.
 - `/api/dev/raw` exists only with `TYPEDECK_DEV=1` (tests).
+- Configuration files are written with mode 0600.
+
+## OBS password
+
+The OBS connection stores its password in `config.json`, readable only by the user and never sent anywhere. The editor's export
+leaves it empty. OBS listens on `127.0.0.1` unless changed in its settings.
 
 ## Known limits
 

@@ -257,6 +257,15 @@
       "en": "The board sits behind a KVM in the author's setup."
      },
      "name_en": "KVM switch between the computer and the board"
+    },
+    {
+     "name": "OBS Studio 28 o posterior (control por WebSocket)",
+     "status": "tested",
+     "note": {
+      "es": "Probado con OBS 32.2.2 en macOS: escenas, silenciar, modo estudio y contraseña. El protocolo es el mismo en Windows y Linux.",
+      "en": "Tested with OBS 32.2.2 on macOS: scenes, mute, studio mode and password. The protocol is the same on Windows and Linux."
+     },
+     "name_en": "OBS Studio 28 or later (WebSocket control)"
     }
    ]
   },

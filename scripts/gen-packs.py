@@ -17,6 +17,10 @@ def http(method, url, body=""): return {"type": "http", "method": method, "url":
 def url(u): return {"type": "url", "url": u}
 def seq(*steps): return {"type": "sequence", "steps": list(steps)}
 def hud(t): return {"type": "hud", "text": t}
+def obs(cmd, target=""):
+    a = {"type": "obs", "cmd": cmd}
+    if target: a["target"] = target
+    return a
 def confirm(a): a = dict(a); a["confirm"] = True; return a
 
 def M(es, en, icon, tap=None, color=None, hold=None, double=None):
@@ -52,15 +56,15 @@ def P(id, cat, icon, color, name, desc, macros, region="numpad", apps=None, auto
     if glob: p["global"] = glob
     packs.append(p)
 
-OBS_NOTE = ("OBS Studio no trae atajos de serie. En OBS abre Ajustes, Atajos, y asigna a cada acción el mismo atajo que ves aquí (Ctrl, Opción y Comando más la tecla).",
-            "OBS Studio ships with no hotkeys. In OBS open Settings, Hotkeys, and give each action the same shortcut shown here (Control, Option and Command plus the key).")
+OBS_NOTE = ("Controla OBS por su servidor WebSocket, sin atajos de teclado. En OBS abre Herramientas, Ajustes del servidor WebSocket, actívalo, y copia el puerto y la contraseña en Typedeck (Ajustes, OBS Studio). Las escenas 1 a 4 son las de tu lista, en el orden que se ve en OBS.",
+            "Controls OBS through its WebSocket server, with no keyboard shortcuts. In OBS open Tools, WebSocket Server Settings, turn it on, and copy the port and password into Typedeck (Settings, OBS Studio). Scenes 1 to 4 are the ones in your list, in the order OBS shows them.")
 
 P("obs", "streaming", "camera", RED, ("OBS Studio", "OBS Studio"),
   ("Escenas, directo, grabación, silenciar micro y guardar el replay.", "Scenes, going live, recording, mic mute and saving the replay."),
-  [M("Escena 1", "Scene 1", "monitor", hk("ctrl+alt+cmd+1"), BLUE), M("Escena 2", "Scene 2", "monitor", hk("ctrl+alt+cmd+2"), BLUE), M("Escena 3", "Scene 3", "monitor", hk("ctrl+alt+cmd+3"), BLUE),
-   M("Escena 4", "Scene 4", "monitor", hk("ctrl+alt+cmd+4"), BLUE), M("Directo", "Go live", "wifi", confirm(hk("ctrl+alt+cmd+s")), RED), M("Grabar", "Record", "play", hk("ctrl+alt+cmd+r"), RED),
-   M("Pausar grabación", "Pause recording", "pause", hk("ctrl+alt+cmd+p"), AMBER), M("Silenciar micro", "Mute mic", "mic", hk("ctrl+alt+cmd+m"), AMBER),
-   M("Silenciar escritorio", "Mute desktop", "volume-mute", hk("ctrl+alt+cmd+d"), AMBER), M("Guardar replay", "Save replay", "download", hk("ctrl+alt+cmd+b"), GREEN),
+  [M("Escena 1", "Scene 1", "monitor", obs("scene", "#1"), BLUE), M("Escena 2", "Scene 2", "monitor", obs("scene", "#2"), BLUE), M("Escena 3", "Scene 3", "monitor", obs("scene", "#3"), BLUE),
+   M("Escena 4", "Scene 4", "monitor", obs("scene", "#4"), BLUE), M("Directo", "Go live", "wifi", confirm(obs("stream")), RED), M("Grabar", "Record", "play", obs("record"), RED),
+   M("Pausar grabación", "Pause recording", "pause", obs("record_pause"), AMBER), M("Silenciar micro", "Mute mic", "mic", obs("mute", "@mic"), AMBER),
+   M("Silenciar escritorio", "Mute desktop", "volume-mute", obs("mute", "@desktop"), AMBER), M("Guardar replay", "Save replay", "download", obs("replay_save"), GREEN),
    M("Abrir OBS", "Open OBS", "grid", app("OBS"), SLATE)],
   apps=["OBS Studio"], auto=["OBS"], notes=OBS_NOTE, tags=["stream", "twitch", "youtube", "grabar", "record"])
 
@@ -75,19 +79,19 @@ P("discord", "streaming", "chat", PURPLE, ("Discord", "Discord"),
 
 P("obs-discord", "streaming", "camera", PURPLE, ("OBS Studio + Discord", "OBS Studio + Discord"),
   ("Lo esencial de los dos: escenas y directo en OBS, silencio y buscar en Discord.", "The essentials of both: scenes and going live in OBS, mute and quick switch in Discord."),
-  [M("Escena 1", "Scene 1", "monitor", hk("ctrl+alt+cmd+1"), BLUE), M("Escena 2", "Scene 2", "monitor", hk("ctrl+alt+cmd+2"), BLUE), M("Escena 3", "Scene 3", "monitor", hk("ctrl+alt+cmd+3"), BLUE),
-   M("Directo", "Go live", "wifi", confirm(hk("ctrl+alt+cmd+s")), RED), M("Grabar", "Record", "play", hk("ctrl+alt+cmd+r"), RED), M("Micro OBS", "OBS mic", "mic", hk("ctrl+alt+cmd+m"), AMBER),
+  [M("Escena 1", "Scene 1", "monitor", obs("scene", "#1"), BLUE), M("Escena 2", "Scene 2", "monitor", obs("scene", "#2"), BLUE), M("Escena 3", "Scene 3", "monitor", obs("scene", "#3"), BLUE),
+   M("Directo", "Go live", "wifi", confirm(obs("stream")), RED), M("Grabar", "Record", "play", obs("record"), RED), M("Micro OBS", "OBS mic", "mic", obs("mute", "@mic"), AMBER),
    M("Silenciar Discord", "Discord mute", "mic", hk("cmd+shift+m"), PURPLE), M("Ensordecer Discord", "Discord deafen", "volume-mute", hk("cmd+shift+d"), PURPLE),
-   M("Buscar Discord", "Discord search", "search", hk("cmd+k"), PURPLE), M("Guardar replay", "Save replay", "download", hk("ctrl+alt+cmd+b"), GREEN),
+   M("Buscar Discord", "Discord search", "search", hk("cmd+k"), PURPLE), M("Guardar replay", "Save replay", "download", obs("replay_save"), GREEN),
    M("OBS", "OBS", "camera", app("OBS"), SLATE), M("Discord", "Discord", "chat", app("Discord"), SLATE)],
   apps=["OBS Studio", "Discord"], auto=["OBS"], notes=OBS_NOTE, tags=["stream", "directo", "twitch"])
 
 P("streamer-pro", "streaming", "bolt", PINK, ("Streamer completo", "Full streamer"),
   ("OBS, Discord y música en una capa: escenas, directo, silencio, pista siguiente y volumen.", "OBS, Discord and music in one layer: scenes, going live, mute, next track and volume."),
-  [M("Escena 1", "Scene 1", "monitor", hk("ctrl+alt+cmd+1"), BLUE), M("Escena 2", "Scene 2", "monitor", hk("ctrl+alt+cmd+2"), BLUE), M("Directo", "Go live", "wifi", confirm(hk("ctrl+alt+cmd+s")), RED),
-   M("Micro OBS", "OBS mic", "mic", hk("ctrl+alt+cmd+m"), AMBER), M("Silenciar Discord", "Discord mute", "mic", hk("cmd+shift+m"), PURPLE), M("Ensordecer", "Deafen", "volume-mute", hk("cmd+shift+d"), PURPLE),
+  [M("Escena 1", "Scene 1", "monitor", obs("scene", "#1"), BLUE), M("Escena 2", "Scene 2", "monitor", obs("scene", "#2"), BLUE), M("Directo", "Go live", "wifi", confirm(obs("stream")), RED),
+   M("Micro OBS", "OBS mic", "mic", obs("mute", "@mic"), AMBER), M("Silenciar Discord", "Discord mute", "mic", hk("cmd+shift+m"), PURPLE), M("Ensordecer", "Deafen", "volume-mute", hk("cmd+shift+d"), PURPLE),
    M("Reproducir", "Play", "play", media("playpause"), GREEN), M("Siguiente", "Next", "skip-next", media("next"), GREEN), M("Volumen -", "Volume -", "volume", media("voldown"), SLATE),
-   M("Volumen +", "Volume +", "volume", media("volup"), SLATE), M("Guardar replay", "Save replay", "download", hk("ctrl+alt+cmd+b"), GREEN), M("Captura", "Screenshot", "camera", system("screenshot"), SKY)],
+   M("Volumen +", "Volume +", "volume", media("volup"), SLATE), M("Guardar replay", "Save replay", "download", obs("replay_save"), GREEN), M("Captura", "Screenshot", "camera", system("screenshot"), SKY)],
   apps=["OBS Studio", "Discord"], notes=OBS_NOTE, tags=["stream", "twitch"])
 
 P("zoom", "comms", "camera", BLUE, ("Zoom", "Zoom"),
@@ -308,7 +312,7 @@ P("study", "study", "bookmark", TEAL, ("Estudio", "Study"),
 
 P("gaming", "gaming", "bolt", ORANGE, ("Juegos y charla", "Gaming and chat"),
   ("Silenciar Discord, guardar el replay de OBS, captura y control de música sin salir del juego.", "Mute Discord, save the OBS replay, screenshot and music control without leaving your game."),
-  [M("Silenciar Discord", "Discord mute", "mic", hk("cmd+shift+m"), PURPLE), M("Ensordecer", "Deafen", "volume-mute", hk("cmd+shift+d"), PURPLE), M("Guardar replay", "Save replay", "download", hk("ctrl+alt+cmd+b"), GREEN),
+  [M("Silenciar Discord", "Discord mute", "mic", hk("cmd+shift+m"), PURPLE), M("Ensordecer", "Deafen", "volume-mute", hk("cmd+shift+d"), PURPLE), M("Guardar replay", "Save replay", "download", obs("replay_save"), GREEN),
    M("Captura", "Screenshot", "camera", system("screenshot"), SKY), M("Música", "Music", "music", media("playpause"), GREEN), M("Siguiente", "Next", "skip-next", media("next"), GREEN),
    M("Volumen -", "Volume -", "volume", media("voldown"), SLATE), M("Volumen +", "Volume +", "volume", media("volup"), SLATE)],
   apps=["Discord", "OBS Studio"], notes=OBS_NOTE, tags=["juegos", "games", "gaming"])

@@ -113,8 +113,9 @@
      "icon": "monitor",
      "color": "#2563eb",
      "tap": {
-      "type": "hotkey",
-      "keys": "ctrl+alt+cmd+1"
+      "type": "obs",
+      "cmd": "scene",
+      "target": "#1"
      }
     },
     {
@@ -125,8 +126,9 @@
      "icon": "monitor",
      "color": "#2563eb",
      "tap": {
-      "type": "hotkey",
-      "keys": "ctrl+alt+cmd+2"
+      "type": "obs",
+      "cmd": "scene",
+      "target": "#2"
      }
     },
     {
@@ -137,8 +139,9 @@
      "icon": "monitor",
      "color": "#2563eb",
      "tap": {
-      "type": "hotkey",
-      "keys": "ctrl+alt+cmd+3"
+      "type": "obs",
+      "cmd": "scene",
+      "target": "#3"
      }
     },
     {
@@ -149,8 +152,9 @@
      "icon": "monitor",
      "color": "#2563eb",
      "tap": {
-      "type": "hotkey",
-      "keys": "ctrl+alt+cmd+4"
+      "type": "obs",
+      "cmd": "scene",
+      "target": "#4"
      }
     },
     {
@@ -161,8 +165,8 @@
      "icon": "wifi",
      "color": "#cc4848",
      "tap": {
-      "type": "hotkey",
-      "keys": "ctrl+alt+cmd+s",
+      "type": "obs",
+      "cmd": "stream",
       "confirm": true
      }
     },
@@ -174,8 +178,8 @@
      "icon": "play",
      "color": "#cc4848",
      "tap": {
-      "type": "hotkey",
-      "keys": "ctrl+alt+cmd+r"
+      "type": "obs",
+      "cmd": "record"
      }
     },
     {
@@ -186,8 +190,8 @@
      "icon": "pause",
      "color": "#f59e0b",
      "tap": {
-      "type": "hotkey",
-      "keys": "ctrl+alt+cmd+p"
+      "type": "obs",
+      "cmd": "record_pause"
      }
     },
     {
@@ -198,8 +202,9 @@
      "icon": "mic",
      "color": "#f59e0b",
      "tap": {
-      "type": "hotkey",
-      "keys": "ctrl+alt+cmd+m"
+      "type": "obs",
+      "cmd": "mute",
+      "target": "@mic"
      }
     },
     {
@@ -210,8 +215,9 @@
      "icon": "volume-mute",
      "color": "#f59e0b",
      "tap": {
-      "type": "hotkey",
-      "keys": "ctrl+alt+cmd+d"
+      "type": "obs",
+      "cmd": "mute",
+      "target": "@desktop"
      }
     },
     {
@@ -222,8 +228,8 @@
      "icon": "download",
      "color": "#16a34a",
      "tap": {
-      "type": "hotkey",
-      "keys": "ctrl+alt+cmd+b"
+      "type": "obs",
+      "cmd": "replay_save"
      }
     },
     {
@@ -241,8 +247,8 @@
     }
    ],
    "notes": {
-    "es": "OBS Studio no trae atajos de serie. En OBS abre Ajustes, Atajos, y asigna a cada acción el mismo atajo que ves aquí (Ctrl, Opción y Comando más la tecla).",
-    "en": "OBS Studio ships with no hotkeys. In OBS open Settings, Hotkeys, and give each action the same shortcut shown here (Control, Option and Command plus the key)."
+    "es": "Controla OBS por su servidor WebSocket, sin atajos de teclado. En OBS abre Herramientas, Ajustes del servidor WebSocket, actívalo, y copia el puerto y la contraseña en Typedeck (Ajustes, OBS Studio). Las escenas 1 a 4 son las de tu lista, en el orden que se ve en OBS.",
+    "en": "Controls OBS through its WebSocket server, with no keyboard shortcuts. In OBS open Tools, WebSocket Server Settings, turn it on, and copy the port and password into Typedeck (Settings, OBS Studio). Scenes 1 to 4 are the ones in your list, in the order OBS shows them."
    },
    "apps": [
     "OBS Studio"
@@ -422,8 +428,9 @@
      "icon": "monitor",
      "color": "#2563eb",
      "tap": {
-      "type": "hotkey",
-      "keys": "ctrl+alt+cmd+1"
+      "type": "obs",
+      "cmd": "scene",
+      "target": "#1"
      }
     },
     {
@@ -434,8 +441,9 @@
      "icon": "monitor",
      "color": "#2563eb",
      "tap": {
-      "type": "hotkey",
-      "keys": "ctrl+alt+cmd+2"
+      "type": "obs",
+      "cmd": "scene",
+      "target": "#2"
      }
     },
     {
@@ -446,8 +454,9 @@
      "icon": "monitor",
      "color": "#2563eb",
      "tap": {
-      "type": "hotkey",
-      "keys": "ctrl+alt+cmd+3"
+      "type": "obs",
+      "cmd": "scene",
+      "target": "#3"
      }
     },
     {
@@ -458,8 +467,8 @@
      "icon": "wifi",
      "color": "#cc4848",
      "tap": {
-      "type": "hotkey",
-      "keys": "ctrl+alt+cmd+s",
+      "type": "obs",
+      "cmd": "stream",
       "confirm": true
      }
     },
@@ -471,8 +480,8 @@
      "icon": "play",
      "color": "#cc4848",
      "tap": {
-      "type": "hotkey",
-      "keys": "ctrl+alt+cmd+r"
+      "type": "obs",
+      "cmd": "record"
      }
     },
     {
@@ -483,8 +492,9 @@
      "icon": "mic",
      "color": "#f59e0b",
      "tap": {
-      "type": "hotkey",
-      "keys": "ctrl+alt+cmd+m"
+      "type": "obs",
+      "cmd": "mute",
+      "target": "@mic"
      }
     },
     {
@@ -531,8 +541,8 @@
      "icon": "download",
      "color": "#16a34a",
      "tap": {
-      "type": "hotkey",
-      "keys": "ctrl+alt+cmd+b"
+      "type": "obs",
+      "cmd": "replay_save"
      }
     },
     {
@@ -563,8 +573,8 @@
     }
    ],
    "notes": {
-    "es": "OBS Studio no trae atajos de serie. En OBS abre Ajustes, Atajos, y asigna a cada acción el mismo atajo que ves aquí (Ctrl, Opción y Comando más la tecla).",
-    "en": "OBS Studio ships with no hotkeys. In OBS open Settings, Hotkeys, and give each action the same shortcut shown here (Control, Option and Command plus the key)."
+    "es": "Controla OBS por su servidor WebSocket, sin atajos de teclado. En OBS abre Herramientas, Ajustes del servidor WebSocket, actívalo, y copia el puerto y la contraseña en Typedeck (Ajustes, OBS Studio). Las escenas 1 a 4 son las de tu lista, en el orden que se ve en OBS.",
+    "en": "Controls OBS through its WebSocket server, with no keyboard shortcuts. In OBS open Tools, WebSocket Server Settings, turn it on, and copy the port and password into Typedeck (Settings, OBS Studio). Scenes 1 to 4 are the ones in your list, in the order OBS shows them."
    },
    "apps": [
     "OBS Studio",
@@ -602,8 +612,9 @@
      "icon": "monitor",
      "color": "#2563eb",
      "tap": {
-      "type": "hotkey",
-      "keys": "ctrl+alt+cmd+1"
+      "type": "obs",
+      "cmd": "scene",
+      "target": "#1"
      }
     },
     {
@@ -614,8 +625,9 @@
      "icon": "monitor",
      "color": "#2563eb",
      "tap": {
-      "type": "hotkey",
-      "keys": "ctrl+alt+cmd+2"
+      "type": "obs",
+      "cmd": "scene",
+      "target": "#2"
      }
     },
     {
@@ -626,8 +638,8 @@
      "icon": "wifi",
      "color": "#cc4848",
      "tap": {
-      "type": "hotkey",
-      "keys": "ctrl+alt+cmd+s",
+      "type": "obs",
+      "cmd": "stream",
       "confirm": true
      }
     },
@@ -639,8 +651,9 @@
      "icon": "mic",
      "color": "#f59e0b",
      "tap": {
-      "type": "hotkey",
-      "keys": "ctrl+alt+cmd+m"
+      "type": "obs",
+      "cmd": "mute",
+      "target": "@mic"
      }
     },
     {
@@ -723,8 +736,8 @@
      "icon": "download",
      "color": "#16a34a",
      "tap": {
-      "type": "hotkey",
-      "keys": "ctrl+alt+cmd+b"
+      "type": "obs",
+      "cmd": "replay_save"
      }
     },
     {
@@ -741,8 +754,8 @@
     }
    ],
    "notes": {
-    "es": "OBS Studio no trae atajos de serie. En OBS abre Ajustes, Atajos, y asigna a cada acción el mismo atajo que ves aquí (Ctrl, Opción y Comando más la tecla).",
-    "en": "OBS Studio ships with no hotkeys. In OBS open Settings, Hotkeys, and give each action the same shortcut shown here (Control, Option and Command plus the key)."
+    "es": "Controla OBS por su servidor WebSocket, sin atajos de teclado. En OBS abre Herramientas, Ajustes del servidor WebSocket, actívalo, y copia el puerto y la contraseña en Typedeck (Ajustes, OBS Studio). Las escenas 1 a 4 son las de tu lista, en el orden que se ve en OBS.",
+    "en": "Controls OBS through its WebSocket server, with no keyboard shortcuts. In OBS open Tools, WebSocket Server Settings, turn it on, and copy the port and password into Typedeck (Settings, OBS Studio). Scenes 1 to 4 are the ones in your list, in the order OBS shows them."
    },
    "apps": [
     "OBS Studio",
@@ -4813,8 +4826,8 @@
      "icon": "download",
      "color": "#16a34a",
      "tap": {
-      "type": "hotkey",
-      "keys": "ctrl+alt+cmd+b"
+      "type": "obs",
+      "cmd": "replay_save"
      }
     },
     {
@@ -4879,8 +4892,8 @@
     }
    ],
    "notes": {
-    "es": "OBS Studio no trae atajos de serie. En OBS abre Ajustes, Atajos, y asigna a cada acción el mismo atajo que ves aquí (Ctrl, Opción y Comando más la tecla).",
-    "en": "OBS Studio ships with no hotkeys. In OBS open Settings, Hotkeys, and give each action the same shortcut shown here (Control, Option and Command plus the key)."
+    "es": "Controla OBS por su servidor WebSocket, sin atajos de teclado. En OBS abre Herramientas, Ajustes del servidor WebSocket, actívalo, y copia el puerto y la contraseña en Typedeck (Ajustes, OBS Studio). Las escenas 1 a 4 son las de tu lista, en el orden que se ve en OBS.",
+    "en": "Controls OBS through its WebSocket server, with no keyboard shortcuts. In OBS open Tools, WebSocket Server Settings, turn it on, and copy the port and password into Typedeck (Settings, OBS Studio). Scenes 1 to 4 are the ones in your list, in the order OBS shows them."
    },
    "apps": [
     "Discord",
