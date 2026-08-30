@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.3.0 - 2026-08-30
+
+### Added
+- OBS Studio control over its WebSocket server: scenes (by name or by number), next and previous scene, streaming, recording, mute
+  for a source, replay buffer, virtual camera and studio mode. A settings section tests the connection.
+- The OBS packs use it instead of hotkeys, so there is nothing to assign inside OBS.
+
+### Changed
+- Configuration files are written with mode 0600 and the editor export leaves the OBS password empty.
+
 ## 0.2.0 - 2026-08-23
 
 ### Added
