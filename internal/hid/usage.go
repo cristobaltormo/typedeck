@@ -10,6 +10,7 @@ const (
 	ModShift byte = 0x02
 	ModAlt   byte = 0x04
 	ModGui   byte = 0x08
+	ModAltGr byte = 0x40
 )
 
 type Stroke struct {

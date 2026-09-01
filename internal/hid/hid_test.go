@@ -81,3 +81,34 @@ func TestHotkeyAndLayouts(t *testing.T) {
 		t.Fatal("qwerty debe poder teclear letras, cifras, espacio y salto")
 	}
 }
+
+func TestSpanishPCLayout(t *testing.T) {
+	l := LayoutByName("es-pc")
+	if l.Name != "es-pc" || LayoutByName("es-iso").Name != "es-iso" {
+		t.Fatal("las dos disposiciones españolas deben ser distintas")
+	}
+	cases := map[rune][]Stroke{
+		'@': {{0x1F, ModAltGr}}, '#': {{0x20, ModAltGr}}, '~': {{0x21, ModAltGr}}, '€': {{0x22, ModAltGr}}, '\\': {{0x35, ModAltGr}},
+		'|': {{0x1E, ModAltGr}}, '[': {{0x2F, ModAltGr}}, ']': {{0x30, ModAltGr}}, '{': {{0x34, ModAltGr}}, '}': {{0x32, ModAltGr}},
+		'ñ': {{0x33, 0}}, 'Ñ': {{0x33, ModShift}}, 'ç': {{0x32, 0}}, '<': {{0x64, 0}}, '>': {{0x64, ModShift}},
+		'á': {{0x34, 0}, {0x04, 0}}, '^': {{0x2F, ModShift}, {0x2C, 0}}, '`': {{0x2F, 0}, {0x2C, 0}}, '/': {{0x24, ModShift}}, '=': {{0x27, ModShift}},
+	}
+	for r, want := range cases {
+		got, ok := l.Strokes(r)
+		if !ok || len(got) != len(want) {
+			t.Errorf("%q: %v %v", r, got, ok)
+			continue
+		}
+		for i := range want {
+			if got[i] != want[i] {
+				t.Errorf("%q: %v, esperaba %v", r, got, want)
+			}
+		}
+	}
+	if _, ok := l.Strokes('∞'); ok {
+		t.Error("∞ no existe en Español (PC)")
+	}
+	if _, ok := LayoutByName("es-iso").Strokes('∞'); !ok {
+		t.Error("∞ si existe en el ISO de macOS")
+	}
+}

@@ -110,7 +110,61 @@ var layoutESISO = func() *Layout {
 	return l
 }()
 
-// layoutESPC is the Linux (xkb es) Spanish layout. Same physical keys as macOS ISO, but the third level is AltGr (right Alt).
+var layoutESPC = func() *Layout {
+	l := base("es-pc")
+	altgr := ModAltGr
+	nums := []struct {
+		u          byte
+		shift, alt rune
+	}{{0x1E, '!', '|'}, {0x1F, '"', '@'}, {0x20, '·', '#'}, {0x21, '$', '~'}, {0x22, '%', '€'},
+		{0x23, '&', '¬'}, {0x24, '/', 0}, {0x25, '(', 0}, {0x26, ')', 0}, {0x27, '=', 0}}
+	for _, n := range nums {
+		l.add(n.shift, n.u, ModShift)
+		if n.alt != 0 {
+			l.add(n.alt, n.u, altgr)
+		}
+	}
+	l.add('º', 0x35, 0)
+	l.add('ª', 0x35, ModShift)
+	l.add('\\', 0x35, altgr)
+	l.add('\'', 0x2D, 0)
+	l.add('?', 0x2D, ModShift)
+	l.add('¡', 0x2E, 0)
+	l.add('¿', 0x2E, ModShift)
+	l.add('[', 0x2F, altgr)
+	l.add('+', 0x30, 0)
+	l.add('*', 0x30, ModShift)
+	l.add(']', 0x30, altgr)
+	l.add('ñ', 0x33, 0)
+	l.add('Ñ', 0x33, ModShift)
+	l.chars['`'] = []Stroke{{0x2F, 0}, {0x2C, 0}}
+	l.chars['^'] = []Stroke{{0x2F, ModShift}, {0x2C, 0}}
+	l.chars['´'] = []Stroke{{0x34, 0}, {0x2C, 0}}
+	l.chars['¨'] = []Stroke{{0x34, ModShift}, {0x2C, 0}}
+	l.add('{', 0x34, altgr)
+	l.add('ç', 0x32, 0)
+	l.add('Ç', 0x32, ModShift)
+	l.add('}', 0x32, altgr)
+	l.add('<', 0x64, 0)
+	l.add('>', 0x64, ModShift)
+	l.add(',', 0x36, 0)
+	l.add(';', 0x36, ModShift)
+	l.add('.', 0x37, 0)
+	l.add(':', 0x37, ModShift)
+	l.add('-', 0x38, 0)
+	l.add('_', 0x38, ModShift)
+	for _, v := range []struct {
+		plain, acute, diaer rune
+		key                 byte
+	}{{'a', 'á', 'ä', 0x04}, {'e', 'é', 'ë', 0x08}, {'i', 'í', 'ï', 0x0C}, {'o', 'ó', 'ö', 0x12}, {'u', 'ú', 'ü', 0x18}} {
+		l.chars[v.acute] = []Stroke{{0x34, 0}, {v.key, 0}}
+		l.chars[v.acute-0x20] = []Stroke{{0x34, 0}, {v.key, ModShift}}
+		l.chars[v.diaer] = []Stroke{{0x34, ModShift}, {v.key, 0}}
+		l.chars[v.diaer-0x20] = []Stroke{{0x34, ModShift}, {v.key, ModShift}}
+	}
+	return l
+}()
+
 // layoutESWin is the Windows Spanish layout: AltGr+4 is a dead key there (checked on a real Windows 11), so ~ needs a space after it.
 var layoutQWERTY = base("qwerty")
 
@@ -118,6 +172,8 @@ var layoutNone = &Layout{Name: "none", chars: map[rune][]Stroke{}}
 
 func LayoutByName(name string) *Layout {
 	switch {
+	case name == "es-pc":
+		return layoutESPC
 	case strings.HasPrefix(name, "es"):
 		return layoutESISO
 	case name == "us":

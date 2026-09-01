@@ -51,7 +51,7 @@ func Resolve(cfg config.Config, info *board.Info, id kbdb.Identity, sys actions.
 		}
 	}
 	std := "ansi"
-	if sys.KeyboardType == "iso" || (sys.KeyboardType == "" && (sys.TypingLayout == "es-iso")) {
+	if sys.KeyboardType == "iso" || (sys.KeyboardType == "" && (sys.TypingLayout == "es-iso" || sys.TypingLayout == "es-pc")) {
 		std = "iso"
 	}
 	family := "full"
@@ -187,7 +187,7 @@ func Describe(cfg config.Config, brd *board.Board, env actions.Env) Setup {
 		add("info", "generic_keyboard")
 	}
 	switch sys.TypingLayout {
-	case "us", "es-iso":
+	case "us", "es-iso", "es-pc":
 	default:
 		add("warn", "typing_layout_unknown")
 	}

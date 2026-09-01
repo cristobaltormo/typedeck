@@ -48,7 +48,7 @@ export function settingsView(root) {
       setting(t("settings.density"), seg([["comfortable", t("density.comfortable")], ["compact", t("density.compact")]], s.density, (v) => set(["density"], v)))),
     section(t("settings.input"), t("settings.input_sub"),
       setting(t("settings.input_mode"), select("", s.input, [["auto", t("input.auto")], ["hardware", t("input.hardware")], ["software", t("input.software")]], (v) => set(["input"], v)), t("settings.input_mode_sub")),
-      setting(t("settings.typing_layout"), select("", s.typing_layout, [["auto", t("typing.auto")], ["es-iso", "Español ISO"], ["us", "US"]], (v) => set(["typing_layout"], v)), t("settings.typing_layout_sub")),
+      setting(t("settings.typing_layout"), select("", s.typing_layout, [["auto", t("typing.auto")], ["es-iso", "Español (macOS)"], ["es-pc", "Español (Linux)"], ["us", "US"]], (v) => set(["typing_layout"], v)), t("settings.typing_layout_sub")),
       setting(t("gesture.hold"), slider(s.hold_ms, 200, 1500, 50, "ms", (v) => set(["hold_ms"], v)), t("settings.hold_sub")),
       setting(t("gesture.double"), slider(s.double_ms, 120, 800, 20, "ms", (v) => set(["double_ms"], v)), t("settings.double_sub")),
       setting(t("settings.volume_step"), slider(s.volume_step, 1, 25, 1, "%", (v) => set(["volume_step"], v)), t("settings.volume_step_sub")),
