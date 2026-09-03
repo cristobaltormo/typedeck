@@ -124,3 +124,37 @@ func TestSpecificAppsAreCovered(t *testing.T) {
 		}
 	}
 }
+
+func TestPCVariantsAndOSFilter(t *testing.T) {
+	zoom, _ := Get("zoom")
+	mac, _ := ResolveFor("darwin", zoom, "full-iso", "es", nil)
+	pc, _ := ResolveFor("windows", zoom, "full-iso", "es", nil)
+	find := func(r Resolved, label string) string {
+		for _, k := range r.Layer.Keys {
+			if k.Label == label && k.Tap != nil {
+				return k.Tap.Keys
+			}
+		}
+		return ""
+	}
+	if find(mac, "Micro") != "cmd+shift+a" || find(pc, "Micro") != "alt+a" {
+		t.Fatalf("Zoom: mac %q, pc %q", find(mac, "Micro"), find(pc, "Micro"))
+	}
+	disc, _ := Get("discord")
+	pc, _ = ResolveFor("linux", disc, "full-iso", "es", nil)
+	if got := find(pc, "Silenciar"); got != "ctrl+shift+m" {
+		t.Fatalf("Discord en Linux: %q", got)
+	}
+	if got := find(pc, "Servidor arriba"); got != "ctrl+alt+up" {
+		t.Fatalf("Discord servidor: %q", got)
+	}
+	for _, id := range []string{"xcode", "finalcut", "mac-productivity"} {
+		p, _ := Get(id)
+		if p.ForOS("linux") || p.ForOS("windows") || !p.ForOS("darwin") {
+			t.Errorf("%s debe ser solo de macOS", id)
+		}
+	}
+	if len(ForOS("linux")) >= len(All()) || len(ForOS("darwin")) != len(All()) {
+		t.Fatalf("filtro por sistema: linux %d, darwin %d de %d", len(ForOS("linux")), len(ForOS("darwin")), len(All()))
+	}
+}

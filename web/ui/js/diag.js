@@ -33,9 +33,11 @@ export function diagView(root) {
     if (!system) { sys.append(h("dt", {}, ""), h("dd", { class: "dim" }, t("diag.unknown"))); return; }
     const remap = system.mod_remap.length ? system.mod_remap.join(", ") + " " + t("diag.compensated") : t("diag.none");
     sys.append(h("dt", {}, t("diag.mac_layout")), h("dd", {}, t("layout.sys." + system.typing_layout)));
-    sys.append(
-      h("dt", {}, t("diag.mac_kbtype")), h("dd", {}, system.keyboard_type ? system.keyboard_type.toUpperCase() + (system.keys_swapped ? " " + t("diag.compensated") : "") : t("diag.unknown")),
-      h("dt", {}, t("diag.mac_remap")), h("dd", {}, remap));
+    if (system.keyboard_type || system.mod_remap.length) {
+      sys.append(
+        h("dt", {}, t("diag.mac_kbtype")), h("dd", {}, system.keyboard_type ? system.keyboard_type.toUpperCase() + (system.keys_swapped ? " " + t("diag.compensated") : "") : t("diag.unknown")),
+        h("dt", {}, t("diag.mac_remap")), h("dd", {}, remap));
+    }
   }
 
   async function cmd(name, arg) {

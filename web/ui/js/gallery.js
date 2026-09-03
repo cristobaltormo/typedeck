@@ -23,7 +23,7 @@ export function galleryView(root) {
     clear(chips);
     const mk = (id, label, n, icon) => chips.append(h("button", { type: "button", role: "tab", class: "cat", "aria-selected": String(cat === id), onclick: () => { cat = id; drawChips(); drawList(); } }, icon ? ic(icon, 15) : null, label, h("span", { class: "n" }, String(n))));
     mk("all", t("gallery.all"), packs.length);
-    for (const c of categories) mk(c.id, pick(c.name), packs.filter((p) => p.category === c.id).length, c.icon);
+    for (const c of categories) { const n = packs.filter((p) => p.category === c.id).length; if (n) mk(c.id, pick(c.name), n, c.icon); }
   }
 
   async function resolved(p) {

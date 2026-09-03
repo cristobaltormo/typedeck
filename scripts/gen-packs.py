@@ -23,8 +23,9 @@ def obs(cmd, target=""):
     return a
 def confirm(a): a = dict(a); a["confirm"] = True; return a
 
-def M(es, en, icon, tap=None, color=None, hold=None, double=None):
+def M(es, en, icon, tap=None, color=None, hold=None, double=None, tap_pc=None):
     m = {"label": {"es": es, "en": en}, "icon": icon}
+    if tap_pc: m["tap_pc"] = tap_pc
     if color: m["color"] = color
     if tap: m["tap"] = tap
     if hold: m["hold"] = hold
@@ -38,7 +39,7 @@ categories = [
     ("dev", "code", "Desarrollo", "Development"),
     ("work", "clock", "Productividad y ventanas", "Productivity and windows"),
     ("media", "music", "Música y vídeo", "Music and video"),
-    ("system", "monitor", "Sistema del Mac", "Mac system"),
+    ("system", "monitor", "Sistema", "System"),
     ("home", "server", "Casa y servidores", "Home and servers"),
     ("text", "type", "Texto y escritura", "Text and writing"),
     ("study", "bookmark", "Estudio", "Study"),
@@ -46,6 +47,8 @@ categories = [
 ]
 
 packs = []
+MAC_ONLY = {"finalcut", "xcode", "mail", "mac-productivity", "windows", "system", "launcher", "study", "terminal", "photoshop-mac"}
+
 def P(id, cat, icon, color, name, desc, macros, region="numpad", apps=None, auto=None, notes=None, tags=None, glob=None):
     p = {"id": id, "category": cat, "icon": icon, "color": color, "name": {"es": name[0], "en": name[1]}, "description": {"es": desc[0], "en": desc[1]},
          "region": region, "macros": macros}
@@ -53,6 +56,7 @@ def P(id, cat, icon, color, name, desc, macros, region="numpad", apps=None, auto
     if apps: p["apps"] = apps
     if auto: p["auto_apps"] = auto
     if tags: p["tags"] = tags
+    if id in MAC_ONLY: p["os"] = ["darwin"]
     if glob: p["global"] = glob
     packs.append(p)
 
@@ -96,9 +100,9 @@ P("streamer-pro", "streaming", "bolt", PINK, ("Streamer completo", "Full streame
 
 P("zoom", "comms", "camera", BLUE, ("Zoom", "Zoom"),
   ("Micro, cámara, compartir pantalla, grabar y levantar la mano.", "Mic, camera, screen share, record and raise hand."),
-  [M("Micro", "Mic", "mic", hk("cmd+shift+a"), RED), M("Cámara", "Camera", "camera", hk("cmd+shift+v"), BLUE), M("Compartir", "Share screen", "monitor", hk("cmd+shift+s"), GREEN),
-   M("Grabar", "Record", "play", hk("cmd+shift+r"), RED), M("Mano", "Raise hand", "star", hk("alt+y"), AMBER), M("Participantes", "Participants", "grid", hk("cmd+u"), SLATE),
-   M("Chat", "Chat", "chat", hk("cmd+shift+h"), SKY), M("Salir", "Leave", "power", confirm(hk("cmd+w")), RED), M("Abrir Zoom", "Open Zoom", "grid", app("zoom.us"), SLATE)],
+  [M("Micro", "Mic", "mic", hk("cmd+shift+a"), RED, tap_pc=hk("alt+a")), M("Cámara", "Camera", "camera", hk("cmd+shift+v"), BLUE, tap_pc=hk("alt+v")), M("Compartir", "Share screen", "monitor", hk("cmd+shift+s"), GREEN, tap_pc=hk("alt+shift+s")),
+   M("Grabar", "Record", "play", hk("cmd+shift+r"), RED, tap_pc=hk("alt+r")), M("Mano", "Raise hand", "star", hk("alt+y"), AMBER), M("Participantes", "Participants", "grid", hk("cmd+u"), SLATE, tap_pc=hk("alt+u")),
+   M("Chat", "Chat", "chat", hk("cmd+shift+h"), SKY, tap_pc=hk("alt+h")), M("Salir", "Leave", "power", confirm(hk("cmd+w")), RED, tap_pc=confirm(hk("alt+q"))), M("Abrir Zoom", "Open Zoom", "grid", app("zoom.us"), SLATE)],
   apps=["Zoom"], auto=["zoom.us"], tags=["reunion", "meeting", "videollamada"])
 
 P("meet", "comms", "camera", GREEN, ("Google Meet", "Google Meet"),

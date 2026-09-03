@@ -4,7 +4,9 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"runtime"
 	"sort"
+	"strings"
 
 	"github.com/cristobaltormo/typedeck/internal/config"
 	"github.com/cristobaltormo/typedeck/internal/layouts"
@@ -23,13 +25,16 @@ func (t Text) Get(lang string) string {
 }
 
 type Macro struct {
-	Key    string         `json:"key,omitempty"`
-	Label  Text           `json:"label"`
-	Icon   string         `json:"icon,omitempty"`
-	Color  string         `json:"color,omitempty"`
-	Tap    *config.Action `json:"tap,omitempty"`
-	Hold   *config.Action `json:"hold,omitempty"`
-	Double *config.Action `json:"double,omitempty"`
+	Key      string         `json:"key,omitempty"`
+	Label    Text           `json:"label"`
+	Icon     string         `json:"icon,omitempty"`
+	Color    string         `json:"color,omitempty"`
+	Tap      *config.Action `json:"tap,omitempty"`
+	Hold     *config.Action `json:"hold,omitempty"`
+	Double   *config.Action `json:"double,omitempty"`
+	TapPC    *config.Action `json:"tap_pc,omitempty"`
+	HoldPC   *config.Action `json:"hold_pc,omitempty"`
+	DoublePC *config.Action `json:"double_pc,omitempty"`
 }
 
 type Pack struct {
@@ -44,6 +49,7 @@ type Pack struct {
 	AutoApps    []string                 `json:"auto_apps,omitempty"`
 	Tags        []string                 `json:"tags,omitempty"`
 	Region      string                   `json:"region"`
+	OS          []string                 `json:"os,omitempty"`
 	Macros      []Macro                  `json:"macros"`
 	Global      map[string]config.KeyDef `json:"global,omitempty"`
 }
@@ -93,7 +99,62 @@ type Resolved struct {
 	Dropped int                      `json:"dropped"`
 }
 
+func (p Pack) ForOS(goos string) bool {
+	if len(p.OS) == 0 {
+		return true
+	}
+	for _, o := range p.OS {
+		if o == goos {
+			return true
+		}
+	}
+	return false
+}
+
+func ForOS(goos string) []Pack {
+	var out []Pack
+	for _, p := range data.Packs {
+		if p.ForOS(goos) {
+			out = append(out, p)
+		}
+	}
+	return out
+}
+
+func pcAction(a *config.Action) *config.Action {
+	if a == nil {
+		return nil
+	}
+	c := *a
+	switch c.Type {
+	case "hotkey":
+		var parts []string
+		seen := map[string]bool{}
+		for _, t := range strings.Split(strings.ToLower(c.Keys), "+") {
+			if t == "cmd" || t == "command" || t == "gui" {
+				t = "ctrl"
+			}
+			if t == "ctrl" && seen[t] {
+				continue
+			}
+			seen[t] = true
+			parts = append(parts, t)
+		}
+		c.Keys = strings.Join(parts, "+")
+	case "sequence":
+		c.Steps = nil
+		for i := range a.Steps {
+			c.Steps = append(c.Steps, *pcAction(&a.Steps[i]))
+		}
+	}
+	return &c
+}
+
 func Resolve(p Pack, layoutID, lang string, reserved map[string]bool) (Resolved, error) {
+	return ResolveFor(runtime.GOOS, p, layoutID, lang, reserved)
+}
+
+func ResolveFor(goos string, p Pack, layoutID, lang string, reserved map[string]bool) (Resolved, error) {
 	l, ok := layouts.Get(layoutID)
 	if !ok {
 		l, _ = layouts.Get("full-iso")
@@ -129,7 +190,17 @@ func Resolve(p Pack, layoutID, lang string, reserved map[string]bool) (Resolved,
 	res := Resolved{Region: region, Global: map[string]config.KeyDef{}}
 	res.Layer = config.Layer{Name: p.Name.Get(lang), Color: p.Color, Icon: p.Icon, AutoApps: append([]string{}, p.AutoApps...), Keys: map[string]config.KeyDef{}}
 	put := func(id string, m Macro) {
-		res.Layer.Keys[id] = config.KeyDef{Tap: m.Tap, Hold: m.Hold, Double: m.Double, Label: m.Label.Get(lang), Icon: m.Icon, Color: m.Color}
+		tap, hold, double := m.Tap, m.Hold, m.Double
+		if goos != "darwin" {
+			pick := func(pc, mac *config.Action) *config.Action {
+				if pc != nil {
+					return pc
+				}
+				return pcAction(mac)
+			}
+			tap, hold, double = pick(m.TapPC, m.Tap), pick(m.HoldPC, m.Hold), pick(m.DoublePC, m.Double)
+		}
+		res.Layer.Keys[id] = config.KeyDef{Tap: tap, Hold: hold, Double: double, Label: m.Label.Get(lang), Icon: m.Icon, Color: m.Color}
 	}
 	free := append([]byte(nil), slots...)
 	var pending []Macro

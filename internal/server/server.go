@@ -169,7 +169,7 @@ func (s *Server) Handler() http.Handler {
 		_, _ = w.Write(setup.Compat)
 	})
 	get("/api/packs", func(w http.ResponseWriter, r *http.Request) {
-		writeJSON(w, 200, map[string]any{"categories": packs.Categories(), "packs": packs.All()})
+		writeJSON(w, 200, map[string]any{"categories": packs.Categories(), "packs": packs.ForOS(platform.Current.Name()), "os": platform.Current.Name()})
 	})
 	post("/api/packs/resolve", s.resolvePack)
 	post("/api/keyboard/layout", s.setLayout)
@@ -525,7 +525,7 @@ func (s *Server) resolvePack(w http.ResponseWriter, r *http.Request) {
 	for k := range cfg.Global {
 		reserved[k] = true
 	}
-	res, err := packs.Resolve(p, b.Layout, b.Lang, reserved)
+	res, err := packs.ResolveFor(platform.Current.Name(), p, b.Layout, b.Lang, reserved)
 	if err != nil {
 		fail(w, 400, err.Error())
 		return

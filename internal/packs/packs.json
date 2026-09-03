@@ -52,8 +52,8 @@
    "id": "system",
    "icon": "monitor",
    "name": {
-    "es": "Sistema del Mac",
-    "en": "Mac system"
+    "es": "Sistema",
+    "en": "System"
    }
   },
   {
@@ -787,6 +787,10 @@
       "en": "Mic"
      },
      "icon": "mic",
+     "tap_pc": {
+      "type": "hotkey",
+      "keys": "alt+a"
+     },
      "color": "#cc4848",
      "tap": {
       "type": "hotkey",
@@ -799,6 +803,10 @@
       "en": "Camera"
      },
      "icon": "camera",
+     "tap_pc": {
+      "type": "hotkey",
+      "keys": "alt+v"
+     },
      "color": "#2563eb",
      "tap": {
       "type": "hotkey",
@@ -811,6 +819,10 @@
       "en": "Share screen"
      },
      "icon": "monitor",
+     "tap_pc": {
+      "type": "hotkey",
+      "keys": "alt+shift+s"
+     },
      "color": "#16a34a",
      "tap": {
       "type": "hotkey",
@@ -823,6 +835,10 @@
       "en": "Record"
      },
      "icon": "play",
+     "tap_pc": {
+      "type": "hotkey",
+      "keys": "alt+r"
+     },
      "color": "#cc4848",
      "tap": {
       "type": "hotkey",
@@ -847,6 +863,10 @@
       "en": "Participants"
      },
      "icon": "grid",
+     "tap_pc": {
+      "type": "hotkey",
+      "keys": "alt+u"
+     },
      "color": "#64748b",
      "tap": {
       "type": "hotkey",
@@ -859,6 +879,10 @@
       "en": "Chat"
      },
      "icon": "chat",
+     "tap_pc": {
+      "type": "hotkey",
+      "keys": "alt+h"
+     },
      "color": "#0ea5e9",
      "tap": {
       "type": "hotkey",
@@ -871,6 +895,11 @@
       "en": "Leave"
      },
      "icon": "power",
+     "tap_pc": {
+      "type": "hotkey",
+      "keys": "alt+q",
+      "confirm": true
+     },
      "color": "#cc4848",
      "tap": {
       "type": "hotkey",
@@ -1353,6 +1382,9 @@
    "tags": [
     "email",
     "correo"
+   ],
+   "os": [
+    "darwin"
    ]
   },
   {
@@ -2100,6 +2132,9 @@
     "video",
     "edicion",
     "editing"
+   ],
+   "os": [
+    "darwin"
    ]
   },
   {
@@ -2725,6 +2760,9 @@
     "ios",
     "swift",
     "apple"
+   ],
+   "os": [
+    "darwin"
    ]
   },
   {
@@ -2971,6 +3009,9 @@
    "tags": [
     "consola",
     "shell"
+   ],
+   "os": [
+    "darwin"
    ]
   },
   {
@@ -3682,6 +3723,9 @@
    "tags": [
     "mac",
     "macos"
+   ],
+   "os": [
+    "darwin"
    ]
   },
   {
@@ -3806,6 +3850,9 @@
    "tags": [
     "ventanas",
     "windows"
+   ],
+   "os": [
+    "darwin"
    ]
   },
   {
@@ -4383,6 +4430,9 @@
    ],
    "tags": [
     "mac"
+   ],
+   "os": [
+    "darwin"
    ]
   },
   {
@@ -4777,6 +4827,9 @@
     "estudiante",
     "student",
     "universidad"
+   ],
+   "os": [
+    "darwin"
    ]
   },
   {
@@ -5056,6 +5109,9 @@
     "launcher",
     "bloq mayus",
     "caps"
+   ],
+   "os": [
+    "darwin"
    ],
    "global": {
     "39": {
