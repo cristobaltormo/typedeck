@@ -3,6 +3,9 @@ package board
 import (
 	"bufio"
 	"io"
+	"os"
+	"path/filepath"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -13,7 +16,25 @@ type SerialConnector struct {
 	rejected map[string]time.Time
 }
 
-func candidates() []string { return systemPorts() }
+func candidates() []string {
+	var patterns []string
+	if v := strings.TrimSpace(os.Getenv("TYPEDECK_PORT")); v != "" {
+		patterns = strings.Split(v, ",")
+	} else {
+		return systemPorts()
+	}
+	var out []string
+	for _, p := range patterns {
+		p = strings.TrimSpace(p)
+		if m, _ := filepath.Glob(p); len(m) > 0 {
+			out = append(out, m...)
+		} else if p != "" {
+			out = append(out, p)
+		}
+	}
+	sort.Strings(out)
+	return out
+}
 
 func (c *SerialConnector) Open() (io.ReadWriteCloser, string, error) {
 	outdated := ""
