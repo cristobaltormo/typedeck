@@ -242,12 +242,31 @@
      "name_en": "macOS 12 or later, Apple Silicon or Intel"
     },
     {
-     "name": "Windows y Linux",
-     "status": "planned",
+     "name": "Linux con X11 (Debian, Ubuntu, Fedora, Arch...)",
+     "status": "expected",
      "note": {
-      "es": "El núcleo es portable (Go). Las acciones de aplicaciones y el cartel son de macOS. La placa funciona como teclado en cualquier sistema.",
-      "en": "The core is portable (Go). Application actions and the popup are macOS-only. The board works as a keyboard on any system."
-     }
+      "es": "Probado en Debian 13 con una placa simulada (16 comprobaciones) y con un X11 virtual: aplicaciones por su .desktop, ventana activa, capas por aplicación, teclas por software, portapapeles y servicio de usuario (12 comprobaciones). Falta probarlo en un escritorio real con pantalla.",
+      "en": "Tested on Debian 13 with a simulated board (16 checks) and a virtual X11: applications through their .desktop files, active window, per-application layers, software keys, clipboard and the user service (12 checks). Not yet tried on a real desktop with a screen."
+     },
+     "name_en": "Linux with X11 (Debian, Ubuntu, Fedora, Arch...)"
+    },
+    {
+     "name": "Linux con Wayland",
+     "status": "expected",
+     "note": {
+      "es": "Igual que X11, con límites: las capas por aplicación solo existen en Sway y Hyprland (GNOME y KDE no dejan saber la ventana activa) y las teclas por software necesitan wtype. Con la placa conectada, atajos, texto y multimedia no dependen de nada de esto.",
+      "en": "Same as X11, with limits: per-application layers only work on Sway and Hyprland (GNOME and KDE do not reveal the active window) and software keys need wtype. With the board connected, shortcuts, text and media do not depend on any of this."
+     },
+     "name_en": "Linux with Wayland"
+    },
+    {
+     "name": "Windows 10 y 11",
+     "status": "expected",
+     "note": {
+      "es": "Implementado con la API nativa (puerto COM con DTR, ventana activa, teclas, portapapeles) y compilado para amd64 y arm64. Probado con una placa simulada bajo Wine (17 comprobaciones); falta probarlo en un Windows real. Se ejecuta con typedeck install.",
+      "en": "Implemented with the native API (COM port with DTR, active window, keys, clipboard) and built for amd64 and arm64. Tested with a simulated board under Wine (17 checks); not yet tested on a real Windows. Run typedeck install to start it with your session."
+     },
+     "name_en": "Windows 11"
     },
     {
      "name": "Conmutador KVM entre el ordenador y la placa",
