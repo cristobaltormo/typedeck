@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.4.0 - 2026-09-11
+
+### Added
+- Linux (X11 and Wayland): serial port discovery, applications from `.desktop` files, the focused window on X11, Sway and Hyprland,
+  software keys with `xdotool` or `wtype`, clipboard, sleep, lock, notifications and a systemd user service
+  (`typedeck install`).
+- `TYPEDECK_PORT` to force the serial port on any system.
+- A Spanish layout for Linux (Alt Gr), per-OS pack variants (Cmd becomes Ctrl, Zoom has its own) and packs that only make sense on
+  macOS are hidden elsewhere.
+- Tests on Linux with a simulated board and with a virtual X11, and a udev rule so the user can open the board.
+
 ## 0.3.0 - 2026-08-30
 
 ### Added
