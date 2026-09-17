@@ -17,6 +17,7 @@ import (
 	"github.com/cristobaltormo/typedeck/internal/board"
 	"github.com/cristobaltormo/typedeck/internal/config"
 	"github.com/cristobaltormo/typedeck/internal/engine"
+	"github.com/cristobaltormo/typedeck/internal/platform"
 	"github.com/cristobaltormo/typedeck/internal/server"
 )
 
@@ -27,6 +28,7 @@ func main() {
 	debug.SetGCPercent(25)
 	debug.SetMemoryLimit(24 << 20)
 	if len(os.Args) > 1 {
+		platform.AttachConsole()
 		switch os.Args[1] {
 		case "version", "-v", "--version":
 			fmt.Println("typedeck", version)
@@ -48,6 +50,7 @@ func main() {
 			os.Exit(2)
 		}
 	}
+	logToFile()
 	log.SetFlags(log.Ltime)
 	paths := config.DefaultPaths()
 	brd := board.New(&board.SerialConnector{})
@@ -93,4 +96,20 @@ func main() {
 	close(stop)
 	brd.Close()
 	time.Sleep(200 * time.Millisecond)
+}
+
+func logToFile() {
+	path := platform.Current.LogFile()
+	if path == "" {
+		return
+	}
+	if st, err := os.Stat(path); err == nil && st.Size() > 1<<20 {
+		_ = os.Truncate(path, 0)
+	}
+	if platform.Current.Name() == "windows" {
+		_ = os.MkdirAll(filepath.Dir(path), 0o755)
+		if f, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o600); err == nil {
+			log.SetOutput(f)
+		}
+	}
 }
