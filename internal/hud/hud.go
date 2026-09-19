@@ -42,6 +42,12 @@ func Show(o Options) {
 			return
 		}
 	}
+	if platform.Current.Popup(platform.PopupOptions{Title: o.Title, Subtitle: o.Subtitle, Seconds: o.Seconds, Position: o.Position, Accent: o.Accent, Dots: o.Dots, Active: o.Active}) {
+		if o.Sound && strings.TrimSpace(o.Title) != "" {
+			platform.Current.Notify("", "", true)
+		}
+		return
+	}
 	body := o.Subtitle
 	if body == "" {
 		body = o.Title

@@ -12,6 +12,14 @@ import (
 	"github.com/cristobaltormo/typedeck/internal/hid"
 )
 
+type PopupOptions struct {
+	Title, Subtitle string
+	Seconds         float64
+	Position        string
+	Accent          string
+	Dots, Active    int
+}
+
 type SystemInfo struct {
 	TypingLayout string   `json:"typing_layout"`
 	KeyboardType string   `json:"keyboard_type"`
@@ -50,6 +58,8 @@ type Platform interface {
 	KeepAwake() (stop func(), err error)
 
 	Notify(title, body string, sound bool)
+	Popup(o PopupOptions) bool
+
 	SystemLayout() string
 	AdaptStroke(st hid.Stroke, layout *hid.Layout) hid.Stroke
 	Info(layout *hid.Layout) SystemInfo

@@ -265,6 +265,8 @@ func (p *darwin) SystemLayout() string {
 	return p.layoutCached
 }
 
+func (*darwin) Popup(PopupOptions) bool { return false }
+
 func (*darwin) ShellCommand(cmd string) (string, []string) { return "/bin/sh", []string{"-c", cmd} }
 
 func (*darwin) QuoteArg(s string) string { return unixQuote(s) }

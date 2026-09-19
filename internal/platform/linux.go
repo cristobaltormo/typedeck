@@ -591,6 +591,8 @@ func (*linux) Info(l *hid.Layout) SystemInfo {
 	return SystemInfo{TypingLayout: l.Name, ModRemap: []string{}}
 }
 
+func (*linux) Popup(PopupOptions) bool { return false }
+
 func (*linux) ShellCommand(cmd string) (string, []string) { return "/bin/sh", []string{"-c", cmd} }
 
 func (*linux) QuoteArg(s string) string { return unixQuote(s) }
