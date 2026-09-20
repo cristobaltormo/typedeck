@@ -41,7 +41,7 @@ export const isModifier = (u) => u >= 0xE0 && u <= 0xE7;
 
 export function legendLang() {
   const sys = state.system?.typing_layout;
-  if (sys === "es-iso" || sys === "es-pc") return "es";
+  if (sys === "es-iso" || sys === "es-pc" || sys === "es-win") return "es";
   if (sys === "us") return "en";
   return state.cfg?.settings.language || "es";
 }

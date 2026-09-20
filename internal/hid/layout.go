@@ -166,6 +166,17 @@ var layoutESPC = func() *Layout {
 }()
 
 // layoutESWin is the Windows Spanish layout: AltGr+4 is a dead key there (checked on a real Windows 11), so ~ needs a space after it.
+var layoutESWin = func() *Layout {
+	l := *layoutESPC
+	l.Name = "es-win"
+	l.chars = make(map[rune][]Stroke, len(layoutESPC.chars))
+	for r, st := range layoutESPC.chars {
+		l.chars[r] = st
+	}
+	l.chars['~'] = []Stroke{{0x21, ModAltGr}, {0x2C, 0}}
+	return &l
+}()
+
 var layoutQWERTY = base("qwerty")
 
 var layoutNone = &Layout{Name: "none", chars: map[rune][]Stroke{}}
@@ -174,6 +185,8 @@ func LayoutByName(name string) *Layout {
 	switch {
 	case name == "es-pc":
 		return layoutESPC
+	case name == "es-win":
+		return layoutESWin
 	case strings.HasPrefix(name, "es"):
 		return layoutESISO
 	case name == "us":

@@ -491,7 +491,7 @@ func Validate(c Config) (Config, error) {
 	s.DoubleMS = clampInt(s.DoubleMS, 120, 800, d.DoubleMS)
 	s.VolumeStep = clampInt(s.VolumeStep, 1, 25, d.VolumeStep)
 	s.Input = oneOf(s.Input, d.Input, "auto", "hardware", "software")
-	s.TypingLayout = oneOf(s.TypingLayout, d.TypingLayout, "auto", "us", "es-iso", "es-pc")
+	s.TypingLayout = oneOf(s.TypingLayout, d.TypingLayout, "auto", "us", "es-iso", "es-pc", "es-win")
 	s.OBS.Host = strings.TrimSpace(s.OBS.Host)
 	if s.OBS.Host == "" || len(s.OBS.Host) > 200 || strings.ContainsAny(s.OBS.Host, " /\\") {
 		s.OBS.Host = "127.0.0.1"

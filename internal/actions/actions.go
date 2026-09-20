@@ -163,7 +163,7 @@ func FrontNames(asn string) []string { return platform.Current.FrontNames(asn) }
 
 func typingLayout(env Env) *hid.Layout {
 	s := env.Settings().TypingLayout
-	if s == "us" || s == "es-iso" || s == "es-pc" {
+	if s == "us" || s == "es-iso" || s == "es-pc" || s == "es-win" {
 		return hid.LayoutByName(s)
 	}
 	return hid.LayoutByName(platform.Current.SystemLayout())

@@ -112,3 +112,21 @@ func TestSpanishPCLayout(t *testing.T) {
 		t.Error("∞ si existe en el ISO de macOS")
 	}
 }
+
+func TestSpanishWindowsTildeIsDeadKey(t *testing.T) {
+	w, pc := LayoutByName("es-win"), LayoutByName("es-pc")
+	if w.Name != "es-win" || pc.Name != "es-pc" {
+		t.Fatal("nombres")
+	}
+	got, _ := w.Strokes('~')
+	if len(got) != 2 || got[0] != (Stroke{0x21, ModAltGr}) || got[1] != (Stroke{0x2C, 0}) {
+		t.Fatalf("~ en Windows: %v", got)
+	}
+	got, _ = pc.Strokes('~')
+	if len(got) != 1 {
+		t.Fatalf("~ en Linux debe ser una sola pulsacion: %v", got)
+	}
+	if a, _ := w.Strokes('@'); len(a) != 1 || a[0].Mods != ModAltGr {
+		t.Fatalf("el resto es igual: %v", a)
+	}
+}
