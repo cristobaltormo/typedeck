@@ -8,7 +8,8 @@ Typedeck can run commands, so the editor is locked down:
 - The `Host` header is checked: a request under another name (DNS rebinding) is rejected with 403.
 - Restrictive content policy (`default-src 'self'`), nothing loaded from outside, `X-Frame-Options: DENY`.
 - The whole configuration is validated before it is saved: closed set of action types, bounded lengths, no nested sequences.
-- `{clipboard}` is quoted when used inside commands, so clipboard contents cannot inject anything.
+- `{clipboard}` is quoted when used inside commands, per OS (single quotes on macOS and Linux, double quotes with `"`, `%` and `^`
+  removed on Windows), so clipboard contents cannot inject anything.
 - Backup restore only accepts names like `config-YYYYMMDD-HHMMSS.json`.
 - `/api/dev/raw` exists only with `TYPEDECK_DEV=1` (tests).
 - Configuration files are written with mode 0600.
