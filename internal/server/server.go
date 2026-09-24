@@ -464,7 +464,13 @@ func (s *Server) events(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, 200, map[string]any{"events": evs, "last_id": last})
 }
 
-func installedApps() []string { return platform.Current.InstalledApps() }
+func installedApps() []string {
+	apps := platform.Current.InstalledApps()
+	if apps == nil {
+		return []string{}
+	}
+	return apps
+}
 
 func Listen() (net.Listener, error) {
 	var lastErr error

@@ -296,6 +296,8 @@ func (e *Engine) ApplyRestored(c config.Config) { e.applyConfig(c) }
 func (e *Engine) applyConfig(c config.Config) {
 	e.mu.Lock()
 	e.cfg = c
+	// new per-application rules must be evaluated against the window that is already in front
+	e.asn = ""
 	if e.layer >= len(c.Layers) {
 		e.layer = len(c.Layers) - 1
 	}
