@@ -1,0 +1,36 @@
+name: CI
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Formatting
+        if: runner.os == 'Linux'
+        run: test -z "$(gofmt -l cmd internal web)"
+      - name: Static analysis
+        run: go vet ./...
+      - name: Tests
+        run: go test -race ./...
+      - name: End to end with a simulated board
+        if: runner.os == 'Linux'
+        run: make e2e-linux
+  cross:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Build the six targets
+        run: make dist VERSION=ci
