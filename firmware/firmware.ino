@@ -5,7 +5,9 @@
 #include <usbhub.h>
 #include <SPI.h>
 
-#define FW_VERSION "4"
+#include <avr/wdt.h>
+#include <EEPROM.h>
+#define FW_VERSION "10"
 #define HB_TIMEOUT_MS 5000UL
 
 USB Usb;
@@ -22,6 +24,18 @@ uint8_t lastLeds = 0xFF, ledOverride = 0xFF;
 unsigned long ledOverrideUntil = 0;
 bool hidWasReady = false;
 unsigned long lastDeviceSeen = 0;
+// Restart when the keyboard does not show up. After a power cut (a KVM switch) the shield can stop seeing the keyboard, and
+// neither power cycling its port, resetting the shield chip nor an immediate MCU reset fixes it; going through the bootloader
+// (as when uploading a sketch) does. At most 3 times in a row unless a keyboard was ever seen; the counters survive the restart.
+#define SOFT_MAGIC 0xA55A
+#define EE_SEEN 0
+uint16_t softMagic __attribute__((section(".noinit")));
+uint8_t softResets __attribute__((section(".noinit")));
+bool vbusIsOff = false;
+unsigned long vbusOffUntil = 0;
+void endVbusCycle();
+unsigned long lastRunningMs = 0;
+uint8_t vbusCycles = 0;
 bool kbdPresent = false;
 unsigned long statN = 0, statSum = 0, statMax = 0;
 uint8_t blinkLeft = 0; bool blinkOn = false; unsigned long blinkNext = 0;
@@ -268,6 +282,19 @@ void handle(char *cmd) {
     Serial.print(F(" captura=")); Serial.println(capActive());
     statN = statSum = statMax = 0; return;
   }
+  if (!strncmp(cmd, "VBUS ", 5)) {
+    if (atoi(cmd + 5)) endVbusCycle(); else { Usb.vbusPower(vbus_off); vbusIsOff = true; vbusOffUntil = millis() + 600000UL; }
+    Serial.println(F("OK")); return;
+  }
+  if (!strcmp(cmd, "BUS")) {
+    Serial.print(F("hrsl=0x")); Serial.print(Usb.regRd(rHRSL), HEX);
+    Serial.print(F(" estado=0x")); Serial.print(Usb.getUsbTaskState(), HEX);
+    Serial.print(F(" vbus=")); Serial.print(vbusIsOff ? F("apagada") : F("encendida"));
+    Serial.print(F(" ciclos=")); Serial.print(vbusCycles);
+    Serial.print(F(" reinicios=")); Serial.print(softResets);
+    Serial.print(F(" sin_teclado_s=")); Serial.println((millis() - lastDeviceSeen) / 1000);
+    return;
+  }
   if (!strncmp(cmd, "WATCH ", 6)) { watch = atoi(cmd + 6) != 0; Serial.println(F("OK")); return; }
   if (!strncmp(cmd, "DBG ", 4)) { debugRaw = atoi(cmd + 4) != 0; Serial.println(F("OK")); return; }
   if (!strncmp(cmd, "LEDS ", 5)) { ledOverride = atoi(cmd + 5); ledOverrideUntil = millis() + 4000; Serial.println(F("OK")); return; }
@@ -276,17 +303,47 @@ void handle(char *cmd) {
   Serial.println(F("?"));
 }
 
-void cycleVbus() { Usb.vbusPower(vbus_off); delay(600); Usb.vbusPower(vbus_on); }
+void startVbusCycle() {
+  uint32_t off = vbusCycles == 0 ? 600UL : (vbusCycles == 1 ? 3000UL : (vbusCycles == 2 ? 20000UL : 60000UL));
+  if (vbusCycles < 255) vbusCycles++;
+  Usb.vbusPower(vbus_off);
+  vbusIsOff = true;
+  vbusOffUntil = millis() + off;
+}
+void endVbusCycle() {
+  Usb.Init();
+  Usb.vbusPower(vbus_on);
+  vbusIsOff = false;
+  lastDeviceSeen = millis();
+  lastRunningMs = millis();
+}
 
 char line[160]; uint8_t lineN = 0;
 
+// Restart through the bootloader (what the Arduino core does to upload a sketch): the MCU sits in the bootloader for about 8 s
+// and then starts the sketch. An immediate restart does NOT recover the keyboard; this one does.
+void bootloaderReset() {
+  *(volatile uint16_t *)0x0800 = 0x7777;
+  wdt_enable(WDTO_120MS);
+  while (1) {}
+}
+
 void setup() {
+  MCUSR = 0;
+  wdt_disable();
+  bool coldStart = softMagic != SOFT_MAGIC;
+  if (coldStart) softResets = 0;
+  softMagic = 0;
   pinMode(LED_BUILTIN, OUTPUT);
   Serial.begin(115200);
   BootKeyboard.begin();
   Consumer.begin();
-  if (Usb.Init() == -1) { while (1) { digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN)); delay(150); } }
-  cycleVbus();
+  for (uint8_t i = 0; Usb.Init() == -1; i++) {
+    digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
+    delay(250);
+    if (i >= 8) bootloaderReset();
+  }
+  startVbusCycle();
   lastDeviceSeen = millis();
 }
 
@@ -294,8 +351,14 @@ void loop() {
   Usb.Task();
 
   bool running = Usb.getUsbTaskState() == USB_STATE_RUNNING;
-  if (running) lastDeviceSeen = millis();
-  else if (millis() - lastDeviceSeen > 15000) { cycleVbus(); lastDeviceSeen = millis(); }
+  if (running) { lastDeviceSeen = millis(); lastRunningMs = millis(); vbusCycles = 0; softResets = 0; if (EEPROM.read(EE_SEEN) != 0xA5) EEPROM.write(EE_SEEN, 0xA5); }
+  else if (vbusIsOff) { if ((long)(millis() - vbusOffUntil) >= 0) endVbusCycle(); }
+  else if ((softResets < 3 || EEPROM.read(EE_SEEN) == 0xA5) && millis() - lastRunningMs > 9000) {
+    softResets++; softMagic = SOFT_MAGIC;
+    Serial.println(F("RESET sin teclado")); Serial.flush();
+    bootloaderReset();
+  }
+  else if (millis() - lastDeviceSeen > 15000) startVbusCycle();
   if (running != kbdPresent) { kbdPresent = running; Serial.println(running ? F("K 1") : F("K 0")); }
 
   bool ready = Hid.isReady();

@@ -437,6 +437,10 @@ func (b *Board) Command(name string, arg int) ([]string, error) {
 		return b.Do("WHO", false, time.Second)
 	case "stats":
 		return b.Do("STATS", false, time.Second)
+	case "bus":
+		return b.Do("BUS", false, time.Second)
+	case "vbus":
+		return b.Do(fmt.Sprintf("VBUS %d", max(0, min(arg, 1))), false, time.Second)
 	case "layer":
 		return b.Do(fmt.Sprintf("LAYER %d", max(0, min(arg, 8))), false, time.Second)
 	case "leds":
