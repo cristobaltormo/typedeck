@@ -365,18 +365,6 @@
     },
     {
      "label": {
-      "es": "Subir archivo",
-      "en": "Upload file"
-     },
-     "icon": "upload",
-     "color": "#0ea5e9",
-     "tap": {
-      "type": "hotkey",
-      "keys": "cmd+shift+u"
-     }
-    },
-    {
-     "label": {
       "es": "Abrir Discord",
       "en": "Open Discord"
      },
@@ -390,8 +378,8 @@
     }
    ],
    "notes": {
-    "es": "Los atajos son los de Discord para Mac por defecto. Silenciar y ensordecer son globales en Discord solo si activas la opción en sus ajustes.",
-    "en": "Shortcuts are Discord's Mac defaults. Mute and deafen only work from other apps if you enable that in Discord's settings."
+    "es": "Los atajos son los de Discord para Mac por defecto, comprobados con la app real. Silenciar y ensordecer son globales en Discord solo si activas la opción en sus ajustes.",
+    "en": "Shortcuts are Discord's Mac defaults, checked against the real app. Mute and deafen only work from other apps if you enable that in Discord's settings."
    },
    "apps": [
     "Discord"

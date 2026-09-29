@@ -77,8 +77,8 @@ P("discord", "streaming", "chat", PURPLE, ("Discord", "Discord"),
   [M("Silenciar", "Mute", "mic", hk("cmd+shift+m"), RED), M("Ensordecer", "Deafen", "volume-mute", hk("cmd+shift+d"), RED), M("Buscar", "Quick switcher", "search", hk("cmd+k"), BLUE),
    M("Servidor arriba", "Server up", "arrow-up", hk("cmd+alt+up"), PURPLE), M("Servidor abajo", "Server down", "arrow-down", hk("cmd+alt+down"), PURPLE),
    M("Canal arriba", "Channel up", "arrow-up", hk("alt+up"), PURPLE), M("Canal abajo", "Channel down", "arrow-down", hk("alt+down"), PURPLE),
-   M("Subir archivo", "Upload file", "upload", hk("cmd+shift+u"), SKY), M("Abrir Discord", "Open Discord", "chat", app("Discord"), SLATE)],
-  apps=["Discord"], auto=["Discord"], notes=("Los atajos son los de Discord para Mac por defecto. Silenciar y ensordecer son globales en Discord solo si activas la opción en sus ajustes.", "Shortcuts are Discord's Mac defaults. Mute and deafen only work from other apps if you enable that in Discord's settings."),
+   M("Abrir Discord", "Open Discord", "chat", app("Discord"), SLATE)],
+  apps=["Discord"], auto=["Discord"], notes=("Los atajos son los de Discord para Mac por defecto, comprobados con la app real. Silenciar y ensordecer son globales en Discord solo si activas la opción en sus ajustes.", "Shortcuts are Discord's Mac defaults, checked against the real app. Mute and deafen only work from other apps if you enable that in Discord's settings."),
   tags=["voz", "voice", "gaming"])
 
 P("obs-discord", "streaming", "camera", PURPLE, ("OBS Studio + Discord", "OBS Studio + Discord"),
