@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.5.0 - 2026-10-02
+
+### Added
+- Windows 10 and 11: native COM port, active window, keys, clipboard, Start menu applications, a scheduled task to start with the
+  session and its own popup window, tested on a real Windows 11 with the board.
+- A Spanish layout for Windows, where `Alt Gr+4` is a dead key, next to the Linux one.
+- Firmware 10: a `BUS` command with the USB line state, and recovery of the keyboard after a power cut by restarting through the
+  bootloader (it can take 20 to 40 seconds); retries a failed shield initialisation instead of stopping.
+- Hardware notes on power and KVM switches, troubleshooting, contributing guide, architecture notes and a generated compatibility
+  table.
+- Continuous integration for Linux, macOS and Windows, and release builds for six targets.
+
+### Changed
+- The Discord pack drops the upload shortcut, which did not answer in the real application.
+- Closing an application matches its window title with WM_CLOSE, so Store applications close too.
+- New per-application rules are evaluated against the window that is already in front.
+
 ## 0.4.0 - 2026-09-11
 
 ### Added
