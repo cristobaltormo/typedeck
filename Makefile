@@ -48,7 +48,7 @@ selftest:             ## editor self test in a headless Chromium
 	scripts/selftest.sh
 
 web-test:             ## unit tests of the editor modules (Node 20 or newer)
-	node --test tests/web
+	node --test tests/web/*.test.mjs
 
 screenshots:          ## regenerate docs/images
 	scripts/screenshots.sh

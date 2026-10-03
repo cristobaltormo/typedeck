@@ -15,8 +15,8 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
       - name: Static analysis
@@ -27,8 +27,8 @@ jobs:
   checks:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
       - name: Formatting
@@ -38,7 +38,7 @@ jobs:
           GOOS=windows go vet ./...
           GOOS=darwin go vet ./...
       - name: Editor module tests
-        run: node --test tests/web
+        run: node --test tests/web/*.test.mjs
       - name: Generated files are up to date
         run: |
           python3 scripts/gen-packs.py
@@ -48,8 +48,8 @@ jobs:
   e2e:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
       - name: End to end with a simulated board
@@ -58,8 +58,8 @@ jobs:
   editor:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
       - name: Editor self test in headless Chrome
@@ -68,7 +68,7 @@ jobs:
   firmware:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: arduino/setup-arduino-cli@v2
       - name: Build the firmware
         run: |
@@ -80,8 +80,8 @@ jobs:
   cross:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
       - name: Build the six targets
