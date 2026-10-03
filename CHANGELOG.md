@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Linux packages: the udev rule is installed as `70-typedeck.rules`. As `99-` it sorted after `73-seat-late.rules`, so the logged-in user never
+  got access to the board and `typedeck doctor` could not open it.
+- Spanish PC layout: the euro sign is typed with AltGr+E (AltGr+5 gave a half sign on Ubuntu).
+- A port that failed the board handshake is tried again after 5 seconds instead of 30, so a board that keeps restarting while it looks for the
+  keyboard is found.
+- `typedeck doctor` shows what is optional (reading the active window on Wayland, software keys) as notes instead of failures.
+
 ## 0.6.0 - 2026-10-03
 
 ### Added
