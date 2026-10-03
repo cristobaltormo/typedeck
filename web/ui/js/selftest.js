@@ -1,4 +1,4 @@
-import { state } from "./store.js";
+import { state, applySettings } from "./store.js";
 import { api } from "./api.js";
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -13,6 +13,8 @@ export async function run() {
   const results = [];
   const ok = (name, cond, extra = "") => results.push({ name, ok: !!cond, extra: String(extra) });
   try {
+    state.cfg.settings.language = "es"; applySettings();
+    location.hash = "#/gallery"; await sleep(60);
     location.hash = "#/keys"; await sleep(120);
     ok("teclado ISO con 105 teclas", $$(".kb .cap").length === 105, $$(".kb .cap").length);
     ok("las capas se muestran numeradas", $$(".layerbar .layer .n").length >= 2);

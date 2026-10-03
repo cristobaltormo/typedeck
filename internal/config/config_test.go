@@ -225,3 +225,13 @@ func TestConditionalAndSequenceLimits(t *testing.T) {
 		t.Errorf("secuencia de %d pasos rechazada: %v", MaxSteps, err)
 	}
 }
+
+func TestDefaultLanguageIsEnglish(t *testing.T) {
+	if got := Default().Settings.Language; got != "en" {
+		t.Fatalf("idioma por defecto %q", got)
+	}
+	c, err := Parse([]byte(`{"version":3,"settings":{"language":"es"},"layers":[{"name":"x","keys":{}}]}`))
+	if err != nil || c.Settings.Language != "es" {
+		t.Fatalf("un idioma ya elegido debe respetarse: %v %v", c.Settings.Language, err)
+	}
+}

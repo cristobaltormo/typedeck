@@ -443,11 +443,11 @@ const EN = {
 };
 
 const DICTS = { es: ES, en: EN };
-let current = "es";
+let current = "en";
 export const setLang = (l) => { current = DICTS[l] ? l : "es"; };
 export const lang = () => current;
 export function t(key, vars) {
-  let s = DICTS[current][key] ?? ES[key] ?? key;
+  let s = DICTS[current][key] ?? EN[key] ?? key;
   if (vars) for (const [k, v] of Object.entries(vars)) s = s.replaceAll(`{${k}}`, v);
   return s;
 }

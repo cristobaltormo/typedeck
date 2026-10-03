@@ -177,7 +177,7 @@ func TestConfirmNeedsTwoPresses(t *testing.T) {
 	}
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	if len(r.huds) == 0 || r.huds[0] != "Confirmar" {
+	if len(r.huds) == 0 || r.huds[0] != "Confirm" {
 		t.Fatalf("falta el aviso de confirmación: %v", r.huds)
 	}
 }

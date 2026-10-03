@@ -165,7 +165,7 @@ func copyDir(src, dst string) error {
 }
 
 func DefaultSettings() Settings {
-	return Settings{Language: "es", Theme: "auto", Accent: "#2563eb", Density: "comfortable", KeySize: 88,
+	return Settings{Language: "en", Theme: "auto", Accent: "#2563eb", Density: "comfortable", KeySize: 88,
 		HUD:    HUD{Enabled: true, Position: "bottom", Seconds: 1.2, OnAuto: true},
 		HoldMS: 450, DoubleMS: 280, AutoLayer: true, VolumeStep: 6, Input: "auto", TypingLayout: "auto", OBS: OBS{Host: "127.0.0.1", Port: 4455}, NotifyKeyboard: true}
 }

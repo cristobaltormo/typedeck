@@ -231,7 +231,7 @@ func (e *Engine) tr(key string, args ...any) string {
 	e.mu.Unlock()
 	f := strings_es[lang][key]
 	if f == "" {
-		f = strings_es["es"][key]
+		f = strings_es["en"][key]
 	}
 	if len(args) == 0 {
 		return f
@@ -282,7 +282,7 @@ func (e *Engine) ToggleCaffeinate() bool {
 func (e *Engine) trLocked(key string) string {
 	f := strings_es[e.cfg.Settings.Language][key]
 	if f == "" {
-		f = strings_es["es"][key]
+		f = strings_es["en"][key]
 	}
 	return f
 }
