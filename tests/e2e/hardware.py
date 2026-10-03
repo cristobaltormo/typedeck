@@ -182,6 +182,17 @@ raw("SIMQ 0000391A00000000"); time.sleep(0.15)
 raw("SIMQ 0000000000000000"); time.sleep(0.4)
 hit = [e for e in events_since(i6) if e["kind"] == "exec" and e.get("key") == "1A"]
 check("a layer key set as a modifier works with both keys arriving in the same report", len(hit) == 1 and hit[0].get("layer_name") == cfg3["layers"][1]["name"], hit)
+if sys.platform == "darwin":
+    def caps_on():
+        return osa('use framework "Cocoa"\nreturn ((current application\'s NSEvent\'s modifierFlags() as integer) div 65536) mod 2') == "1"
+    c0 = caps_on()
+    raw("SIMQ 0000390000000000"); time.sleep(0.25); raw("SIMQ 0000000000000000"); time.sleep(0.7)
+    c1 = caps_on()
+    check("a layer key pressed alone toggles Caps Lock", c1 != c0, (c0, c1))
+    raw("SIMQ 0000391A00000000"); time.sleep(0.25); raw("SIMQ 0000000000000000"); time.sleep(0.7)
+    check("and used with another key it does not", caps_on() == c1)
+    if c1 != c0:
+        raw("SIMQ 0000390000000000"); time.sleep(0.25); raw("SIMQ 0000000000000000"); time.sleep(0.7)
 
 if os.environ.get("TYPEDECK_REMOTE"):
     cfg["settings"]["double_ms"] = 800

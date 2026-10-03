@@ -30,12 +30,16 @@ function capContent(k, kd, o) {
   const icon = kd.icon || TYPE_ICON[first?.type] || "grid";
   const label = kd.label || describe(first);
   kids.push(h("span", { class: "lg tl" }, lg.icon ? native : lg.main.length > 4 ? lg.main.slice(0, 4) : lg.main));
-  const text = String(label), fpx = o.u * 0.27 * 0.72, charW = 0.6 * fpx, avail = k.w * o.u * 0.78;
+  const text = String(label), f0 = o.u * 0.27 * 0.72, charW = 0.6 * f0, avail = k.w * o.u * 0.78, usable = k.h * o.u * 0.62;
   const word = Math.max(1, ...text.split(/\s+/).map((x) => x.length));
-  const fit = Math.max(0.5, Math.min(1, avail / (word * charW)));
-  const two = text.length * charW * fit > avail;
-  const iconPx = two ? Math.max(12, o.u * 0.34) : Math.max(14, Math.min(26, o.u * 0.5));
-  kids.push(h("span", { class: "mc" }, ic(icon, iconPx), o.labels !== false && h("span", { class: "ml", style: fit < 1 ? { fontSize: `${(0.72 * fit).toFixed(3)}em` } : {} }, label)));
+  const scale = Math.min(1, avail / (word * charW));
+  const lines = text.length * charW * scale > avail ? 2 : 1;
+  const labelH = lines * f0 * scale * 1.12;
+  const full = Math.max(14, Math.min(26, o.u * 0.5));
+  const iconPx = [full, Math.max(12, o.u * 0.34), 0].find((px) => px + (px ? 3 : 0) + labelH <= usable);
+  const showLabel = o.labels !== false && scale >= 0.62 && iconPx !== undefined;
+  kids.push(h("span", { class: "mc" }, showLabel && iconPx === 0 ? null : ic(icon, showLabel ? iconPx : full),
+    showLabel && h("span", { class: "ml", style: scale < 1 ? { fontSize: `${(0.72 * scale).toFixed(3)}em` } : {} }, label)));
   const pips = [kd.hold && "hold", kd.double && "double"].filter(Boolean);
   if (pips.length) kids.push(h("span", { class: "pips", title: pips.map((p) => t("gesture." + p)).join(", ") }, pips.map(() => h("i"))));
   if (missingApp(kd)) kids.push(h("span", { class: "warn", title: t("warn.app_missing") }, ic("alert", 13)));

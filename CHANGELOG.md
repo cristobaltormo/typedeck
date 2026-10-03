@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.8.2 - 2026-10-03
+
+### Fixed
+- A layer key (Caps Lock) pressed on its own, whether tapped, held or double tapped, types its key again: Caps Lock toggles. Pressed with another
+  key it no longer does, and the other key runs its macro from the layer. macOS ignores a Caps Lock press as short as the board's normal tap, so
+  the firmware (now 14) takes an optional hold time in `KEY <mods> <usage> [ms]` and Caps Lock is sent held for 150 ms. Re-flash the board with
+  `scripts/flash.sh` for it; with firmware 13 everything else works and Caps Lock alone still toggles on Windows and Linux.
+- Key names were cut at the bottom on small windows. The icon shrinks or goes away first, and when even the name does not fit it is left out
+  (the tooltip still shows it).
+
+### Changed
+- Shorter help texts in the action forms and the key panel.
+
 ## 0.8.1 - 2026-10-03
 
 ### Fixed

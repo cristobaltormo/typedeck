@@ -7,7 +7,7 @@
 
 #include <avr/wdt.h>
 #include <EEPROM.h>
-#define FW_VERSION "13"
+#define FW_VERSION "14"
 #define HB_TIMEOUT_MS 5000UL
 
 USB Usb;
@@ -278,9 +278,9 @@ static uint16_t parseHex(const char *&s) {
   return v;
 }
 
-void tapKey(uint8_t mods, uint8_t usage) {
+void tapKey(uint8_t mods, uint8_t usage, uint16_t holdMs) {
   injMods = mods; injKeys[0] = usage; injN = usage ? 1 : 0;
-  sendReport(); delay(7);
+  sendReport(); delay(holdMs);
   injMods = 0; injN = 0;
   sendReport(); delay(5);
 }
@@ -299,7 +299,11 @@ void handle(char *cmd) {
     lastHb = millis();
     Serial.println(F("OK")); return;
   }
-  if (!strncmp(cmd, "KEY ", 4)) { p += 4; uint8_t m = parseHex(p); uint8_t u = parseHex(p); tapKey(m, u); Serial.println(F("OK")); return; }
+  if (!strncmp(cmd, "KEY ", 4)) { p += 4; uint8_t m = parseHex(p); uint8_t u = parseHex(p);
+    while (*p == ' ') p++;
+    uint16_t ms = 0;
+    while (*p >= '0' && *p <= '9') ms = ms * 10 + (*p++ - '0');
+    tapKey(m, u, ms < 7 ? 7 : ms > 400 ? 400 : ms); Serial.println(F("OK")); return; }
   if (!strncmp(cmd, "CONS ", 5)) { p += 5; uint16_t u = parseHex(p); Consumer.write((ConsumerKeycode)u); Serial.println(F("OK")); return; }
   if (!strcmp(cmd, "INFO")) { cmdInfo(); return; }
   if (!strncmp(cmd, "RDESC ", 6)) { p += 6; uint8_t i = atoi(p); while (*p && *p != ' ') p++; cmdRdesc(i, atoi(p)); return; }

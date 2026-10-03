@@ -109,7 +109,7 @@ type Engine struct {
 	board *board.Board
 
 	execFn   func(config.Action, bool) actions.Result
-	injectFn func(hid.Stroke)
+	injectFn func(hid.Stroke, int)
 	hudFn    func(title, sub string, seconds float64, force bool)
 }
 
@@ -129,9 +129,9 @@ func New(paths config.Paths, brd *board.Board) (*Engine, error) {
 	e.keylog.SetRetention(time.Duration(cfg.Settings.KeyHistoryDays) * 24 * time.Hour)
 	e.execFn = func(a config.Action, capture bool) actions.Result { return actions.Execute(a, e, capture) }
 	e.hudFn = func(title, sub string, seconds float64, force bool) { e.showHUD(title, sub, seconds, force) }
-	e.injectFn = func(s hid.Stroke) {
+	e.injectFn = func(s hid.Stroke, holdMS int) {
 		if e.board != nil {
-			go func() { _ = e.board.Tap(s) }()
+			go func() { _ = e.board.TapHeld(s, holdMS) }()
 		}
 	}
 	return e, nil
@@ -449,6 +449,14 @@ func isMomentary(a *config.Action) bool {
 	return a != nil && a.Type == "layer" && a.Momentary
 }
 
+func (e *Engine) pass(u, mods byte) {
+	hold := 0
+	if u == 0x39 {
+		hold = 150
+	}
+	e.injectFn(hid.Stroke{Usage: u, Mods: mods}, hold)
+}
+
 func modifierOf(kd config.KeyDef) *config.Action {
 	if isMomentary(kd.Tap) {
 		return kd.Tap
@@ -744,7 +752,7 @@ func (e *Engine) KeyDown(u byte, mods byte) {
 	if !ok {
 		st.done = true
 		e.mu.Unlock()
-		e.injectFn(hid.Stroke{Usage: u, Mods: mods})
+		e.pass(u, mods)
 		return
 	}
 	if m := modifierOf(kd); m != nil {
@@ -813,13 +821,17 @@ func (e *Engine) KeyUp(u byte) {
 		st.holdTimer.Stop()
 	}
 	if st.momentary {
-		prev, kd := st.prevLayer, st.kd
-		alone := st.modifier && !st.used && kd.Tap != nil && !isMomentary(kd.Tap) && time.Since(st.downAt) < time.Duration(e.cfg.Settings.HoldMS)*time.Millisecond
+		prev, kd, mods := st.prevLayer, st.kd, st.mods
+		alone := st.modifier && !st.used
 		st.momentary, st.modifier = false, false
 		e.mu.Unlock()
 		e.gotoLayer(prev, false, false)
 		if alone {
-			e.fire(u, "tap", kd.Tap, kd)
+			if kd.Tap != nil && !isMomentary(kd.Tap) {
+				e.fire(u, "tap", kd.Tap, kd)
+			} else {
+				e.pass(u, mods)
+			}
 		}
 		return
 	}
@@ -853,7 +865,7 @@ func (e *Engine) tapAfterWait(u byte) {
 
 func (e *Engine) tap(u byte, kd config.KeyDef) {
 	if kd.Tap == nil {
-		e.injectFn(hid.Stroke{Usage: u})
+		e.pass(u, 0)
 		return
 	}
 	e.fire(u, "tap", kd.Tap, kd)

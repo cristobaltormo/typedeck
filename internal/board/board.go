@@ -410,8 +410,14 @@ func (b *Board) SyncMask(force bool) {
 	}
 }
 
-func (b *Board) Tap(s hid.Stroke) error {
-	_, err := b.Do(fmt.Sprintf("KEY %02X %02X", s.Mods, s.Usage), false, time.Second)
+func (b *Board) Tap(s hid.Stroke) error { return b.TapHeld(s, 0) }
+
+func (b *Board) TapHeld(s hid.Stroke, holdMS int) error {
+	line := fmt.Sprintf("KEY %02X %02X", s.Mods, s.Usage)
+	if holdMS > 0 {
+		line += fmt.Sprintf(" %d", holdMS)
+	}
+	_, err := b.Do(line, false, time.Second)
 	return err
 }
 

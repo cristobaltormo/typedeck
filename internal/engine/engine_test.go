@@ -52,7 +52,7 @@ func newTest(t *testing.T, mutate func(*config.Config)) (*Engine, *rec) {
 		return actions.Result{OK: true}
 	}
 	e.hudFn = func(title, sub string, _ float64, _ bool) { r.mu.Lock(); r.huds = append(r.huds, title); r.mu.Unlock() }
-	e.injectFn = func(s hid.Stroke) { r.mu.Lock(); r.injects = append(r.injects, s.Usage); r.mu.Unlock() }
+	e.injectFn = func(s hid.Stroke, _ int) { r.mu.Lock(); r.injects = append(r.injects, s.Usage); r.mu.Unlock() }
 	return e, r
 }
 
@@ -425,6 +425,12 @@ func TestMomentaryLayerActivatesAtOnceWhenAnotherKeyIsPressed(t *testing.T) {
 	if got := r.snapshot(); len(got) != 1 || got[0] != "hud:whatsapp" {
 		t.Fatalf("the key must run in the held layer: %v", got)
 	}
+	r.mu.Lock()
+	n := len(r.injects)
+	r.mu.Unlock()
+	if n != 0 {
+		t.Fatalf("used with another key, the layer key must not be typed: %d", n)
+	}
 	if e.Status().Layer != 1 {
 		t.Fatalf("the layer stays while the key is held: %d", e.Status().Layer)
 	}
@@ -438,8 +444,8 @@ func TestMomentaryLayerActivatesAtOnceWhenAnotherKeyIsPressed(t *testing.T) {
 	settle()
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	if len(r.injects) != 0 || len(r.huds) != 0 {
-		t.Fatalf("a layer key pressed alone does nothing and announces nothing: %v %v", r.injects, r.huds)
+	if len(r.injects) != 1 || r.injects[0] != 0x39 || len(r.huds) != 0 {
+		t.Fatalf("a layer key pressed alone works as the key itself and announces nothing: %v %v", r.injects, r.huds)
 	}
 }
 
