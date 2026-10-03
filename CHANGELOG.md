@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.6.0 - 2026-10-03
 
 ### Added
 - Firmware 11: `BOOTLOG` (persistent boot statistics), `REBOOT` and `DARK`; TX/RX LEDs off by default.
