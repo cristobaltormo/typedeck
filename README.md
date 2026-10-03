@@ -98,7 +98,7 @@ typedeck install    # start with your session (typedeck uninstall removes it)
 ```
 
 - **macOS:** `make install` builds and installs a login service and the popup, and puts `Typedeck.app` in `~/Applications`.
-- **Linux:** copy `packaging/linux/99-typedeck.rules` to `/etc/udev/rules.d/` so your user can open the board without the `dialout`
+- **Linux:** copy `packaging/linux/70-typedeck.rules` to `/etc/udev/rules.d/` so your user can open the board without the `dialout`
   group. Install `xdg-utils` and `libnotify-bin`; `xdotool` (X11) or `wtype` (Wayland) only matter when the board is not connected.
   Logs: `journalctl --user -u typedeck`.
 - **Windows:** `typedeck.exe install` creates a scheduled task that starts it when you sign in. Windows 11 with Smart App Control on

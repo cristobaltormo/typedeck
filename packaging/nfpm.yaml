@@ -22,8 +22,8 @@ contents:
     dst: /usr/bin/typedeck
     file_info:
       mode: 0755
-  - src: packaging/linux/99-typedeck.rules
-    dst: /usr/lib/udev/rules.d/99-typedeck.rules
+  - src: packaging/linux/70-typedeck.rules
+    dst: /usr/lib/udev/rules.d/70-typedeck.rules
     file_info:
       mode: 0644
   - src: README.md

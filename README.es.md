@@ -97,7 +97,7 @@ typedeck install    # arranca con tu sesión (typedeck uninstall lo quita)
 ```
 
 - **macOS:** `make install` compila e instala un servicio de sesión y el cartel, y deja `Typedeck.app` en `~/Applications`.
-- **Linux:** copia `packaging/linux/99-typedeck.rules` a `/etc/udev/rules.d/` para que tu usuario abra la placa sin estar en el grupo
+- **Linux:** copia `packaging/linux/70-typedeck.rules` a `/etc/udev/rules.d/` para que tu usuario abra la placa sin estar en el grupo
   `dialout`. Instala `xdg-utils` y `libnotify-bin`; `xdotool` (X11) o `wtype` (Wayland) solo importan si la placa no está conectada.
   Registro: `journalctl --user -u typedeck`.
 - **Windows:** `typedeck.exe install` crea una tarea programada que lo arranca al iniciar sesión. Windows 11 con el *Control

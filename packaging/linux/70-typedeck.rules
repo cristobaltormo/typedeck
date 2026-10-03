@@ -1,5 +1,6 @@
 # Typedeck: lets the user of the graphical session open the board without belonging to the dialout group.
-# Copy to /etc/udev/rules.d/ and run: sudo udevadm control --reload && sudo udevadm trigger
+# Copy to /etc/udev/rules.d/ and run: sudo udevadm control --reload && sudo udevadm trigger --action=add --subsystem-match=tty
+# The number matters: the uaccess tag has to be set before 73-seat-late.rules, so this file must sort before it.
 # Arduino Leonardo (2341:8036 and 2341:0036), Arduino Micro (2341:8037), SparkFun Pro Micro 5 V (1b4f:9206, 1b4f:9204).
 SUBSYSTEM=="tty", ATTRS{idVendor}=="2341", ATTRS{idProduct}=="8036|0036|8037", TAG+="uaccess", SYMLINK+="typedeck"
 SUBSYSTEM=="tty", ATTRS{idVendor}=="1b4f", ATTRS{idProduct}=="9206|9204", TAG+="uaccess"

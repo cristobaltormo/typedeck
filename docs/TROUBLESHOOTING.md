@@ -6,7 +6,7 @@ running, whether the board and the keyboard are seen.
 ## The editor says the board is not connected
 
 - Check the cable and that no other program holds the port (a serial monitor, a second copy of Typedeck).
-- Linux: your user must be able to open `/dev/ttyACM*`. Copy `packaging/linux/99-typedeck.rules` to `/etc/udev/rules.d/` and run
+- Linux: your user must be able to open `/dev/ttyACM*`. Copy `packaging/linux/70-typedeck.rules` to `/etc/udev/rules.d/` and run
   `sudo udevadm control --reload && sudo udevadm trigger`, or add the user to the `dialout` group and sign in again.
 - Windows: the board has to appear as a COM port in Device Manager (usbser.sys driver). `TYPEDECK_PORT=COM5` forces a port.
 - `TYPEDECK_PORT=/dev/ttyACM1` (a comma separated list of paths or patterns) does the same on any system.

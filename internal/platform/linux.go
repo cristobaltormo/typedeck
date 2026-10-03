@@ -665,7 +665,7 @@ func (*linux) Doctor() []Check {
 		checks = append(checks, Check{true, "no /dev/ttyACM*: the port permission cannot be checked (plug the board in)", ""})
 	default:
 		checks = append(checks, Check{len(candidatesACM()) > 0, "your user can open " + acm[0],
-			"your user cannot open " + acm[0] + ": copy packaging/linux/99-typedeck.rules to /etc/udev/rules.d/ or add yourself to the dialout group (and sign in again)"})
+			"your user cannot open " + acm[0] + ": copy packaging/linux/70-typedeck.rules to /etc/udev/rules.d/ or add yourself to the dialout group (and sign in again)"})
 	}
 	return checks
 }
