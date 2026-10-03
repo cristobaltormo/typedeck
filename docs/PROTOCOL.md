@@ -13,10 +13,13 @@ Events can arrive at any time.
 | `INFO` | `vid=... pid=... mfr="..." prod="..." ...` then `END` | Details of the connected keyboard |
 | `RDESC <iface> <len>` | hex dump then `END` | HID report descriptor of an interface |
 | `SYS` | `mcu= f_cpu= board= fw= vcc_mv= free_ram= max3421e_rev= uptime_s=` | The board itself: real supply voltage, free memory, shield chip revision |
-| `BUS` | `hrsl=0x.. estado=0x.. vbus=.. ciclos=N reinicios=N sin_teclado_s=N` | USB line state (HRSL: 0x80 J, 0x40 K, 0x00 nothing attached), power cycles and board restarts since the keyboard was last seen |
+| `BUS` | `hrsl=0x.. estado=0x.. reinicios=N sin_teclado_s=N` | USB line state (HRSL: 0x80 J, 0x40 K, 0x00 nothing attached) and board restarts since the keyboard was last seen |
 | `STATS` | `n= media_us= max_us= hid_listo= estado= captura=` | Internal latency and state |
 | `WATCH 0\|1` | `OK` | Emit `W <usage>` for every key pressed |
-| `VBUS 0\|1` | `OK` | Test only: power the keyboard port off or on |
+| `VBUS 0\|1` | `OK` | Diagnostic only: drives the shield's VBUS switch. It does not cut the keyboard's power on the reference shield |
+| `BOOTLOG` | `cold=N recoveries=N slow=N first_seen_ds=N this_boot=cold\|recovery` | Persistent boot statistics (EEPROM): cold starts, restarts caused by a missing keyboard, boots where the keyboard took over 5 s, deciseconds until the keyboard was first seen |
+| `REBOOT` | `OK` | Restarts the board through the bootloader; the serial port disappears for about 20 s |
+| `DARK 0\|1` | `OK` | 1 (default) keeps the TX/RX LEDs off; 0 hands them back to the USB core |
 | `SIMQ <16 hex>` | `OK` | Simulated keyboard report, logic only (for tests) |
 | `DBG 0\|1`, `LEDS <n>`, `LAYER <n>`, `L 0\|1` | `OK` | Debugging and the on-board LED |
 

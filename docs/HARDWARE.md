@@ -33,7 +33,7 @@ What was tried, with the same keyboard connected throughout:
 
 | Attempt | Result |
 |---|---|
-| Power cycling the keyboard port from the firmware, 0.6 s, 2.5 s, 6 s, 20 s and 60 s | No keyboard |
+| Power cycling the keyboard port from the firmware, 0.6 s, 2.5 s, 6 s, 20 s and 60 s | No keyboard. Later found to do nothing physical: with VBUS "off" for 5 s the shield stayed in the running state and the keyboard stayed connected |
 | Resetting the shield chip each time | No keyboard |
 | Waiting 6 s with the keyboard powered before touching the shield chip | No keyboard |
 | Immediate microcontroller reset (watchdog) | No keyboard |
@@ -57,6 +57,16 @@ selects the higher source on its own, so the USB cable then only carries data, a
   power), at the cost of the hub.
 
 This is recommended, not yet verified on the reference setup.
+
+Since the shield's VBUS switch does not cut the keyboard (check whether your clone bridges the switch with a solder jumper), the firmware
+cannot power-cycle the keyboard itself. What does reproduce a good start by hand is plugging the keyboard into the shield *after* the board
+is powered, so a self-powered hub between shield and keyboard, or a power switch on the keyboard line, would automate it.
+
+## Lights
+
+Firmware 11 keeps the TX and RX LEDs off (`DARK`) and the L LED only blinks when asked. The green ON LED is wired to the 5 V rail and
+nothing in software can switch it; cover it with opaque tape or a drop of nail polish. Unplugging the board is the only way to cut it
+besides that.
 
 ## Known quirks
 
