@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """The key that opens the editor focuses the tab that is already open, on X11 with a window manager.
-Needs: Xvfb openbox xdotool xterm. A window titled Typedeck stands in for the browser tab.   Usage: tests/e2e/linux_focus.py /path/to/typedeck   (temporary HOME)"""
+Needs: Xvfb openbox xdotool xterm. An xterm of class Chromium titled Typedeck stands in for the browser tab.   Usage: tests/e2e/linux_focus.py /path/to/typedeck   (temporary HOME)"""
 import json, os, re, shutil, socket, subprocess, sys, tempfile, time, urllib.request
 
 BIN = sys.argv[1]
@@ -24,7 +24,7 @@ try:
     def api(p, b=None):
         r = urllib.request.Request(base + p, data=None if b is None else json.dumps(b).encode(), headers={"X-Token": token, "Content-Type": "application/json"})
         return json.loads(urllib.request.urlopen(r, timeout=20).read())
-    start(["xterm", "-T", "Typedeck - editor"]); time.sleep(1)
+    start(["xterm", "-class", "Chromium", "-T", "Typedeck - editor"]); time.sleep(1)
     ws = socket.create_connection(("127.0.0.1", int(port)))
     ws.sendall(("GET /api/ws HTTP/1.1\r\nHost: 127.0.0.1:%s\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Version: 13\r\n"
                 "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\nSec-WebSocket-Protocol: typedeck.%s\r\n\r\n" % (port, token)).encode())

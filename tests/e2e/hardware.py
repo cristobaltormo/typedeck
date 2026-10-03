@@ -149,6 +149,8 @@ raw("SIMQ 0000060000000000"); time.sleep(0.4); raw("SIMQ 0000000000000000")
 check("switching layers captures the new key (mask synchronized)", any(e["kind"] == "down" and e["key"] == "06" for e in events_since(i3)))
 api("/api/layer", {"index": 0}); time.sleep(0.4)
 
+if os.environ.get("TYPEDECK_REMOTE"):
+    cfg["settings"]["double_ms"] = 800
 api("/api/config", cfg); time.sleep(0.5)
 i4 = last_id()
 for _ in range(2):

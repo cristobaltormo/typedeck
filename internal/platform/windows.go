@@ -210,6 +210,8 @@ func closeWindowsTitled(sub string) int {
 
 var pSetForegroundWindow = user32.NewProc("SetForegroundWindow")
 
+var browserImages = map[string]bool{"chrome.exe": true, "msedge.exe": true, "firefox.exe": true, "brave.exe": true, "opera.exe": true, "vivaldi.exe": true, "arc.exe": true, "librewolf.exe": true}
+
 func (*windows) FocusEditor(string) bool {
 	var found uintptr
 	cb := syscall.NewCallback(func(hwnd, _ uintptr) uintptr {
@@ -223,7 +225,7 @@ func (*windows) FocusEditor(string) bool {
 		}
 		var pid uint32
 		pGetWindowThreadProcessID.Call(hwnd, uintptr(unsafe.Pointer(&pid)))
-		if strings.EqualFold(filepath.Base(processImage(pid)), "typedeck.exe") {
+		if !browserImages[strings.ToLower(filepath.Base(processImage(pid)))] {
 			return 1
 		}
 		found = hwnd

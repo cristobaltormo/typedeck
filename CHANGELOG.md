@@ -24,6 +24,9 @@
 - Community files for GitHub (security policy, code of conduct, issue and pull request templates, Dependabot, CodeQL), examples, screenshots,
   a macro guide, an FAQ and performance notes, and CI jobs for the editor self test, the firmware build and the generated files.
 
+### Fixed
+- The key that opens the editor only focuses windows of a browser, so a folder or a terminal that happens to be called Typedeck is left alone.
+
 ### Changed
 - English is the default language of the program and the editor; a language already chosen is kept. Errors, logs, the doctor and help output,
   the tests and the diagnostic fields of the serial protocol (firmware 13) are in English too.

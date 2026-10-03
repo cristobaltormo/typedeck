@@ -595,16 +595,18 @@ func (*linux) Popup(PopupOptions) bool { return false }
 
 func (*linux) ShellCommand(cmd string) (string, []string) { return "/bin/sh", []string{"-c", cmd} }
 
+const browserClass = "(firefox|chromium|chrome|brave|vivaldi|opera|librewolf|epiphany)"
+
 func (*linux) FocusEditor(string) bool {
 	switch {
 	case os.Getenv("HYPRLAND_INSTANCE_SIGNATURE") != "" && have("hyprctl"):
 		out, err := Run(2*time.Second, "", "hyprctl", "dispatch", "focuswindow", "title:Typedeck")
 		return err == nil && strings.Contains(out, "ok")
 	case os.Getenv("SWAYSOCK") != "" && have("swaymsg"):
-		out, err := Run(2*time.Second, "", "swaymsg", `[title="Typedeck"] focus`)
+		out, err := Run(2*time.Second, "", "swaymsg", `[title="Typedeck" app_id="(?i)(firefox|chromium|chrome|brave|vivaldi|opera|librewolf|epiphany)"] focus`)
 		return err == nil && strings.Contains(out, `"success": true`)
 	case !wayland() && have("xdotool"):
-		_, err := Run(3*time.Second, "", "xdotool", "search", "--onlyvisible", "--name", "Typedeck", "windowactivate")
+		_, err := Run(3*time.Second, "", "xdotool", "search", "--all", "--onlyvisible", "--class", browserClass, "--name", "Typedeck", "windowactivate")
 		return err == nil
 	case !wayland() && have("wmctrl"):
 		_, err := Run(3*time.Second, "", "wmctrl", "-a", "Typedeck")

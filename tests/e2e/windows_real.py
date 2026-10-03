@@ -36,7 +36,12 @@ class Box:
     def text(self):
         return self.sh('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-Content -Raw -Encoding UTF8 ' + BOX_TEXT + '"').replace("\r\n", "\n").rstrip("\n")
     def keys(self):
-        return self.sh('powershell -NoProfile -Command "Get-Content ' + BOX_KEYS + '"').splitlines()
+        return self.sh('powershell -NoProfile -Command "Get-Content -Tail 15 ' + BOX_KEYS + '"').splitlines()
+    def wait_key(self, prefix, secs=10):
+        for _ in range(int(secs * 2)):
+            if any(k.startswith(prefix) for k in self.keys()): return True
+            time.sleep(0.5)
+        return False
     def hk(self, k): return api("/api/test", {"type": "hotkey", "keys": k})
     def type_text(self, t):
         self.hk("ctrl+a"); self.hk("backspace"); time.sleep(0.4)
@@ -59,7 +64,7 @@ def run_typing():
     b.hk("ctrl+a"); b.hk("ctrl+x"); time.sleep(0.5)
     clip = b.sh('powershell -NoProfile -Command "Get-Clipboard -Raw"').strip()
     b.check("ctrl+x shortcut through the board cuts the selection", clip == "x" and b.text() == "", (clip, b.text()))
-    b.check("the box received the control key with the letter", any(k.startswith("X|ctrl=True") for k in b.keys()), b.keys()[-3:])
+    b.check("the box received the control key with the letter", b.wait_key("X|ctrl=True"), b.keys()[-3:])
     b.close()
     print(f"\n{sum(b.res)}/{len(b.res)}")
 
