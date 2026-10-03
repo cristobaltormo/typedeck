@@ -15,7 +15,7 @@ permissions:
 
 jobs:
   analyze:
-    if: github.actor != 'dependabot[bot]'
+    if: ${{ !github.event.repository.private && github.actor != 'dependabot[bot]' }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false

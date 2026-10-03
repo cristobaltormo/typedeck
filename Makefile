@@ -1,4 +1,4 @@
-.PHONY: build dist test vet fmt check e2e e2e-linux selftest web-test screenshots install flash firmware clean
+.PHONY: build dist test vet fmt check e2e e2e-linux e2e-desktop selftest web-test screenshots install flash firmware clean
 
 VERSION ?= $(shell git describe --tags --always 2>/dev/null || echo dev)
 LDFLAGS = -s -w -X main.version=$(VERSION)
@@ -43,6 +43,10 @@ e2e:                  ## tests against the real board on a Mac (--typing types i
 
 e2e-linux: build      ## end-to-end test on Linux with a simulated board (no hardware needed)
 	python3 tests/e2e/fakeboard_linux.py dist/typedeck
+
+e2e-desktop: build    ## Linux desktop features on a virtual X11 (needs Xvfb, openbox, xdotool, xclip, xterm, x11-utils)
+	python3 tests/e2e/linux_desktop.py dist/typedeck
+	python3 tests/e2e/linux_focus.py dist/typedeck
 
 selftest:             ## editor self test in a headless Chromium
 	scripts/selftest.sh
