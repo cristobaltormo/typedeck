@@ -11,8 +11,8 @@ arduino-cli lib install "USB Host Shield Library 2.0" "HID-Project"
 arduino-cli compile --fqbn arduino:avr:leonardo --output-dir /tmp/typedeck-fw firmware
 ```
 
-`scripts/flash.sh` compiles and uploads it through a Mac (see [../docs/HARDWARE.md](../docs/HARDWARE.md)); by hand,
-`avrdude -p atmega32u4 -c avr109 -P <port> -U flash:w:firmware.ino.hex` after pressing the board's reset button.
+To upload it on Windows, Linux or macOS, and to use the ready-made image from a release, see
+[../docs/HARDWARE.md](../docs/HARDWARE.md#flashing). `scripts/flash.sh` compiles and uploads it through a Mac.
 
 `known-good/` holds images of older versions that were verified on real hardware.
 

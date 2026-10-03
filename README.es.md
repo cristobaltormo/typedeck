@@ -83,14 +83,16 @@ Hay versiones para Linux (amd64, arm64), macOS (Intel y Apple silicon) y Windows
 go install github.com/cristobaltormo/typedeck/cmd/typedeck@latest
 ```
 
-Flashea la placa una vez. Hace falta [`arduino-cli`](https://arduino.github.io/arduino-cli/) y las dos librerías del firmware
-([firmware/README.md](firmware/README.md)):
+Flashea la placa una vez. Cada versión adjunta el firmware ya compilado, `typedeck-firmware-<número>.hex`, y `arduino-cli` lo sube igual
+en Windows, Linux y macOS:
 
 ```sh
 arduino-cli core install arduino:avr
-arduino-cli lib install "USB Host Shield Library 2.0" "HID-Project"
-make flash
+arduino-cli upload --fqbn arduino:avr:leonardo --port <puerto> --input-file typedeck-firmware-14.hex
 ```
+
+Detén Typedeck antes y mira [docs/HARDWARE.md](docs/HARDWARE.md#flashing) para los nombres de puerto y los pasos. Para compilar el firmware
+tú mismo hacen falta las dos librerías que usa ([firmware/README.md](firmware/README.md)).
 
 ## Ponerlo en marcha
 

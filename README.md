@@ -84,14 +84,16 @@ There are builds for Linux (amd64, arm64), macOS (Intel and Apple silicon) and W
 go install github.com/cristobaltormo/typedeck/cmd/typedeck@latest
 ```
 
-Flash the board once. It needs [`arduino-cli`](https://arduino.github.io/arduino-cli/) and the two libraries the firmware uses
-([firmware/README.md](firmware/README.md)):
+Flash the board once. Each release attaches the ready-made firmware, `typedeck-firmware-<number>.hex`, and `arduino-cli` uploads it on
+Windows, Linux and macOS alike:
 
 ```sh
 arduino-cli core install arduino:avr
-arduino-cli lib install "USB Host Shield Library 2.0" "HID-Project"
-make flash
+arduino-cli upload --fqbn arduino:avr:leonardo --port <port> --input-file typedeck-firmware-14.hex
 ```
+
+Stop Typedeck first and see [docs/HARDWARE.md](docs/HARDWARE.md#flashing) for the port names and the steps. To compile the firmware
+yourself it needs the two libraries it uses ([firmware/README.md](firmware/README.md)).
 
 ## Set it up
 

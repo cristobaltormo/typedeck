@@ -9,13 +9,31 @@ Stack the shield on the Leonardo, plug the keyboard into the shield and the Leon
 
 ## Flashing
 
-`scripts/flash.sh` compiles with `arduino-cli` and uploads with `avrdude` through a Mac (`MAC_HOST`, default `mac`), stopping
-Typedeck while it works: the program would otherwise open the bootloader port and break the session. Prebuilt images of older
-firmware are in `firmware/known-good/`.
+The board is flashed once, and again when a release says the firmware changed (the number is shown by `typedeck doctor`; the
+current one is 14). Every release attaches the ready-made image, `typedeck-firmware-<number>.hex`, so nothing has to be compiled.
+It works the same on Windows, Linux and macOS, with [`arduino-cli`](https://arduino.github.io/arduino-cli/latest/installation/),
+which brings `avrdude` along:
 
-To build and upload by hand: `arduino-cli compile --fqbn arduino:avr:leonardo firmware` and
-`avrdude -p atmega32u4 -c avr109 -P <port> -U flash:w:firmware.ino.hex`. Pressing the board's reset button before uploading
-puts it in the bootloader for about 8 seconds.
+1. Stop Typedeck, because it holds the board's serial port and would break the upload:
+   macOS `launchctl bootout gui/$(id -u)/cc.cristobal.typedeck`, Linux `systemctl --user stop typedeck`,
+   Windows `Stop-ScheduledTask Typedeck; Stop-Process -Name typedeck` in PowerShell.
+2. Install the AVR tools once: `arduino-cli core install arduino:avr`.
+3. Find the port (`arduino-cli board list`: `COM4`, `/dev/ttyACM0`, `/dev/cu.usbmodem1101`) and upload:
+
+```sh
+arduino-cli upload --fqbn arduino:avr:leonardo --port <port> --input-file typedeck-firmware-14.hex
+```
+
+4. Start Typedeck again (log in again, or `Start-ScheduledTask Typedeck` / `systemctl --user start typedeck`) and run `typedeck doctor`.
+
+`arduino-cli` resets the board into its bootloader by itself. If the upload says the port is not found, press the board's reset
+button and run the command again within 8 seconds: the bootloader shows up as a different port for that long. With plain
+`avrdude` the command is `avrdude -p atmega32u4 -c avr109 -P <bootloader port> -b 57600 -U flash:w:typedeck-firmware-14.hex:i`.
+On Linux without the udev rule from the README the port may need `sudo` or the `dialout` group.
+
+To compile it yourself: `arduino-cli compile --fqbn arduino:avr:leonardo firmware`. `scripts/flash.sh` (`make flash`) does the
+whole cycle for the author's setup: it compiles here and uploads through a Mac (`MAC_HOST`, default `mac`) over ssh. Prebuilt images
+of older firmware are in `firmware/known-good/`.
 
 ## Power
 

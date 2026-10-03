@@ -23,6 +23,16 @@ jobs:
         env:
           GOTOOLCHAIN: auto
         run: go install github.com/goreleaser/nfpm/v2/cmd/nfpm@v2.47.0
+      - uses: arduino/setup-arduino-cli@v2
+      - name: Build the firmware
+        run: |
+          arduino-cli core update-index
+          arduino-cli core install arduino:avr
+          arduino-cli lib install "USB Host Shield Library 2.0@1.7.0" "HID-Project@2.8.4"
+          arduino-cli compile --fqbn arduino:avr:leonardo --output-dir /tmp/typedeck-fw firmware
+          fw=$(sed -n 's/^#define FW_VERSION "\(.*\)"/\1/p' firmware/firmware.ino)
+          mkdir -p dist
+          cp /tmp/typedeck-fw/firmware.ino.hex "dist/typedeck-firmware-$fw.hex"
       - name: Build the binaries, archives and packages
         run: make release-files VERSION=${{ github.ref_name }}
       - name: Release notes from the changelog

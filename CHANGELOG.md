@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+- Every release attaches the compiled firmware (`typedeck-firmware-<number>.hex`, with its checksum and attestation), and
+  `docs/HARDWARE.md` explains how to flash it with `arduino-cli` on Windows, Linux and macOS, with no Mac and nothing to compile.
+
 ## 0.8.2 - 2026-10-03
 
 ### Fixed
