@@ -1,0 +1,11 @@
+Typedeck
+Copyright 2026 Cristóbal Tormo
+
+The Go program, the editor and the documentation are released under the MIT License (see LICENSE).
+
+The board firmware in firmware/ is built with the USB Host Shield Library 2.0 (https://github.com/felis/USB_Host_Shield_2.0),
+which is released under the GNU General Public License, so the firmware sketch and the prebuilt images in firmware/known-good/ are
+distributed under the GPL version 2 (see firmware/LICENSE). It also uses HID-Project by NicoHood (MIT,
+https://github.com/NicoHood/HID).
+
+The editor embeds the Inter typeface (SIL Open Font License 1.1, see web/ui/fonts/LICENSE.txt).
