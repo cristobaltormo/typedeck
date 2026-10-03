@@ -9,6 +9,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/cristobaltormo/typedeck/internal/board"
 	"github.com/cristobaltormo/typedeck/internal/config"
@@ -281,5 +282,36 @@ func TestInspectPackCleansAndFlagsRiskyActions(t *testing.T) {
 	bad := map[string]any{"pack": map[string]any{"name": "x", "layers": []any{}}}
 	if got := do(h, "POST", "/api/macros/inspect", good, s.token, bad).Code; got != 400 {
 		t.Errorf("un archivo ajeno se aceptó: %d", got)
+	}
+}
+
+func TestHistoryEndpointsReadAndClear(t *testing.T) {
+	s, h := newSrv(t)
+	cfg := config.Default()
+	cfg.Settings.KeyHistory = true
+	s.eng.ApplyRestored(cfg)
+	now := time.Now()
+	s.eng.KeyLog().Press(0x04, now)
+	s.eng.KeyLog().Release(0x04, now.Add(50*time.Millisecond))
+
+	var out struct {
+		Enabled bool
+		Count   int
+		Entries []struct{ K string }
+	}
+	rec := do(h, "GET", "/api/history?limit=10", good, s.token, nil)
+	if err := json.Unmarshal(rec.Body.Bytes(), &out); err != nil || !out.Enabled || out.Count != 1 || out.Entries[0].K != "A" {
+		t.Fatalf("historial: %s", rec.Body)
+	}
+	if got := do(h, "GET", "/api/history", good, "", nil).Code; got != 403 {
+		t.Errorf("sin token se pudo leer el historial: %d", got)
+	}
+	if got := do(h, "POST", "/api/history/clear", good, s.token, nil).Code; got != 200 {
+		t.Fatalf("borrar: %d", got)
+	}
+	rec = do(h, "GET", "/api/history", good, s.token, nil)
+	_ = json.Unmarshal(rec.Body.Bytes(), &out)
+	if out.Count != 0 {
+		t.Errorf("tras borrar quedan %d", out.Count)
 	}
 }

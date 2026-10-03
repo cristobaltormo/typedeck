@@ -63,6 +63,7 @@ export function settingsView(root) {
       setting(t("hud.seconds"), slider(s.hud.seconds, 0.6, 5, 0.2, "s", (v) => set(["hud", "seconds"], v))),
       setting(t("hud.test"), h("button", { type: "button", class: "btn", onclick: () => api("/api/hud", { method: "POST", body: { title: "Typedeck", subtitle: t("diag.hud_sub") } }) }, ic("hud", 16), t("hud.test")))),
     obsSection(s, set),
+    historySection(s, set),
     section(t("settings.backups"), t("settings.backups_sub"),
       h("div", { class: "row wrap", style: { padding: "12px 0" } }, h("button", { type: "button", class: "btn sm", onclick: async () => { await api("/api/backups/create", { method: "POST", body: {} }); toast(t("backup.created")); loadBackups(); } }, ic("plus", 15), t("backup.create"))), backups),
     section(t("settings.io"), t("settings.io_sub"),
@@ -86,6 +87,27 @@ function resetConfig() {
   const keep = state.cfg.settings;
   replaceConfig({ version: 3, settings: keep, global: { "53": { tap: { type: "layer", to: "next" }, label: "Capa", icon: "layers" } }, layers: [{ name: t("layer.default_name", { n: 1 }), color: "", icon: "", auto_apps: [], keys: {} }], keyboards: state.cfg.keyboards || {} });
   state.scope = 0; toast(t("io.reset_done")); location.hash = "#/keys";
+}
+
+function historySection(s, set) {
+  const body = h("div", { class: "hist" });
+  let loaded = null;
+  const when = (ms) => new Date(ms).toLocaleString(lang(), { dateStyle: "short", timeStyle: "medium" });
+  async function load() {
+    try { loaded = await api("/api/history?limit=50"); } catch { loaded = null; }
+    clear(body);
+    if (!loaded) return;
+    body.append(h("p", { class: "dim" }, t(loaded.enabled ? "hist.state_on" : "hist.state_off", { n: loaded.count })));
+    if (loaded.entries.length) {
+      body.append(h("table", { class: "macro-table" }, h("thead", {}, h("tr", {}, h("th", {}, t("hist.when")), h("th", {}, t("sheet.key")), h("th", {}, t("hist.ms")))),
+        h("tbody", {}, loaded.entries.map((e) => h("tr", {}, h("td", { class: "dim" }, when(e.t)), h("td", { class: "k" }, e.k), h("td", {}, String(e.d)))))));
+    }
+    body.append(h("div", { class: "row wrap", style: { padding: "12px 0" } },
+      h("button", { type: "button", class: "btn sm", onclick: load }, ic("history", 15), t("hist.refresh")),
+      armed("hist.clear", async () => { await api("/api/history/clear", { method: "POST", body: {} }); toast(t("hist.cleared")); load(); }, { small: true, icon: "trash" })));
+  }
+  load();
+  return section(t("hist.title"), t("hist.sub"), setting(t("hist.switch"), toggle("", !!s.key_history, (v) => { set(["key_history"], v); setTimeout(load, 700); }), t("hist.switch_sub")), body);
 }
 
 function obsSection(settings, set) {

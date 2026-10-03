@@ -61,6 +61,8 @@ export async function run() {
     ok("color de acento", getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() === state.cfg.settings.accent);
 
     ok("ajustes de OBS Studio", !!byText("h2", "OBS Studio") && !!byText("button", "Probar conexión"));
+    await sleep(400);
+    ok("ajustes del historial de tecleo con su botón de borrar", !!byText("h2", "Historial de tecleo") && !!byText("button", "Borrar todo"));
     typeInto($('input[type=password]'), "clave"); await sleep(40);
     ok("la contraseña de OBS se guarda en los ajustes", state.cfg.settings.obs?.password === "clave");
 

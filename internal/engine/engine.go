@@ -14,6 +14,7 @@ import (
 	"github.com/cristobaltormo/typedeck/internal/config"
 	"github.com/cristobaltormo/typedeck/internal/hid"
 	"github.com/cristobaltormo/typedeck/internal/hud"
+	"github.com/cristobaltormo/typedeck/internal/keylog"
 	"github.com/cristobaltormo/typedeck/internal/platform"
 )
 
@@ -98,6 +99,7 @@ type Engine struct {
 	kbdTimer    *time.Timer
 	kbdLost     bool
 	editorOpen  bool
+	keylog      *keylog.Log
 	OnPlainKey  func(usage byte, down bool)
 
 	board *board.Board
@@ -118,6 +120,8 @@ func New(paths config.Paths, brd *board.Board) (*Engine, error) {
 	e := &Engine{paths: paths, cfg: cfg, board: brd, sig: make(chan struct{}), keys: map[byte]*keyState{},
 		confirm: map[confirmKey]time.Time{}, lastFire: map[confirmKey]time.Time{}, sem: make(chan struct{}, 8), started: time.Now(), nextID: 1, seen: map[string]int{}, wake: make(chan struct{}, 1)}
 	e.stats = e.loadStats()
+	e.keylog = keylog.New(paths.Keystrokes())
+	e.keylog.SetEnabled(cfg.Settings.KeyHistory)
 	e.execFn = func(a config.Action, capture bool) actions.Result { return actions.Execute(a, e, capture) }
 	e.hudFn = func(title, sub string, seconds float64, force bool) { e.showHUD(title, sub, seconds, force) }
 	e.injectFn = func(s hid.Stroke) {
@@ -318,6 +322,7 @@ func (e *Engine) ApplyRestored(c config.Config) { e.applyConfig(c) }
 func (e *Engine) applyConfig(c config.Config) {
 	e.mu.Lock()
 	e.cfg = c
+	e.keylog.SetEnabled(c.Settings.KeyHistory)
 	// new per-application rules must be evaluated against the window that is already in front
 	e.asn = ""
 	if e.layer >= len(c.Layers) {
@@ -335,6 +340,8 @@ func (e *Engine) applyConfig(c config.Config) {
 	e.syncKeysAsync()
 }
 
+func (e *Engine) KeyLog() *keylog.Log { return e.keylog }
+
 func (e *Engine) SetEditorOpen(open bool) {
 	e.mu.Lock()
 	changed := e.editorOpen != open
@@ -350,12 +357,18 @@ func (e *Engine) syncKeysAsync() {
 		return
 	}
 	e.mu.Lock()
-	want := e.editorOpen
+	want := e.editorOpen || e.cfg.Settings.KeyHistory
 	e.mu.Unlock()
 	go func() { _ = e.board.Keys(want) }()
 }
 
 func (e *Engine) plainKey(u byte, down bool) {
+	now := time.Now()
+	if down {
+		e.keylog.Press(u, now)
+	} else {
+		e.keylog.Release(u, now)
+	}
 	if e.OnPlainKey != nil {
 		e.OnPlainKey(u, down)
 	}
@@ -600,6 +613,7 @@ func (e *Engine) KeyboardChanged(present bool) {
 }
 
 func (e *Engine) KeyDown(u byte, mods byte) {
+	e.keylog.Press(u, time.Now())
 	id := hexKey(u)
 	e.mu.Lock()
 	e.lastKey, e.lastTS = id, float64(time.Now().UnixNano())/1e9
@@ -662,6 +676,7 @@ func (e *Engine) holdElapsed(u byte) {
 }
 
 func (e *Engine) KeyUp(u byte) {
+	e.keylog.Release(u, time.Now())
 	e.mu.Lock()
 	e.emitLocked(Event{Kind: "up", Key: hexKey(u)})
 	st := e.keys[u]

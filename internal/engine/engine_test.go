@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/cristobaltormo/typedeck/internal/actions"
+	"github.com/cristobaltormo/typedeck/internal/board"
 	"github.com/cristobaltormo/typedeck/internal/config"
 	"github.com/cristobaltormo/typedeck/internal/hid"
 )
@@ -333,5 +334,30 @@ func TestKeyboardLostWarnsOnceAndAnnouncesTheReturn(t *testing.T) {
 	time.Sleep(120 * time.Millisecond)
 	if shown() != 2 {
 		t.Fatalf("con el aviso desactivado no debe salir nada: %v", r.huds)
+	}
+}
+
+func TestPlainKeysAreReportedAndRecordedOnlyWhenHistoryIsOn(t *testing.T) {
+	e, _ := newTest(t, func(c *config.Config) { c.Settings.KeyHistory = true })
+	var seen []string
+	e.OnPlainKey = func(u byte, down bool) { seen = append(seen, hexKey(u)+map[bool]string{true: "v", false: "^"}[down]) }
+	e.HandleBoardEvent(board.Event{Kind: 'P', Usage: 0x04})
+	time.Sleep(15 * time.Millisecond)
+	e.HandleBoardEvent(board.Event{Kind: 'R', Usage: 0x04})
+	if len(seen) != 2 || seen[0] != "04v" || seen[1] != "04^" {
+		t.Fatalf("eventos de tecla: %v", seen)
+	}
+	got, n := e.KeyLog().Recent(5)
+	if n != 1 || got[0].K != "A" || got[0].D < 10 {
+		t.Fatalf("historial: %+v", got)
+	}
+
+	c := e.Config()
+	c.Settings.KeyHistory = false
+	e.ApplyRestored(c)
+	e.HandleBoardEvent(board.Event{Kind: 'P', Usage: 0x05})
+	e.HandleBoardEvent(board.Event{Kind: 'R', Usage: 0x05})
+	if _, n := e.KeyLog().Recent(5); n != 1 {
+		t.Fatalf("con el historial apagado no se guarda nada más, hay %d", n)
 	}
 }

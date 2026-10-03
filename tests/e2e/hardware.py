@@ -112,6 +112,28 @@ raw("SIMQ 0000000000000000")
 evs = events_since(i1)
 check("una tecla sin accion no se captura ni genera eventos", not any(e["kind"] in ("down", "exec") for e in evs), evs)
 
+cfg_h = json.loads(json.dumps(cfg))
+cfg_h["settings"]["key_history"] = True
+api("/api/config", cfg_h)
+time.sleep(0.8)
+raw("SIMQ 00000B0000000000")
+time.sleep(0.35)
+raw("SIMQ 0000000000000000")
+raw("SIMQ 0000040000000000")
+time.sleep(0.12)
+raw("SIMQ 0000000000000000")
+time.sleep(0.4)
+hist = api("/api/history?limit=10")
+keys = {e["k"]: e["d"] for e in hist["entries"]}
+check("con el historial activo se guardan las teclas sin macro con su duracion", hist["enabled"] and keys.get("H", 0) >= 250, hist)
+check("y las teclas con macro tambien", "A" in keys, hist)
+api("/api/history/clear", {})
+check("borrar todo vacia el historial", api("/api/history")["count"] == 0)
+api("/api/config", cfg)
+time.sleep(0.5)
+raw("SIMQ 00000B0000000000"); time.sleep(0.2); raw("SIMQ 0000000000000000"); time.sleep(0.3)
+check("con el historial apagado no se guarda nada", api("/api/history")["count"] == 0)
+
 cfg2 = json.loads(json.dumps(cfg))
 cfg2["layers"][1]["keys"] = {"06": {"tap": {"type": "wait", "ms": 10}}}
 api("/api/config", cfg2)

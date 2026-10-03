@@ -208,6 +208,14 @@ func (s *Server) Handler() http.Handler {
 	})
 	post("/api/board", s.boardCmd)
 	post("/api/learn", s.learnSet)
+	get("/api/history", s.history)
+	post("/api/history/clear", func(w http.ResponseWriter, r *http.Request) {
+		if err := s.eng.KeyLog().Clear(); err != nil {
+			fail(w, 500, err.Error())
+			return
+		}
+		writeJSON(w, 200, map[string]bool{"ok": true})
+	})
 	post("/api/macros/inspect", s.inspectPack)
 	post("/api/editing", func(w http.ResponseWriter, r *http.Request) {
 		var b struct{ On bool }
@@ -553,4 +561,13 @@ func (s *Server) resolvePack(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, 200, res)
+}
+
+func (s *Server) history(w http.ResponseWriter, r *http.Request) {
+	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
+	if limit <= 0 || limit > 500 {
+		limit = 100
+	}
+	entries, total := s.eng.KeyLog().Recent(limit)
+	writeJSON(w, 200, map[string]any{"enabled": s.eng.KeyLog().Enabled(), "count": total, "entries": entries})
 }

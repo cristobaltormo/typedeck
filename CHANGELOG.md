@@ -15,6 +15,13 @@
 - A recorder that turns typed text and shortcuts into sequence steps, with the pauses as editable wait steps, and a duplicate-step button.
 - Export a layer or all macros to a file, and import one with a review that lists its commands and web requests.
 - Search in the key sheet, and every macro key in the command palette.
+- Every key press is shown in the editor, not only the keys with a macro (firmware 12, `KEYS 0|1`, sent only while an editor is open).
+- An optional typing history, off by default: key, time and duration of each press, kept in `keystrokes.jsonl` in the configuration folder
+  (mode 0600, capped at 4 MB, nothing leaves the computer), with a list of the latest entries and a delete-all button in the settings.
+
+### Changed
+- The macOS service runs at interactive instead of background priority: opening the editor from its key takes about 150 ms instead of
+  over 500, and every action that starts a program is faster.
 
 ### Removed
 - The firmware's automatic keyboard power cycles: the shield's VBUS switch does not cut the keyboard, so they did nothing.

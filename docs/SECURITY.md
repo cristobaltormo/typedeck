@@ -19,7 +19,8 @@ Typedeck can run commands, so the editor is locked down:
   removed on Windows), so clipboard contents cannot inject anything.
 - Backup restore only accepts names like `config-YYYYMMDD-HHMMSS.json`.
 - `/api/dev/raw` exists only with `TYPEDECK_DEV=1` (tests).
-- Configuration files are written with mode 0600.
+- Configuration files are written with mode 0600. The optional typing history (`keystrokes.jsonl`) is off by default, has the same mode,
+  is capped at 4 MB (the oldest half is dropped), never leaves the computer, and its API needs the token like any other.
 
 ## OBS password
 

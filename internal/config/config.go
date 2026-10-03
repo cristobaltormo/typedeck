@@ -91,6 +91,7 @@ type Settings struct {
 	OBS          OBS    `json:"obs"`
 
 	NotifyKeyboard bool `json:"notify_keyboard"`
+	KeyHistory     bool `json:"key_history"`
 }
 
 type OBS struct {
@@ -125,9 +126,10 @@ const (
 
 type Paths struct{ Dir string }
 
-func (p Paths) Config() string  { return filepath.Join(p.Dir, "config.json") }
-func (p Paths) Backups() string { return filepath.Join(p.Dir, "backups") }
-func (p Paths) Stats() string   { return filepath.Join(p.Dir, "stats.json") }
+func (p Paths) Config() string     { return filepath.Join(p.Dir, "config.json") }
+func (p Paths) Backups() string    { return filepath.Join(p.Dir, "backups") }
+func (p Paths) Stats() string      { return filepath.Join(p.Dir, "stats.json") }
+func (p Paths) Keystrokes() string { return filepath.Join(p.Dir, "keystrokes.jsonl") }
 
 func DefaultPaths() Paths {
 	p := Paths{Dir: platform.Current.ConfigDir()}

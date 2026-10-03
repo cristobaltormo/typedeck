@@ -76,6 +76,8 @@ Set `TYPEDECK_PORT=/dev/ttyACM1` (or `COM5`) if the board is on an unusual port.
 - A gallery of 38 packs in 11 categories, laid out on the keys your keyboard really has: OBS Studio, Discord, OBS and Discord,
   Zoom, Meet, Teams, Slack, Photoshop, Figma, Premiere, VS Code, Git, smart home, study and more. Some are macOS-only and are not
   offered elsewhere; on Windows and Linux Cmd becomes Ctrl.
+- Every key lights up in the editor as you press it. An optional, local typing history (key, time, duration) can be switched on in the
+  settings; it is a file on your computer, with a list of the latest entries and a button that deletes everything.
 - A compatibility page with your real setup and automatic checks, activity log and per-key usage, printable and searchable key sheet,
   diagnostics, command palette, undo and redo, automatic backups, import and export, English and Spanish.
 

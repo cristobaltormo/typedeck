@@ -2,7 +2,7 @@ const TOKEN = document.querySelector('meta[name="token"]')?.content || "";
 export const token = TOKEN;
 const _q = new URLSearchParams(location.search);
 const DRY = _q.has("selftest") || _q.has("scene");
-const WRITES = new Set(["/api/config", "/api/backups/restore", "/api/backups/create", "/api/stats/reset", "/api/hud", "/api/layer", "/api/board", "/api/learn", "/api/test", "/api/keyboard/layout", "/api/macros/inspect"]);
+const WRITES = new Set(["/api/config", "/api/backups/restore", "/api/backups/create", "/api/stats/reset", "/api/hud", "/api/layer", "/api/board", "/api/learn", "/api/test", "/api/keyboard/layout", "/api/macros/inspect", "/api/history/clear"]);
 
 export async function api(path, { method = "GET", body, signal } = {}) {
   if (DRY && method === "POST" && WRITES.has(path)) return { ok: true, config: body, reply: [] };
