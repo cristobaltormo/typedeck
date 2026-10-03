@@ -96,5 +96,7 @@ jobs:
       - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
-      - name: Build the six targets
-        run: make dist VERSION=ci
+      - name: Install nfpm
+        run: go install github.com/goreleaser/nfpm/v2/cmd/nfpm@v2.47.0
+      - name: Build the six targets, the archives and the packages
+        run: make release-files VERSION=v0.0.0-ci

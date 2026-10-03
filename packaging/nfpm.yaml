@@ -1,0 +1,51 @@
+name: typedeck
+arch: @ARCH@
+platform: linux
+version: @VERSION@
+section: utils
+priority: optional
+maintainer: Cristóbal Tormo <info@cristobaltormo.com>
+description: |
+  Turn any USB keyboard into a macro keyboard.
+  An Arduino Leonardo with a USB Host Shield sits between the keyboard and the computer; this
+  program gives every key its own actions and serves the editor at http://127.0.0.1:7788.
+homepage: https://github.com/cristobaltormo/typedeck
+license: MIT
+recommends:
+  - xdg-utils
+  - libnotify-bin
+suggests:
+  - xdotool
+  - xclip
+contents:
+  - src: dist/typedeck-linux-@ARCH@
+    dst: /usr/bin/typedeck
+    file_info:
+      mode: 0755
+  - src: packaging/linux/99-typedeck.rules
+    dst: /usr/lib/udev/rules.d/99-typedeck.rules
+    file_info:
+      mode: 0644
+  - src: README.md
+    dst: /usr/share/doc/typedeck/README.md
+    file_info:
+      mode: 0644
+  - src: LICENSE
+    dst: /usr/share/doc/typedeck/LICENSE
+    file_info:
+      mode: 0644
+  - src: NOTICE
+    dst: /usr/share/doc/typedeck/NOTICE
+    file_info:
+      mode: 0644
+  - src: firmware/firmware.ino
+    dst: /usr/share/typedeck/firmware/firmware.ino
+    file_info:
+      mode: 0644
+  - src: firmware/LICENSE
+    dst: /usr/share/typedeck/firmware/LICENSE
+    file_info:
+      mode: 0644
+scripts:
+  postinstall: packaging/linux/postinstall.sh
+  postremove: packaging/linux/postinstall.sh

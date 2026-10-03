@@ -5,7 +5,7 @@ English | [Español](README.es.md)
 [![CI](https://github.com/cristobaltormo/typedeck/actions/workflows/ci.yml/badge.svg)](https://github.com/cristobaltormo/typedeck/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/cristobaltormo/typedeck?sort=semver)](https://github.com/cristobaltormo/typedeck/releases)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![Go](https://img.shields.io/github/go-mod/go-version/cristobaltormo/typedeck)](go.mod)
+[![Go](https://img.shields.io/badge/go-1.24%2B-00ADD8?logo=go&logoColor=white)](go.mod)
 [![Platforms](https://img.shields.io/badge/macOS%20%7C%20Linux%20%7C%20Windows-supported-lightgrey)](docs/COMPATIBILITY.md)
 
 Turn the USB keyboard you already own into a macro keyboard. A small Arduino Leonardo with a USB Host Shield sits between the
@@ -52,7 +52,15 @@ hub, read [docs/HARDWARE.md](docs/HARDWARE.md) first.
 
 ## Install
 
-Download the binary for your machine from the [releases page](https://github.com/cristobaltormo/typedeck/releases):
+On Debian, Ubuntu and Fedora, download the `.deb` or `.rpm` for your architecture from the
+[releases page](https://github.com/cristobaltormo/typedeck/releases). It installs the program, the udev rule that lets your user open the
+board, and the firmware sketch:
+
+```sh
+sudo apt install ./typedeck_<version>_amd64.deb      # or: sudo dnf install ./typedeck-<version>-1.x86_64.rpm
+```
+
+Everywhere else, download the archive or the plain binary for your machine from the same page:
 
 ```sh
 curl -L -o typedeck https://github.com/cristobaltormo/typedeck/releases/latest/download/typedeck-linux-amd64
@@ -66,7 +74,7 @@ Invoke-WebRequest https://github.com/cristobaltormo/typedeck/releases/latest/dow
 ```
 
 There are builds for Linux (amd64, arm64), macOS (Intel and Apple silicon) and Windows (amd64 and arm64), each with a checksum in
-`SHA256SUMS`. To build it yourself you need Go 1.24 or newer:
+`SHA256SUMS` and a build provenance attestation (`gh attestation verify <file> --repo cristobaltormo/typedeck`). To build it yourself you need Go 1.24 or newer:
 
 ```sh
 go install github.com/cristobaltormo/typedeck/cmd/typedeck@latest

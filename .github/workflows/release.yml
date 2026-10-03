@@ -19,8 +19,10 @@ jobs:
           go-version-file: go.mod
       - name: Tests
         run: go test ./...
-      - name: Build
-        run: make dist VERSION=${{ github.ref_name }}
+      - name: Install nfpm
+        run: go install github.com/goreleaser/nfpm/v2/cmd/nfpm@v2.47.0
+      - name: Build the binaries, archives and packages
+        run: make release-files VERSION=${{ github.ref_name }}
       - name: Release notes from the changelog
         run: |
           v="${GITHUB_REF_NAME#v}"
@@ -28,8 +30,10 @@ jobs:
           test -s notes.md || echo "See CHANGELOG.md." > notes.md
       - uses: actions/attest-build-provenance@v4
         with:
-          subject-path: dist/typedeck-*
+          subject-path: |
+            dist/typedeck-*
+            dist/typedeck_*
       - name: Publish
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "${{ github.ref_name }}" dist/typedeck-* dist/SHA256SUMS --notes-file notes.md --title "${{ github.ref_name }}"
+        run: gh release create "${{ github.ref_name }}" dist/typedeck-* dist/typedeck_* dist/SHA256SUMS --notes-file notes.md --title "${{ github.ref_name }}"

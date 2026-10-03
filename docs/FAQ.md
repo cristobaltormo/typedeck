@@ -36,6 +36,11 @@ computer.
 **How do I move my macros to another computer?**
 Settings, Export configuration, or export a layer from its panel and import it on the other machine.
 
+**Why is there no Docker image or npm package?**
+Typedeck has to open the board's serial port, launch applications, read the front window, type into the desktop and use the clipboard,
+all on the host. A container cannot reach any of that without giving up what makes it a container, and an npm package would only wrap
+the same Go binary. Releases ship the binary itself, archives, and `.deb` and `.rpm` packages instead; `go install` works too.
+
 **Where are my files?**
 macOS and Linux `~/.config/typedeck`, Windows `%APPDATA%\typedeck`. The configuration is one
 JSON file, with the last 40 versions kept in `backups/`.

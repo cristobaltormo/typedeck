@@ -12,6 +12,7 @@ make check      # gofmt, go vet for the three systems, race-tested unit tests, e
 make e2e-linux  # end to end on Linux with a simulated board
 make selftest   # the editor in a headless Chromium (needs Chromium or Chrome)
 make dist       # six binaries with SHA256 sums
+make release-files   # plus the archives and the .deb and .rpm packages (needs nfpm)
 make screenshots  # regenerate docs/images
 ```
 
@@ -29,5 +30,5 @@ make screenshots  # regenerate docs/images
 
 1. Move the Unreleased section of `CHANGELOG.md` under a new `## X.Y.Z - date` heading.
 2. Commit, then `git tag -s vX.Y.Z -m "Release X.Y.Z"` and push the tag.
-3. The Release workflow tests, builds the six binaries with checksums and a provenance attestation, and publishes them with the
-   section of the changelog as the notes.
+3. The Release workflow tests, builds the six binaries, the archives and the .deb and .rpm packages with one checksum file and a
+   provenance attestation, and publishes them with the section of the changelog as the notes.
