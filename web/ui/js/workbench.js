@@ -151,6 +151,11 @@ export function workView(root) {
       h("div", { class: "btns" },
         h("button", { type: "button", class: "btn sm", onclick: () => { state.scope = "global"; renderAll(); } }, t("key.edit_global")),
         h("button", { type: "button", class: "btn sm primary", onclick: () => { edit("", () => { keysOf()[id] = clone(state.cfg.global[id]); }); renderDock(); } }, t("key.override")))) : null;
+    if (inherited) {
+      const g = state.cfg.global[id];
+      const rows = GESTURES.filter((x) => g[x]).map((x) => h("div", { class: "inh-row" }, h("span", { class: "k" }, t("gesture." + x)), h("span", { class: "v" }, t("type." + g[x].type), h("small", {}, describe(g[x])))));
+      return h("div", {}, head, notice, h("div", { class: "dock-body" }, h("div", { class: "group" }, h("h3", {}, t("key.inherited_title")), h("div", { class: "inh" }, rows))));
+    }
     return h("div", {}, head, notice, h("div", { class: "dock-body" }, tabs, gesturePane(gesture, kd, id), lookGroup(kd, id)));
   }
 

@@ -388,3 +388,8 @@ body.dragging-key, body.dragging-key * { cursor: grabbing !important; }
 .pane .notice { margin: 0; }
 .help.state::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--faint); margin-right: 7px; }
 .help.state.on::before { background: var(--ok, #16a34a); }
+.inh { display: grid; gap: 6px; }
+.inh-row { display: flex; gap: 12px; align-items: baseline; padding: 8px 10px; border-radius: var(--r); background: var(--surface); border: 1px solid var(--line-soft); font-size: 13px; }
+.inh-row .k { color: var(--faint); min-width: 64px; }
+.inh-row .v { display: flex; flex-direction: column; color: var(--strong); font-weight: 600; }
+.inh-row .v small { color: var(--dim); font-weight: 400; }

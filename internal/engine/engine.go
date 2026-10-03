@@ -61,6 +61,9 @@ type keyState struct {
 	holdTimer *time.Timer
 	pending   *time.Timer
 	momentary bool
+	modifier  bool
+	used      bool
+	downAt    time.Time
 	prevLayer int
 }
 
@@ -446,13 +449,23 @@ func isMomentary(a *config.Action) bool {
 	return a != nil && a.Type == "layer" && a.Momentary
 }
 
+func modifierOf(kd config.KeyDef) *config.Action {
+	if isMomentary(kd.Tap) {
+		return kd.Tap
+	}
+	if isMomentary(kd.Hold) {
+		return kd.Hold
+	}
+	return nil
+}
+
 func (e *Engine) heldTargetsLocked() []int {
 	var out []int
 	seen := map[int]bool{}
 	visit := func(keys map[string]config.KeyDef) {
 		for _, kd := range keys {
-			if isMomentary(kd.Hold) {
-				if i := e.targetLocked(kd.Hold.To); i != e.layer && !seen[i] {
+			if m := modifierOf(kd); m != nil {
+				if i := e.targetLocked(m.To); i != e.layer && !seen[i] {
 					seen[i] = true
 					out = append(out, i)
 				}
@@ -707,21 +720,15 @@ func (e *Engine) KeyDown(u byte, mods byte) {
 		e.mu.Unlock()
 		return
 	}
-	var early []*keyState
 	for k, other := range e.keys {
-		if k != u && other.down && !other.holdFired && isMomentary(other.kd.Hold) {
-			other.holdFired, other.momentary, other.prevLayer = true, true, e.layer
-			if other.holdTimer != nil {
-				other.holdTimer.Stop()
-			}
-			early = append(early, other)
+		if k != u && other.down && other.modifier {
+			other.used = true
 		}
 	}
-	e.mu.Unlock()
-	for _, o := range early {
-		e.gotoLayer(o.kd.Hold.To, false, false)
+	if st := e.keys[u]; st != nil && st.down && st.modifier {
+		e.mu.Unlock()
+		return
 	}
-	e.mu.Lock()
 	e.lastKey, e.lastTS = id, float64(time.Now().UnixNano())/1e9
 	e.emitLocked(Event{Kind: "down", Key: id})
 	kd, ok := e.resolveLocked(id)
@@ -738,6 +745,16 @@ func (e *Engine) KeyDown(u byte, mods byte) {
 		st.done = true
 		e.mu.Unlock()
 		e.injectFn(hid.Stroke{Usage: u, Mods: mods})
+		return
+	}
+	if m := modifierOf(kd); m != nil {
+		st.modifier, st.momentary, st.prevLayer, st.downAt = true, true, e.layer, time.Now()
+		if st.pending != nil {
+			st.pending.Stop()
+			st.pending = nil
+		}
+		e.mu.Unlock()
+		e.gotoLayer(m.To, false, false)
 		return
 	}
 	hasHold, hasDouble := kd.Hold != nil, kd.Double != nil
@@ -796,10 +813,14 @@ func (e *Engine) KeyUp(u byte) {
 		st.holdTimer.Stop()
 	}
 	if st.momentary {
-		prev := st.prevLayer
-		st.momentary = false
+		prev, kd := st.prevLayer, st.kd
+		alone := st.modifier && !st.used && kd.Tap != nil && !isMomentary(kd.Tap) && time.Since(st.downAt) < time.Duration(e.cfg.Settings.HoldMS)*time.Millisecond
+		st.momentary, st.modifier = false, false
 		e.mu.Unlock()
 		e.gotoLayer(prev, false, false)
+		if alone {
+			e.fire(u, "tap", kd.Tap, kd)
+		}
 		return
 	}
 	if st.done || st.holdFired {

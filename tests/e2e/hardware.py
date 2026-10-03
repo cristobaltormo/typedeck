@@ -175,6 +175,13 @@ evs = events_since(i5)
 hit = [e for e in evs if e["kind"] == "exec" and e.get("key") == "1A"]
 check("holding a layer key and pressing another within 100 ms runs the key of that layer at once", len(hit) == 1 and hit[0].get("layer_name") == cfg3["layers"][1]["name"], hit or evs)
 check("releasing the layer key goes back to the first layer", api("/api/status")["layer"] == 0)
+cfg3["layers"][0]["keys"]["39"] = {"tap": {"type": "layer", "to": 1, "momentary": True}}
+api("/api/config", cfg3); time.sleep(0.6)
+i6 = last_id()
+raw("SIMQ 0000391A00000000"); time.sleep(0.15)
+raw("SIMQ 0000000000000000"); time.sleep(0.4)
+hit = [e for e in events_since(i6) if e["kind"] == "exec" and e.get("key") == "1A"]
+check("a layer key set as a modifier works with both keys arriving in the same report", len(hit) == 1 and hit[0].get("layer_name") == cfg3["layers"][1]["name"], hit)
 
 if os.environ.get("TYPEDECK_REMOTE"):
     cfg["settings"]["double_ms"] = 800

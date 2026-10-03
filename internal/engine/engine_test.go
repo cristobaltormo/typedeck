@@ -438,8 +438,53 @@ func TestMomentaryLayerActivatesAtOnceWhenAnotherKeyIsPressed(t *testing.T) {
 	settle()
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	if len(r.injects) != 1 || r.injects[0] != 0x39 || len(r.huds) != 0 {
-		t.Fatalf("a short tap still types the key and nothing announces: %v %v", r.injects, r.huds)
+	if len(r.injects) != 0 || len(r.huds) != 0 {
+		t.Fatalf("a layer key pressed alone does nothing and announces nothing: %v %v", r.injects, r.huds)
+	}
+}
+
+func TestLayerKeyIsAModifierFromThePressOnTap(t *testing.T) {
+	e, r := newTest(t, func(c *config.Config) {
+		c.Settings.HoldMS = 1500
+		c.Layers[0].Keys["39"] = config.KeyDef{Tap: &config.Action{Type: "layer", To: 1, Momentary: true}}
+		c.Layers[1].Keys["1A"] = config.KeyDef{Tap: act("w")}
+	})
+	e.KeyDown(0x39, 0)
+	if e.Status().Layer != 1 {
+		t.Fatalf("the layer is on the instant the key goes down: %d", e.Status().Layer)
+	}
+	e.KeyDown(0x39, 0)
+	e.KeyDown(0x1A, 0)
+	e.KeyUp(0x1A)
+	e.KeyUp(0x39)
+	settle()
+	if e.Status().Layer != 0 {
+		t.Fatalf("a repeated key down must not strand the layer: %d", e.Status().Layer)
+	}
+	if got := r.snapshot(); len(got) != 1 || got[0] != "hud:w" {
+		t.Fatalf("%v", got)
+	}
+}
+
+func TestShortPressOfALayerKeyWithATapRunsTheTap(t *testing.T) {
+	e, r := newTest(t, func(c *config.Config) {
+		c.Settings.HoldMS = 400
+		c.Layers[0].Keys["39"] = config.KeyDef{Tap: act("tap"), Hold: &config.Action{Type: "layer", To: 1, Momentary: true}}
+		c.Layers[1].Keys["1A"] = config.KeyDef{Tap: act("w")}
+	})
+	e.KeyDown(0x39, 0)
+	e.KeyUp(0x39)
+	settle()
+	if got := r.snapshot(); len(got) != 1 || got[0] != "hud:tap" {
+		t.Fatalf("alone and short it is a tap: %v", got)
+	}
+	e.KeyDown(0x39, 0)
+	e.KeyDown(0x1A, 0)
+	e.KeyUp(0x1A)
+	e.KeyUp(0x39)
+	settle()
+	if got := r.snapshot(); len(got) != 2 || got[1] != "hud:w" {
+		t.Fatalf("used as a modifier it must not tap: %v", got)
 	}
 }
 

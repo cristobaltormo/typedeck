@@ -69,7 +69,7 @@ export function actionFields(a, rerender, { gesture = "tap", inSeq = false, lone
     case "timer": list.push(h("div", { class: "two" }, textInput(t("f.minutes"), a.minutes, (v) => upd("f:min", () => { a.minutes = Math.max(0.1, parseFloat(v) || 1); }), { type: "number", min: 0.1, step: 1 }), text(t("f.timer_label"), "label", { placeholder: "Pomodoro" })),
       h("div", { class: "chips" }, [5, 10, 25, 45, 60].map((m) => h("button", { type: "button", class: "chip", "aria-pressed": String(Number(a.minutes) === m), onclick: () => { upd("", () => { a.minutes = m; }); rerender(); } }, `${m} min`)))); break;
     case "layer": {
-      const hold = gesture === "hold" && !inSeq;
+      const hold = gesture !== "double" && !inSeq;
       const mode = a.momentary && hold ? "hold" : a.toggle ? "toggle" : "switch";
       const modes = [...(hold ? [["hold", t("layer.mode_hold")]] : []), ["switch", t("layer.mode_switch")], ["toggle", t("layer.mode_toggle")]];
       list.push(select(t("layer.mode"), mode, modes, (v) => {

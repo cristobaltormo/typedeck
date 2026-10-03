@@ -30,7 +30,12 @@ function capContent(k, kd, o) {
   const icon = kd.icon || TYPE_ICON[first?.type] || "grid";
   const label = kd.label || describe(first);
   kids.push(h("span", { class: "lg tl" }, lg.icon ? native : lg.main.length > 4 ? lg.main.slice(0, 4) : lg.main));
-  kids.push(h("span", { class: "mc" }, ic(icon, Math.max(14, Math.min(26, o.u * 0.5))), o.labels !== false && h("span", { class: "ml" }, label)));
+  const text = String(label), fpx = o.u * 0.27 * 0.72, charW = 0.6 * fpx, avail = k.w * o.u * 0.78;
+  const word = Math.max(1, ...text.split(/\s+/).map((x) => x.length));
+  const fit = Math.max(0.5, Math.min(1, avail / (word * charW)));
+  const two = text.length * charW * fit > avail;
+  const iconPx = two ? Math.max(12, o.u * 0.34) : Math.max(14, Math.min(26, o.u * 0.5));
+  kids.push(h("span", { class: "mc" }, ic(icon, iconPx), o.labels !== false && h("span", { class: "ml", style: fit < 1 ? { fontSize: `${(0.72 * fit).toFixed(3)}em` } : {} }, label)));
   const pips = [kd.hold && "hold", kd.double && "double"].filter(Boolean);
   if (pips.length) kids.push(h("span", { class: "pips", title: pips.map((p) => t("gesture." + p)).join(", ") }, pips.map(() => h("i"))));
   if (missingApp(kd)) kids.push(h("span", { class: "warn", title: t("warn.app_missing") }, ic("alert", 13)));

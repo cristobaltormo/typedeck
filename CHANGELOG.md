@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.8.1 - 2026-10-03
+
+### Fixed
+- A layer key (Caps Lock, for example) is now a true modifier: the layer turns on the instant the key goes down, with no hold time, and turns
+  off when it is released, so Caps Lock + W is as immediate as Cmd + C. It works from the Tap or the Hold tab. Pressed alone and short it does
+  nothing, unless the key has its own tap action, which then runs. A repeated key-down from the keyboard can no longer strand the layer.
+- Names on the keys were cut ("Google Chrome", "Downloads", "Pomodoro"): the text now shrinks to fit the key and the icon makes room when the
+  name takes two lines. Layer actions show the layer's name instead of the word "layer".
+- The key detection assistant took an ISO keyboard whose Ç key sends 0x31 for ANSI unless you also pressed the < > key. It now treats that key as
+  the ISO one, and when both layouts fit it asks which one you have (tall Enter or flat) instead of choosing for you.
+- A key that comes from All layers showed an empty "No action" panel in a layer; it now shows what it does.
+
 ## 0.8.0 - 2026-10-03
 
 ### Fixed

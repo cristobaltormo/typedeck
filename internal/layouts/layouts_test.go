@@ -147,3 +147,19 @@ func TestISOWithBackslashAliasStillWinsAsISO(t *testing.T) {
 		t.Fatalf("ANSI: %s", r[0].ID)
 	}
 }
+
+func TestAnIsoKeyboardThatSendsTheCKeyAs0x31IsNotTakenForAnsi(t *testing.T) {
+	iso, _ := Get("full-iso")
+	seen := iso.KeySet()
+	delete(seen, 0x32)
+	seen[0x31] = true
+	r := Match(seen)
+	if r[0].ID != "full-iso" {
+		t.Fatalf("with the < > key seen it is ISO: %s", r[0].ID)
+	}
+	delete(seen, 0x64)
+	r = Match(seen)
+	if amb, hints := Ambiguity(r); !amb || len(hints) == 0 {
+		t.Fatalf("without the < > key it cannot be told from ANSI and must ask: %v %v (%s %s)", amb, hints, r[0].ID, r[1].ID)
+	}
+}

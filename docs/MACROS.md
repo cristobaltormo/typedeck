@@ -12,8 +12,8 @@ copies it instead. The copy and paste buttons of the key panel do the same betwe
 
 Up to nine layers, each with a name, a color and an optional list of apps that activate it by themselves. The **All layers** tab
 holds macros that work on every layer; a key on the active layer wins over the same key there. A `layer` action can go to the next,
-the previous or a given layer; with **Hold** it can be "only while I hold it" (press another key meanwhile and the layer switches at once,
-so Caps Lock + W is as fast as you can type it), and any gesture can toggle between two layers. A navigation key that lives on one layer
+the previous or a given layer; as a **layer key** (from Tap or Hold) the layer is on the instant you press it and off when you release it, like Shift or Cmd, so Caps Lock + W
+is as fast as you can type it, and any gesture can toggle between two layers. A navigation key that lives on one layer
 only exists there: put it in **All layers** to use it from any layer (the editor offers to move it).
 
 ## Action types

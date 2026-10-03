@@ -250,7 +250,7 @@ func Match(seenRaw map[byte]bool) []Suggestion {
 	for _, l := range all {
 		set := l.KeySet()
 		seen := seenRaw
-		if l.Standard == "iso" && seenRaw[0x31] && seenRaw[0x64] && !seenRaw[0x32] {
+		if l.Standard == "iso" && seenRaw[0x31] && !seenRaw[0x32] {
 			seen = map[byte]bool{}
 			for u := range seenRaw {
 				if u == 0x31 {

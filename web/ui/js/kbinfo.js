@@ -92,7 +92,10 @@ export function openKeyboardDrawer() {
       const keys = (learnData.hint_keys || []).map((u) => ({ 0x64: "< >", 0x32: "Ç", 0x31: "\\" })[u] || hex(u)).join(", ");
       wizardHost.append(h("p", { class: "help warn", style: { marginTop: "10px" } }, ic("alert", 15), t("kb.press_these", { keys })));
     }
-    if (!learning && best && seen.size >= 8) {
+    if (!learning && best && seen.size >= 8 && learnData.ambiguous && sugs[1]) {
+      const pick = (l) => h("button", { type: "button", class: `btn ${l.id === layoutId() ? "" : "primary"}`, disabled: l.id === layoutId(), onclick: async () => { try { await setLayout(l.id); toast(t("kb.layout_saved")); draw(); } catch (e) { toast(e.message, "bad"); } } }, t("kb.use_named", { layout: layoutLabel(l.id) }));
+      wizardHost.append(h("div", { class: "stack", style: { gap: "8px", marginTop: "12px" } }, h("p", {}, t("kb.which")), h("div", { class: "row wrap" }, pick(best), pick(sugs[1]))));
+    } else if (!learning && best && seen.size >= 8) {
       wizardHost.append(h("div", { class: "stack", style: { gap: "8px", marginTop: "12px" } },
         h("p", {}, t("kb.suggest", { layout: layoutLabel(best.id), pct: Math.round(best.score * 100) })),
         h("div", { class: "row wrap" }, h("button", { type: "button", class: "btn primary", disabled: best.id === layoutId(), onclick: async () => { try { await setLayout(best.id); toast(t("kb.layout_saved")); draw(); } catch (e) { toast(e.message, "bad"); } } }, best.id === layoutId() ? t("kb.already") : t("kb.use_layout")),
