@@ -1,6 +1,7 @@
 package keylog
 
 import (
+	"github.com/cristobaltormo/typedeck/internal/hid"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -105,5 +106,45 @@ func TestSummaryCountsTodayTopKeysAndAverage(t *testing.T) {
 	}
 	if empty := New(filepath.Join(t.TempDir(), "x")).Summary(now); empty.Total != 0 || empty.Top != nil {
 		t.Fatalf("sin archivo debe salir vacío: %+v", empty)
+	}
+}
+
+func TestTranscribeRebuildsWhatWasTyped(t *testing.T) {
+	us := hid.LayoutByName("us")
+	at := int64(1_000_000)
+	var es1 []Entry
+	add := func(u byte, dt int64, d int) { es1 = append(es1, Entry{T: at + dt, U: u, K: Name(u), D: d}) }
+
+	add(0xE1, 0, 400)
+	add(0x0B, 100, 50)
+	add(0x08, 600, 50)
+	add(0x0F, 700, 50)
+	add(0x0F, 800, 50)
+	add(0x12, 900, 50)
+	add(0x2C, 1000, 50)
+	add(0x1A, 1100, 50)
+	add(0x12, 1200, 50)
+	add(0x15, 1300, 50)
+	add(0x2A, 1400, 50)
+	add(0x0F, 1500, 50)
+	add(0x28, 1600, 50)
+	if got := Transcribe(es1, us); got != "Hello wol\n" {
+		t.Fatalf("texto: %q", got)
+	}
+
+	var caps []Entry
+	caps = append(caps, Entry{T: at, U: 0x39, D: 30}, Entry{T: at + 100, U: 0x04, D: 40}, Entry{T: at + 200, U: 0x39, D: 30}, Entry{T: at + 300, U: 0x04, D: 40})
+	if got := Transcribe(caps, us); got != "Aa" {
+		t.Fatalf("bloq mayús: %q", got)
+	}
+
+	combo := []Entry{{T: at, U: 0xE3, D: 300}, {T: at + 50, U: 0x06, D: 40}, {T: at + 500, U: 0x06, D: 40}}
+	if got := Transcribe(combo, us); got != "[Cmd+C]c" {
+		t.Fatalf("atajo: %q", got)
+	}
+
+	altgr := []Entry{{T: at, U: 0xE6, D: 300}, {T: at + 50, U: 0x1F, D: 40}}
+	if got := Transcribe(altgr, hid.LayoutByName("es-pc")); got != "@" {
+		t.Fatalf("AltGr: %q", got)
 	}
 }

@@ -297,10 +297,11 @@ func TestHistoryEndpointsReadAndClear(t *testing.T) {
 	var out struct {
 		Enabled bool
 		Count   int
+		Text    string
 		Entries []struct{ K string }
 	}
 	rec := do(h, "GET", "/api/history?limit=10", good, s.token, nil)
-	if err := json.Unmarshal(rec.Body.Bytes(), &out); err != nil || !out.Enabled || out.Count != 1 || out.Entries[0].K != "A" {
+	if err := json.Unmarshal(rec.Body.Bytes(), &out); err != nil || !out.Enabled || out.Count != 1 || out.Entries[0].K != "A" || strings.ToLower(out.Text) != "a" {
 		t.Fatalf("historial: %s", rec.Body)
 	}
 	if got := do(h, "GET", "/api/history", good, "", nil).Code; got != 403 {

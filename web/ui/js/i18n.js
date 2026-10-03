@@ -217,6 +217,7 @@ const ES = {
   "hist.total": "Pulsaciones guardadas", "hist.today": "Hoy", "hist.top_key": "Tecla más usada", "hist.avg": "Duración media",
   "hist.top": "Tus teclas más usadas", "hist.latest": "Últimas pulsaciones", "hist.live": "En directo", "hist.filter": "Buscar una tecla", "hist.no_match": "Ninguna pulsación coincide.",
   "hist.delete": "Borrar el historial", "hist.delete_text": "Elimina las {n} pulsaciones guardadas. No se puede deshacer.", "hist.clear": "Borrar todo", "hist.cleared": "Historial borrado",
+  "hist.box_title": "Lo que escribes", "hist.box_ph": "Lo que tecleees aparecerá aquí, en directo.", "hist.box_help": "Se reconstruye con tus pulsaciones: respeta mayúsculas y borrados, y los atajos salen entre corchetes, como [Cmd+C].", "hist.copy": "Copiar", "hist.copied": "Texto copiado",
 };
 
 const EN = {
@@ -438,6 +439,7 @@ const EN = {
   "hist.total": "Key presses saved", "hist.today": "Today", "hist.top_key": "Most used key", "hist.avg": "Average hold",
   "hist.top": "Your most used keys", "hist.latest": "Latest key presses", "hist.live": "Live", "hist.filter": "Search a key", "hist.no_match": "No key press matches.",
   "hist.delete": "Delete the history", "hist.delete_text": "Removes the {n} saved key presses. This cannot be undone.", "hist.clear": "Delete everything", "hist.cleared": "History deleted",
+  "hist.box_title": "What you type", "hist.box_ph": "Whatever you type will show up here, live.", "hist.box_help": "Rebuilt from your key presses: it keeps capitals and deletions, and shortcuts appear in brackets, like [Cmd+C].", "hist.copy": "Copy", "hist.copied": "Text copied",
 };
 
 const DICTS = { es: ES, en: EN };

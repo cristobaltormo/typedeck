@@ -21,6 +21,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/cristobaltormo/typedeck/internal/actions"
 	"github.com/cristobaltormo/typedeck/internal/app"
 	"github.com/cristobaltormo/typedeck/internal/board"
 	"github.com/cristobaltormo/typedeck/internal/config"
@@ -568,6 +569,6 @@ func (s *Server) history(w http.ResponseWriter, r *http.Request) {
 	if limit <= 0 || limit > 500 {
 		limit = 100
 	}
-	entries, total := s.eng.KeyLog().Recent(limit)
-	writeJSON(w, 200, map[string]any{"enabled": s.eng.KeyLog().Enabled(), "count": total, "entries": entries, "summary": s.eng.KeyLog().Summary(time.Now())})
+	rep := s.eng.KeyLog().Report(limit, 2500, time.Now(), actions.TypingLayout(s.eng))
+	writeJSON(w, 200, map[string]any{"enabled": s.eng.KeyLog().Enabled(), "count": rep.Summary.Total, "entries": rep.Entries, "summary": rep.Summary, "text": rep.Text})
 }

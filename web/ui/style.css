@@ -358,3 +358,7 @@ ul.risk code { font-family: var(--mono); font-size: 12px; overflow: hidden; text
 .li .keycap { width: 120px; }
 .li .bar { margin: 0 6px; }
 @media (max-width: 720px) { .toprow { grid-template-columns: 60px 1fr 44px; } .hist-switch { flex-wrap: wrap; } }
+
+.transcript-wrap { margin: 0 0 30px; }
+.transcript { width: 100%; box-sizing: border-box; resize: vertical; min-height: 150px; max-height: 60vh; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--input); color: var(--strong); font-family: var(--mono); font-size: 14px; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
+.transcript:focus { outline: none; border-color: var(--accent-line); }

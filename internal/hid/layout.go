@@ -5,6 +5,24 @@ import "strings"
 type Layout struct {
 	Name  string
 	chars map[rune][]Stroke
+	rev   map[[2]byte]rune
+}
+
+func (l *Layout) Rune(mods, usage byte) (rune, bool) {
+	if l.rev == nil {
+		l.rev = make(map[[2]byte]rune, len(l.chars))
+		for r, st := range l.chars {
+			if len(st) != 1 {
+				continue
+			}
+			k := [2]byte{st[0].Mods, st[0].Usage}
+			if old, taken := l.rev[k]; !taken || r < old {
+				l.rev[k] = r
+			}
+		}
+	}
+	r, ok := l.rev[[2]byte{mods, usage}]
+	return r, ok
 }
 
 func (l *Layout) Strokes(r rune) ([]Stroke, bool) {

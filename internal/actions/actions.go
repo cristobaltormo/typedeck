@@ -234,7 +234,7 @@ func FrontASN() string { return platform.Current.FrontID() }
 
 func FrontNames(asn string) []string { return platform.Current.FrontNames(asn) }
 
-func typingLayout(env Env) *hid.Layout {
+func TypingLayout(env Env) *hid.Layout {
 	s := env.Settings().TypingLayout
 	if s == "us" || s == "es-iso" || s == "es-pc" || s == "es-win" {
 		return hid.LayoutByName(s)
@@ -245,7 +245,7 @@ func typingLayout(env Env) *hid.Layout {
 func adapt(st hid.Stroke, l *hid.Layout) hid.Stroke { return platform.Current.AdaptStroke(st, l) }
 
 func hotkey(spec string, env Env) error {
-	l := typingLayout(env)
+	l := TypingLayout(env)
 	if hw := useHardware(env); hw != nil && l.SafeForKeys() {
 		st, err := hid.ParseHotkey(spec, l)
 		if err != nil {
@@ -259,7 +259,7 @@ func hotkey(spec string, env Env) error {
 }
 
 func typeText(text string, env Env) error {
-	l := typingLayout(env)
+	l := TypingLayout(env)
 	hw := useHardware(env)
 	if hw != nil && l.Typeable(text) {
 		failed := false
@@ -302,8 +302,8 @@ func system(cmd string, env Env) (string, error) {
 		return "desactivado", nil
 	case "lock":
 		if st, ok := platform.Current.LockStroke(); ok {
-			if hw := useHardware(env); hw != nil && typingLayout(env).SafeForKeys() {
-				if err := hw.Tap(adapt(st, typingLayout(env))); err == nil {
+			if hw := useHardware(env); hw != nil && TypingLayout(env).SafeForKeys() {
+				if err := hw.Tap(adapt(st, TypingLayout(env))); err == nil {
 					return "", nil
 				}
 			}

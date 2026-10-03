@@ -120,13 +120,11 @@ func (l *Log) trimLocked() {
 	_ = os.WriteFile(l.path, data[min(cut+1, len(data)):], 0o600)
 }
 
-func (l *Log) Recent(limit int) ([]Entry, int) {
-	l.mu.Lock()
-	defer l.mu.Unlock()
+func (l *Log) readAllLocked() []Entry {
 	l.flushLocked()
 	f, err := os.Open(l.path)
 	if err != nil {
-		return []Entry{}, 0
+		return nil
 	}
 	defer f.Close()
 	var all []Entry
@@ -137,12 +135,39 @@ func (l *Log) Recent(limit int) ([]Entry, int) {
 			all = append(all, e)
 		}
 	}
-	total := len(all)
-	out := make([]Entry, 0, min(limit, total))
-	for i := total - 1; i >= 0 && len(out) < limit; i-- {
+	return all
+}
+
+func (l *Log) Recent(limit int) ([]Entry, int) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	all := l.readAllLocked()
+	return newest(all, limit), len(all)
+}
+
+func newest(all []Entry, limit int) []Entry {
+	out := make([]Entry, 0, min(limit, len(all)))
+	for i := len(all) - 1; i >= 0 && len(out) < limit; i-- {
 		out = append(out, all[i])
 	}
-	return out, total
+	return out
+}
+
+type Report struct {
+	Entries []Entry
+	Summary Summary
+	Text    string
+}
+
+func (l *Log) Report(limit, textEntries int, now time.Time, layout *hid.Layout) Report {
+	l.mu.Lock()
+	all := l.readAllLocked()
+	l.mu.Unlock()
+	tail := all
+	if len(tail) > textEntries {
+		tail = tail[len(tail)-textEntries:]
+	}
+	return Report{Entries: newest(all, limit), Summary: summarize(all, now), Text: Transcribe(tail, layout)}
 }
 
 type KeyCount struct {
@@ -160,23 +185,17 @@ type Summary struct {
 
 func (l *Log) Summary(now time.Time) Summary {
 	l.mu.Lock()
-	defer l.mu.Unlock()
-	l.flushLocked()
+	all := l.readAllLocked()
+	l.mu.Unlock()
+	return summarize(all, now)
+}
+
+func summarize(all []Entry, now time.Time) Summary {
 	var sum Summary
-	f, err := os.Open(l.path)
-	if err != nil {
-		return sum
-	}
-	defer f.Close()
 	midnight := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location()).UnixMilli()
 	counts := map[byte]*KeyCount{}
 	var totalMS int64
-	sc := bufio.NewScanner(f)
-	for sc.Scan() {
-		var e Entry
-		if json.Unmarshal(sc.Bytes(), &e) != nil {
-			continue
-		}
+	for _, e := range all {
 		sum.Total++
 		totalMS += int64(e.D)
 		if e.T >= midnight {
