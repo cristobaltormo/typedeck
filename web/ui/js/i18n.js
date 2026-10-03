@@ -220,6 +220,7 @@ const ES = {
   "hist.box_title": "Lo que escribes", "hist.box_ph": "Lo que tecleees aparecerá aquí, en directo.", "hist.box_help": "Se reconstruye con tus pulsaciones: respeta mayúsculas y borrados, y los atajos salen entre corchetes, como [Cmd+C].", "hist.copy": "Copiar", "hist.copied": "Texto copiado",
   "type.history": "Historial de tecleo", "hist.act_toggle": "Activar o desactivar", "hist.act_on": "Activar", "hist.act_off": "Desactivar", "hist.act_help": "Pulsa la tecla para encender o apagar el historial de tecleo sin abrir el editor.",
   "hist.days": "Conservar {n} días", "hist.keep_help": "Lo más antiguo se borra solo.",
+  "gallery.enlarge": "Ampliar", "key.moved": "{from} movida a {to}", "key.swapped": "{from} y {to} intercambiadas", "key.copied_to": "{from} copiada en {to}",
 };
 
 const EN = {
@@ -444,6 +445,7 @@ const EN = {
   "hist.box_title": "What you type", "hist.box_ph": "Whatever you type will show up here, live.", "hist.box_help": "Rebuilt from your key presses: it keeps capitals and deletions, and shortcuts appear in brackets, like [Cmd+C].", "hist.copy": "Copy", "hist.copied": "Text copied",
   "type.history": "Typing history", "hist.act_toggle": "Turn on or off", "hist.act_on": "Turn on", "hist.act_off": "Turn off", "hist.act_help": "Press the key to switch the typing history on or off without opening the editor.",
   "hist.days": "Keep {n} days", "hist.keep_help": "The oldest entries are deleted automatically.",
+  "gallery.enlarge": "Enlarge", "key.moved": "{from} moved to {to}", "key.swapped": "{from} and {to} swapped", "key.copied_to": "{from} copied to {to}",
 };
 
 const DICTS = { es: ES, en: EN };

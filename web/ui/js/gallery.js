@@ -2,9 +2,9 @@ import { h, ic, clear } from "./dom.js";
 import { api } from "./api.js";
 import { t, lang } from "./i18n.js";
 import { keyboard, hex } from "./keyboard.js";
-import { legendLang } from "./layouts.js";
+import { legend, legendLang } from "./layouts.js";
 import { toast } from "./toast.js";
-import { state, edit, layerCount, layoutId } from "./store.js";
+import { state, edit, layerCount, layoutId, describe } from "./store.js";
 import { importPack, exportEverything } from "./share.js";
 
 const pick = (v) => (v && typeof v === "object" ? v[lang()] || v.es : v);
@@ -31,10 +31,31 @@ export function galleryView(root) {
     return api("/api/packs/resolve", { method: "POST", body: { id: p.id, layout: layoutId(), lang: lang() } });
   }
 
+  const keyLabel = (u) => { const l = legend(u, legendLang()); return l?.icon ? t("key.arrow") : (l?.main || "").trim() || hex(u); };
+  const macroList = (r) => Object.entries({ ...r.global, ...r.layer.keys }).map(([id, kd]) => ({ u: parseInt(id, 16), kd })).filter((m) => m.kd.tap || m.kd.hold || m.kd.double);
+
   function preview(p, r) {
     const get = (u) => ({ kd: r.layer.keys[hex(u)] || r.global[hex(u)] });
-    const known = state.layouts[layoutId()];
-    return h("div", { class: "mini" }, keyboard(layoutId(), legendLang(), get, { u: known && known.width > 12 ? 11 : 22, labels: false, titles: false, color: p.color }).el);
+    const kbd = keyboard(layoutId(), legendLang(), get, { crop: true, width: 380, maxU: 42, labels: false, titles: false, color: p.color });
+    const chips = macroList(r).slice(0, 6).map((m) => h("span", { class: "chip" }, h("span", { class: "keycap sm" }, keyLabel(m.u)), h("span", { class: "chip-text" }, m.kd.label || describe(m.kd.tap || m.kd.hold || m.kd.double))));
+    const more = macroList(r).length - chips.length;
+    return h("div", { class: "previewbox" },
+      h("button", { type: "button", class: "mini zoomable", title: t("gallery.enlarge"), "aria-label": t("gallery.enlarge"), onclick: () => enlarge(p, r) }, kbd.el, h("span", { class: "zoom-hint" }, ic("search", 14), t("gallery.enlarge"))),
+      h("div", { class: "chips" }, chips, more > 0 ? h("span", { class: "chip more" }, `+${more}`) : null));
+  }
+
+  function enlarge(p, r) {
+    const get = (u) => ({ kd: r.layer.keys[hex(u)] || r.global[hex(u)] });
+    const close = () => { scrim.remove(); document.removeEventListener("keydown", onKey, true); };
+    const onKey = (e) => { if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); close(); } };
+    const rows = macroList(r).map((m) => h("tr", {}, h("td", {}, h("span", { class: "keycap sm" }, keyLabel(m.u))), h("td", {}, m.kd.label || describe(m.kd.tap || m.kd.hold || m.kd.double)), h("td", { class: "dim" }, t("type." + (m.kd.tap || m.kd.hold || m.kd.double).type))));
+    const scrim = h("div", { class: "scrim", onclick: (e) => { if (e.target === scrim) close(); } },
+      h("div", { class: "dialog wide", role: "dialog", "aria-modal": "true", "aria-label": pick(p.name) },
+        h("div", { class: "row", style: { gap: "10px" } }, h("h2", { class: "grow row" }, ic(p.icon, 18), pick(p.name)), h("button", { type: "button", class: "tool", "aria-label": t("common.done"), onclick: close }, ic("x", 16))),
+        h("div", { class: "mini big" }, keyboard(layoutId(), legendLang(), get, { crop: true, width: 760, maxU: 64, labels: true, titles: false, color: p.color }).el),
+        h("table", { class: "macro-table" }, h("tbody", {}, rows))));
+    document.addEventListener("keydown", onKey, true);
+    document.body.append(scrim);
   }
 
   function drawList() {

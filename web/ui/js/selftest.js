@@ -42,6 +42,12 @@ export async function run() {
     const sw = $$(".dock .group .swatch:not(.none):not(.custom)")[3]; sw.click(); await sleep(50);
     ok("key color", /^#/.test(state.cfg.layers[0].keys["04"].color || "") && $('.cap[data-u="4"]').classList.contains("colored"));
 
+    const drop = (from, to) => { const dt = new DataTransfer(); dt.setData("text/plain", String(from)); $(`.cap[data-u="${to}"]`).dispatchEvent(new DragEvent("drop", { dataTransfer: dt, bubbles: true, cancelable: true })); };
+    ok("the keyboard cannot be selected as text", getComputedStyle($(".kb")).userSelect === "none");
+    drop(4, 6); await sleep(80);
+    ok("dragging a macro to an empty key moves it", state.cfg.layers[0].keys["06"]?.tap?.app === "Safari" && !state.cfg.layers[0].keys["04"], Object.keys(state.cfg.layers[0].keys).join());
+    drop(6, 4); await sleep(80);
+    ok("dragging it back restores it", state.cfg.layers[0].keys["04"]?.tap?.app === "Safari" && !state.cfg.layers[0].keys["06"]);
     document.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true })); await sleep(50);
     ok("arrows move the selection by geometry", state.selKey !== "04", state.selKey);
 
@@ -68,6 +74,11 @@ export async function run() {
 
     location.hash = "#/gallery"; await sleep(120);
     ok("gallery with packs", $$(".pack").length >= 6, $$(".pack").length);
+    ok("a pack preview shows the keys it uses, big, with its macros listed", !!$(".pack .mini.zoomable .cap") && $$(".pack .chip").length > 0);
+    $(".pack .mini.zoomable").click(); await sleep(150);
+    ok("clicking a pack preview enlarges it", !!$(".dialog.wide .cap"));
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true })); await sleep(80);
+    ok("Escape closes the enlarged preview", !$(".dialog.wide"));
     const layers0 = state.cfg.layers.length;
     byText(".pack .btn.primary", t("gallery.add")).click(); await sleep(80);
     ok("adding a pack creates a layer", state.cfg.layers.length === layers0 + 1);

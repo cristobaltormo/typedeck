@@ -58,8 +58,28 @@ export function workView(root) {
   function renderKeyboard() {
     renderBanner();
     kb?.destroy();
-    kb = keyboard(layoutId(), legendLang(), getKd, { selected: usageOf(state.selKey), onSelect: selectKey, color: accent(), maxU: 60, fitHeight: () => stage.clientHeight - infoLine.offsetHeight - bannerHost.offsetHeight - 70 });
+    kb = keyboard(layoutId(), legendLang(), getKd, { selected: usageOf(state.selKey), onSelect: selectKey, onMove: moveKey, color: accent(), maxU: 60, fitHeight: () => stage.clientHeight - infoLine.offsetHeight - bannerHost.offsetHeight - 70 });
     clear(kbHost).append(kb.el);
+  }
+
+  function moveKey(from, to, copy) {
+    const a = hex(from), b = hex(to);
+    const keys = keysOf();
+    if (!keys[a]) return;
+    edit("", () => {
+      const src = clone(keys[a]), dst = keys[b] ? clone(keys[b]) : null;
+      keys[b] = src;
+      if (copy) return;
+      if (dst) keys[a] = dst; else delete keys[a];
+    });
+    state.selKey = b; state.panel = "key";
+    renderKeyboard(); renderDock();
+    toast(t(copy ? "key.copied_to" : keys[a] ? "key.swapped" : "key.moved", { from: keyName(from), to: keyName(to) }));
+  }
+
+  function keyName(usage) {
+    const k = getLayout(layoutId(), legendLang()).keys.find((x) => x.usage === usage);
+    return k ? (k.legend.icon ? t("key.arrow") + " " + t("arrow." + k.legend.icon) : k.legend.main) : hex(usage);
   }
 
   function selectKey(usage) { state.selKey = hex(usage); state.panel = "key"; renderKeyboard(); renderDock(); }
@@ -221,8 +241,6 @@ export function workView(root) {
     if (dirs[e.key] && !e.metaKey && !e.ctrlKey && kb) { e.preventDefault(); selectKey(neighbor(kb.layout, usageOf(state.selKey), ...dirs[e.key])); return; }
     const id = state.selKey;
     if ((e.key === "Delete" || e.key === "Backspace") && keyDef(id)) { e.preventDefault(); edit("", () => { delete keysOf()[id]; }); renderDock(); return; }
-    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "c" && keyDef(id)) { state.clip = clone(keyDef(id)); toast(t("key.copied")); return; }
-    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "v" && state.clip) { e.preventDefault(); edit("", () => { keysOf()[id] = clone(state.clip); }); renderDock(); }
   };
   document.addEventListener("keydown", onKey);
 

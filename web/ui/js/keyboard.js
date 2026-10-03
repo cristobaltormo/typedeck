@@ -43,9 +43,21 @@ export function keyboard(layoutId, lang, getKd, opts = {}) {
   const wrap = h("div", { class: "kb", "data-layout": layoutId }, plate);
   const caps = new Map();
   let u = opts.u || 46;
-  const pad = 14;
+  const pad = opts.crop ? 8 : 14;
+  let region = { x0: 0, y0: 0, w: L.width, h: L.height };
+  if (opts.crop) {
+    const used = L.keys.filter((k) => { const kd = (getKd(k.usage) || {}).kd; return kd && (kd.tap || kd.hold || kd.double); });
+    if (used.length) {
+      const x0 = Math.max(0, Math.floor(Math.min(...used.map((k) => k.x)) - 0.25)), y0 = Math.max(0, Math.floor(Math.min(...used.map((k) => k.y)) - 0.25));
+      const x1 = Math.min(L.width, Math.ceil(Math.max(...used.map((k) => k.x + k.w)) + 0.25)), y1 = Math.min(L.height, Math.ceil(Math.max(...used.map((k) => k.y + k.h)) + 0.25));
+      region = { x0, y0, w: Math.max(2, x1 - x0), h: Math.max(1, y1 - y0) };
+    }
+    if (opts.width) u = Math.max(14, Math.min(opts.maxU || 44, Math.floor((opts.width - pad * 2) / region.w)));
+  }
+  const inRegion = (k) => k.x + k.w > region.x0 && k.x < region.x0 + region.w && k.y + k.h > region.y0 && k.y < region.y0 + region.h;
 
   for (const k of L.keys) {
+    if (opts.crop && !inRegion(k)) continue;
     const { kd, inherited } = getKd(k.usage) || {};
     const mapped = kd && (kd.tap || kd.hold || kd.double);
     const cls = ["cap", k.mod ? "mod" : "", mapped || kd?.label || kd?.icon ? "mapped" : "", inherited ? "inherited" : "", opts.selected === k.usage ? "sel" : "",
@@ -60,18 +72,32 @@ export function keyboard(layoutId, lang, getKd, opts = {}) {
       onclick: opts.onSelect && !k.mod ? () => opts.onSelect(k.usage) : undefined,
     }, heat !== undefined ? [h("span", { class: "lg tl" }, k.legend.icon ? ic(k.legend.icon, 12) : k.legend.main), h("span", { class: "count" }, opts.count?.(k.usage) || "")] : capContent(k, kd, { u, labels: opts.labels }));
     if (opts.onSelect && !k.mod) el.setAttribute("aria-pressed", String(opts.selected === k.usage));
+    if (opts.onMove && !k.mod) {
+      if (mapped && !inherited) {
+        el.draggable = true;
+        el.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", String(k.usage)); e.dataTransfer.effectAllowed = "copyMove"; el.classList.add("dragging"); });
+        el.addEventListener("dragend", () => { el.classList.remove("dragging"); for (const c of caps.values()) c.el.classList.remove("drop"); });
+      }
+      el.addEventListener("dragover", (e) => { if (e.dataTransfer.types.includes("text/plain")) { e.preventDefault(); e.dataTransfer.dropEffect = e.altKey ? "copy" : "move"; el.classList.add("drop"); } });
+      el.addEventListener("dragleave", () => el.classList.remove("drop"));
+      el.addEventListener("drop", (e) => {
+        e.preventDefault(); el.classList.remove("drop");
+        const from = parseInt(e.dataTransfer.getData("text/plain"), 10);
+        if (!Number.isNaN(from) && from !== k.usage) opts.onMove(from, k.usage, e.altKey);
+      });
+    }
     caps.set(k.usage, { el, k });
     plate.append(el);
   }
 
   function layoutCaps() {
     const gap = Math.max(3, u * 0.1);
-    plate.style.width = L.width * u + pad * 2 + "px";
-    plate.style.height = L.height * u + pad * 2 + "px";
+    plate.style.width = region.w * u + pad * 2 + "px";
+    plate.style.height = region.h * u + pad * 2 + "px";
     wrap.style.setProperty("--u", u + "px");
     for (const { el, k } of caps.values()) {
-      el.style.left = pad + k.x * u + gap / 2 + "px";
-      el.style.top = pad + k.y * u + gap / 2 + "px";
+      el.style.left = pad + (k.x - region.x0) * u + gap / 2 + "px";
+      el.style.top = pad + (k.y - region.y0) * u + gap / 2 + "px";
       el.style.width = k.w * u - gap + "px";
       el.style.height = k.h * u - gap + "px";
     }
@@ -80,9 +106,9 @@ export function keyboard(layoutId, lang, getKd, opts = {}) {
   function fit() {
     if (opts.u) return;
     const availW = (wrap.parentElement?.clientWidth || 900) - pad * 2 - 4;
-    let next = Math.floor(availW / L.width);
+    let next = Math.floor(availW / region.w);
     const availH = opts.fitHeight ? opts.fitHeight() : 0;
-    if (availH > 0) next = Math.min(next, Math.floor((availH - pad * 2 - 6) / L.height));
+    if (availH > 0) next = Math.min(next, Math.floor((availH - pad * 2 - 6) / region.h));
     next = Math.max(opts.minU || 20, Math.min(opts.maxU || 58, next));
     if (next !== u) { u = next; layoutCaps(); }
   }

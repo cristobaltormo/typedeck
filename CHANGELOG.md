@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Added
+- Drag a macro from one key to another in the editor: onto an empty key it moves, onto a key with a macro the two swap, and holding Alt (Option) copies.
+- The gallery previews zoom on the keys a pack uses, list its macros under the drawing, and open large when clicked.
+
+### Changed
+- The keyboard drawing and the editor chrome cannot be selected as text, and Ctrl+C and Ctrl+V no longer copy and paste a key's macro (the copy
+  and paste buttons of the key panel still do).
+
 ## 0.6.1 - 2026-10-03
 
 ### Fixed

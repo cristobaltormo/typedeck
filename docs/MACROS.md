@@ -3,6 +3,11 @@
 Every key can have three actions: **tap**, **hold** and **double tap**. A key with only a hold or double action still types its own
 character on a short press, so it never goes dead. The hold and double thresholds are in Settings (450 ms and 280 ms by default).
 
+## Moving macros
+
+Drag a key that has a macro onto another key. On an empty key it moves, on a key with a macro the two swap, and holding Alt (Option on a Mac)
+copies it instead. The copy and paste buttons of the key panel do the same between layers.
+
 ## Layers
 
 Up to nine layers, each with a name, a color and an optional list of apps that activate it by themselves. The **All layers** tab
