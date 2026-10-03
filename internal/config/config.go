@@ -92,6 +92,7 @@ type Settings struct {
 
 	NotifyKeyboard bool `json:"notify_keyboard"`
 	KeyHistory     bool `json:"key_history"`
+	KeyHistoryDays int  `json:"key_history_days"`
 }
 
 type OBS struct {
@@ -167,7 +168,7 @@ func copyDir(src, dst string) error {
 func DefaultSettings() Settings {
 	return Settings{Language: "en", Theme: "auto", Accent: "#2563eb", Density: "comfortable", KeySize: 88,
 		HUD:    HUD{Enabled: true, Position: "bottom", Seconds: 1.2, OnAuto: true},
-		HoldMS: 450, DoubleMS: 280, AutoLayer: true, VolumeStep: 6, Input: "auto", TypingLayout: "auto", OBS: OBS{Host: "127.0.0.1", Port: 4455}, NotifyKeyboard: true}
+		HoldMS: 450, DoubleMS: 280, AutoLayer: true, VolumeStep: 6, Input: "auto", TypingLayout: "auto", OBS: OBS{Host: "127.0.0.1", Port: 4455}, NotifyKeyboard: true, KeyHistoryDays: 30}
 }
 
 func Default() Config {
@@ -296,7 +297,7 @@ var (
 	obsCmds    = set("scene", "scene_next", "scene_prev", "stream", "stream_start", "stream_stop", "record", "record_pause", "mute", "replay_save", "virtualcam", "studio", "studio_transition")
 	systemCmds = set("lock", "sleepdisplay", "sleep", "screensaver", "screenshot", "darkmode", "caffeinate")
 	condKinds  = set("app", "layer", "time", "os", "obs_stream", "obs_record", "clipboard")
-	actionSet  = set("app", "url", "shell", "ssh", "http", "hotkey", "text", "sequence", "media", "system", "timer", "layer", "hud", "wait", "open", "obs", "if")
+	actionSet  = set("app", "url", "shell", "ssh", "http", "hotkey", "text", "sequence", "media", "system", "timer", "layer", "hud", "wait", "open", "obs", "if", "history")
 )
 
 func set(xs ...string) map[string]bool {
@@ -390,6 +391,8 @@ func cleanAction(a Action, where string, depth int) (Action, error) {
 		out.Target = field(a.Target, "target", 200)
 	case "hud":
 		out.Text = field(a.Text, "text", 80)
+	case "history":
+		out.Cmd = map[bool]string{true: a.Cmd, false: "toggle"}[a.Cmd == "on" || a.Cmd == "off" || a.Cmd == "toggle"]
 	case "wait":
 		out.Ms = a.Ms
 		if out.Ms < 0 {
@@ -520,6 +523,7 @@ func Validate(c Config) (Config, error) {
 	s.HoldMS = clampInt(s.HoldMS, 200, 1500, d.HoldMS)
 	s.DoubleMS = clampInt(s.DoubleMS, 120, 800, d.DoubleMS)
 	s.VolumeStep = clampInt(s.VolumeStep, 1, 25, d.VolumeStep)
+	s.KeyHistoryDays = clampInt(s.KeyHistoryDays, 1, 365, d.KeyHistoryDays)
 	s.Input = oneOf(s.Input, d.Input, "auto", "hardware", "software")
 	s.TypingLayout = oneOf(s.TypingLayout, d.TypingLayout, "auto", "us", "es-iso", "es-pc", "es-win")
 	s.OBS.Host = strings.TrimSpace(s.OBS.Host)

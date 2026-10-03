@@ -42,6 +42,7 @@ export function historyView(root) {
   function drawSwitch() {
     clear(head).append(
       h("div", { class: "grow" }, h("b", {}, t("hist.switch")), h("p", { class: "dim" }, t(enabled() ? "hist.on_text" : "hist.off_text"))),
+      select("", String(state.cfg.settings.key_history_days || 30), [1, 7, 30, 90, 365].map((d) => [String(d), t("hist.days", { n: d })]), (v) => edit("key_history_days", (cfg) => { cfg.settings.key_history_days = Number(v); }), t("hist.keep_help")),
       toggle("", enabled(), (v) => {
         edit("key_history", (cfg) => { cfg.settings.key_history = v; });
         setTimeout(load, 900);

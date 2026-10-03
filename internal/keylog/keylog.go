@@ -15,6 +15,7 @@ import (
 const (
 	maxBytes   = 4 << 20
 	flushAfter = 1500 * time.Millisecond
+	pruneEvery = time.Hour
 )
 
 type Entry struct {
@@ -25,15 +26,58 @@ type Entry struct {
 }
 
 type Log struct {
-	mu    sync.Mutex
-	path  string
-	on    bool
-	down  map[byte]time.Time
-	buf   []Entry
-	timer *time.Timer
+	mu        sync.Mutex
+	path      string
+	on        bool
+	keepFor   time.Duration
+	lastPrune time.Time
+	down      map[byte]time.Time
+	buf       []Entry
+	timer     *time.Timer
 }
 
 func New(path string) *Log { return &Log{path: path, down: map[byte]time.Time{}} }
+
+func (l *Log) SetRetention(d time.Duration) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	l.keepFor = d
+	l.pruneLocked(time.Now())
+}
+
+func (l *Log) Prune(now time.Time) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	l.pruneLocked(now)
+}
+
+func (l *Log) pruneLocked(now time.Time) {
+	l.lastPrune = now
+	if l.keepFor <= 0 {
+		return
+	}
+	cutoff := now.Add(-l.keepFor).UnixMilli()
+	all := l.readAllLocked()
+	keep := all[:0:0]
+	for _, e := range all {
+		if e.T >= cutoff {
+			keep = append(keep, e)
+		}
+	}
+	if len(keep) == len(all) {
+		return
+	}
+	if len(keep) == 0 {
+		_ = os.Remove(l.path)
+		return
+	}
+	var b []byte
+	for _, e := range keep {
+		line, _ := json.Marshal(e)
+		b = append(append(b, line...), '\n')
+	}
+	_ = os.WriteFile(l.path, b, 0o600)
+}
 
 func (l *Log) Enabled() bool {
 	l.mu.Lock()
@@ -105,6 +149,9 @@ func (l *Log) flushLocked() {
 	f.Close()
 	if st != nil && st.Size() > maxBytes {
 		l.trimLocked()
+	}
+	if now := time.Now(); now.Sub(l.lastPrune) > pruneEvery {
+		l.pruneLocked(now)
 	}
 }
 

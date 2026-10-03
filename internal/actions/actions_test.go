@@ -27,14 +27,15 @@ func TestSubstituteAndDescribe(t *testing.T) {
 
 type fakeEnv struct{ layer int }
 
-func (f fakeEnv) Settings() config.Settings { return config.DefaultSettings() }
-func (fakeEnv) HUD(string, string, bool)    {}
-func (fakeEnv) Goto(any)                    {}
-func (fakeEnv) ToggleCaffeinate() bool      { return false }
-func (fakeEnv) StartTimer(float64, string)  {}
-func (fakeEnv) Hardware() Hardware          { return nil }
-func (f fakeEnv) Layer() int                { return f.layer }
-func (f fakeEnv) LayerName() string         { return []string{"Uno", "Dos"}[f.layer] }
+func (f fakeEnv) Settings() config.Settings    { return config.DefaultSettings() }
+func (fakeEnv) HUD(string, string, bool)       {}
+func (fakeEnv) Goto(any)                       {}
+func (fakeEnv) ToggleCaffeinate() bool         { return false }
+func (fakeEnv) StartTimer(float64, string)     {}
+func (fakeEnv) Hardware() Hardware             { return nil }
+func (f fakeEnv) Layer() int                   { return f.layer }
+func (fakeEnv) SetKeyHistory(mode string) bool { return mode == "on" }
+func (f fakeEnv) LayerName() string            { return []string{"Uno", "Dos"}[f.layer] }
 
 func TestInTimeRange(t *testing.T) {
 	at := func(h, m int) time.Time { return time.Date(2026, 10, 3, h, m, 0, 0, time.UTC) }
@@ -71,6 +72,15 @@ func TestConditionalRunsTheRightBranch(t *testing.T) {
 	}
 	not := config.Action{Type: "if", Cond: "os", Target: platform.Current.Name(), Not: true}
 	if ok, _ := condition(not, fakeEnv{}); ok {
-		t.Fatal("not debe invertir la condición")
+		t.Fatal("not must invert the condition")
+	}
+}
+
+func TestHistoryActionReportsTheNewState(t *testing.T) {
+	if r := Execute(config.Action{Type: "history", Cmd: "on"}, fakeEnv{}, false); !r.OK || r.Output != "on" {
+		t.Fatalf("on: %+v", r)
+	}
+	if r := Execute(config.Action{Type: "history", Cmd: "off"}, fakeEnv{}, false); !r.OK || r.Output != "off" {
+		t.Fatalf("off: %+v", r)
 	}
 }

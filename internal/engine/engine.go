@@ -122,6 +122,7 @@ func New(paths config.Paths, brd *board.Board) (*Engine, error) {
 	e.stats = e.loadStats()
 	e.keylog = keylog.New(paths.Keystrokes())
 	e.keylog.SetEnabled(cfg.Settings.KeyHistory)
+	e.keylog.SetRetention(time.Duration(cfg.Settings.KeyHistoryDays) * 24 * time.Hour)
 	e.execFn = func(a config.Action, capture bool) actions.Result { return actions.Execute(a, e, capture) }
 	e.hudFn = func(title, sub string, seconds float64, force bool) { e.showHUD(title, sub, seconds, force) }
 	e.injectFn = func(s hid.Stroke) {
@@ -219,10 +220,10 @@ func (e *Engine) accentLocked(layer int) string {
 var strings_es = map[string]map[string]string{
 	"es": {"layer_of": "Capa %d de %d", "confirm": "Confirmar", "press_again": "Pulsa otra vez: %s", "error": "Error",
 		"caff_on": "Mac despierto", "caff_off": "Mac puede dormir", "timer_start": "Temporizador", "timer_end": "Tiempo cumplido",
-		"kbd_lost": "Teclado no detectado", "kbd_lost_sub": "Desenchufa el teclado del shield y vuelve a enchufarlo", "kbd_back": "Teclado conectado"},
+		"kbd_lost": "Teclado no detectado", "kbd_lost_sub": "Desenchufa el teclado del shield y vuelve a enchufarlo", "kbd_back": "Teclado conectado", "hist_on": "Historial de tecleo activado", "hist_off": "Historial de tecleo desactivado"},
 	"en": {"layer_of": "Layer %d of %d", "confirm": "Confirm", "press_again": "Press again: %s", "error": "Error",
 		"caff_on": "Mac awake", "caff_off": "Mac can sleep", "timer_start": "Timer", "timer_end": "Time is up",
-		"kbd_lost": "Keyboard not detected", "kbd_lost_sub": "Unplug the keyboard from the shield and plug it back in", "kbd_back": "Keyboard connected"},
+		"kbd_lost": "Keyboard not detected", "kbd_lost_sub": "Unplug the keyboard from the shield and plug it back in", "kbd_back": "Keyboard connected", "hist_on": "Typing history on", "hist_off": "Typing history off"},
 }
 
 func (e *Engine) tr(key string, args ...any) string {
@@ -323,6 +324,7 @@ func (e *Engine) applyConfig(c config.Config) {
 	e.mu.Lock()
 	e.cfg = c
 	e.keylog.SetEnabled(c.Settings.KeyHistory)
+	e.keylog.SetRetention(time.Duration(c.Settings.KeyHistoryDays) * 24 * time.Hour)
 	// new per-application rules must be evaluated against the window that is already in front
 	e.asn = ""
 	if e.layer >= len(c.Layers) {
@@ -341,6 +343,28 @@ func (e *Engine) applyConfig(c config.Config) {
 }
 
 func (e *Engine) KeyLog() *keylog.Log { return e.keylog }
+
+func (e *Engine) SetKeyHistory(mode string) bool {
+	e.mu.Lock()
+	cfg := e.cfg
+	on := cfg.Settings.KeyHistory
+	e.mu.Unlock()
+	switch mode {
+	case "on":
+		on = true
+	case "off":
+		on = false
+	default:
+		on = !on
+	}
+	cfg.Settings.KeyHistory = on
+	if _, err := e.SetConfig(cfg); err != nil {
+		return !on
+	}
+	e.emit(Event{Kind: "settings", Name: "key_history", OK: &on})
+	e.hudFn(e.tr(map[bool]string{true: "hist_on", false: "hist_off"}[on]), "", 1.6, true)
+	return on
+}
 
 func (e *Engine) SetEditorOpen(open bool) {
 	e.mu.Lock()

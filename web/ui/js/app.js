@@ -124,6 +124,7 @@ function handle(ev) {
   switch (ev.kind) {
     case "board": s.connected = !!ev.connected; s.port = ev.port || null; if (!ev.connected) { state.keyboard.info = null; } refreshKeyboard(); break;
     case "keyboard": refreshKeyboard(); break;
+    case "settings": if (ev.name === "key_history") { state.cfg.settings.key_history = !!ev.ok; notify("cfg", "remote"); } break;
     case "layer": s.layer = ev.layer; notify("layer"); break;
     case "front": s.front = ev.names || []; notify("status"); break;
     case "down": state.down.add(ev.key); notify("key", { key: ev.key, down: true }); break;

@@ -232,6 +232,22 @@ func TestDefaultLanguageIsEnglish(t *testing.T) {
 	}
 	c, err := Parse([]byte(`{"version":3,"settings":{"language":"es"},"layers":[{"name":"x","keys":{}}]}`))
 	if err != nil || c.Settings.Language != "es" {
-		t.Fatalf("un idioma ya elegido debe respetarse: %v %v", c.Settings.Language, err)
+		t.Fatalf("a language already chosen must be kept: %v %v", c.Settings.Language, err)
+	}
+}
+
+func TestKeyHistoryRetentionIsClamped(t *testing.T) {
+	c := Default()
+	c.Settings.KeyHistoryDays = 0
+	if got, _ := Validate(c); got.Settings.KeyHistoryDays != 30 {
+		t.Fatalf("0 days must be clamped to 1, got %d", got.Settings.KeyHistoryDays)
+	}
+	c.Settings.KeyHistoryDays = 9999
+	if got, _ := Validate(c); got.Settings.KeyHistoryDays != 365 {
+		t.Fatalf("an absurd retention must be clamped to a year, got %d", got.Settings.KeyHistoryDays)
+	}
+	c.Settings.KeyHistoryDays = 7
+	if got, _ := Validate(c); got.Settings.KeyHistoryDays != 7 {
+		t.Fatal("a valid retention must be kept")
 	}
 }

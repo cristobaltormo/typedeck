@@ -8,7 +8,7 @@ import { TYPE_ICON } from "./keyboard.js";
 import { createRecorder, describeStep } from "./recorder.js";
 import { holdEditing } from "./live.js";
 
-export const TYPES = ["app", "url", "shell", "ssh", "http", "hotkey", "text", "sequence", "if", "media", "system", "obs", "timer", "layer", "hud"];
+export const TYPES = ["app", "url", "shell", "ssh", "http", "hotkey", "text", "sequence", "if", "media", "system", "history", "obs", "timer", "layer", "hud"];
 const MEDIA = ["playpause", "next", "prev", "volup", "voldown", "mute"];
 const OBS_CMDS = ["scene", "scene_next", "scene_prev", "stream", "stream_start", "stream_stop", "record", "record_pause", "mute", "replay_save", "virtualcam", "studio", "studio_transition"];
 const CONDS = ["app", "layer", "time", "os", "obs_stream", "obs_record", "clipboard"];
@@ -46,6 +46,7 @@ export function actionFields(a, rerender, { gesture = "tap", inSeq = false } = {
     case "text": list.push(area(t("f.text"), a.text, (v) => upd("f:text", () => { a.text = v; }), { placeholder: t("f.text_ph"), help: t("f.text_help") })); break;
     case "media": list.push(select(t("f.control"), a.cmd, MEDIA.map((c) => [c, t("media." + c)]), (v) => upd("", () => { a.cmd = v; }), t("media.help"))); break;
     case "system": list.push(select(t("f.control"), a.cmd, SYSTEM.map((c) => [c, t("system." + c)]), (v) => upd("", () => { a.cmd = v; }), t("system.help"))); break;
+    case "history": list.push(select(t("f.control"), a.cmd || "toggle", ["toggle", "on", "off"].map((c) => [c, t("hist.act_" + c)]), (v) => upd("", () => { a.cmd = v; }), t("hist.act_help"))); break;
     case "obs": {
       const info = state.obsInfo;
       list.push(select(t("f.control"), a.cmd, OBS_CMDS.map((c) => [c, t("obs." + c)]), (v) => { upd("", () => { a.cmd = v; if (v !== "scene" && v !== "mute") delete a.target; }); rerender(); }, t("obs.help")));

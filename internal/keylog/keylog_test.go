@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -146,5 +147,27 @@ func TestTranscribeRebuildsWhatWasTyped(t *testing.T) {
 	altgr := []Entry{{T: at, U: 0xE6, D: 300}, {T: at + 50, U: 0x1F, D: 40}}
 	if got := Transcribe(altgr, hid.LayoutByName("es-pc")); got != "@" {
 		t.Fatalf("AltGr: %q", got)
+	}
+}
+
+func TestPruneDropsEntriesOlderThanTheRetention(t *testing.T) {
+	l, p := newLog(t)
+	now := time.Now()
+	old := now.Add(-10 * 24 * time.Hour)
+	line := func(at time.Time, k string) string {
+		return `{"t":` + strconv.FormatInt(at.UnixMilli(), 10) + `,"u":4,"k":"` + k + `","d":50}` + "\n"
+	}
+	_ = os.WriteFile(p, []byte(line(old, "OLD")+line(now.Add(-time.Hour), "NEW")), 0o600)
+	l.SetRetention(7 * 24 * time.Hour)
+	got, n := l.Recent(10)
+	if n != 1 || got[0].K != "NEW" {
+		t.Fatalf("after pruning: %+v", got)
+	}
+	l.SetRetention(time.Minute)
+	if _, n := l.Recent(10); n != 0 {
+		t.Fatalf("everything is older than a minute, %d remain", n)
+	}
+	if _, err := os.Stat(p); err == nil {
+		t.Fatal("the file must be removed when nothing is left")
 	}
 }

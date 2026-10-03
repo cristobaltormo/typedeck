@@ -218,6 +218,8 @@ const ES = {
   "hist.top": "Tus teclas más usadas", "hist.latest": "Últimas pulsaciones", "hist.live": "En directo", "hist.filter": "Buscar una tecla", "hist.no_match": "Ninguna pulsación coincide.",
   "hist.delete": "Borrar el historial", "hist.delete_text": "Elimina las {n} pulsaciones guardadas. No se puede deshacer.", "hist.clear": "Borrar todo", "hist.cleared": "Historial borrado",
   "hist.box_title": "Lo que escribes", "hist.box_ph": "Lo que tecleees aparecerá aquí, en directo.", "hist.box_help": "Se reconstruye con tus pulsaciones: respeta mayúsculas y borrados, y los atajos salen entre corchetes, como [Cmd+C].", "hist.copy": "Copiar", "hist.copied": "Texto copiado",
+  "type.history": "Historial de tecleo", "hist.act_toggle": "Activar o desactivar", "hist.act_on": "Activar", "hist.act_off": "Desactivar", "hist.act_help": "Pulsa la tecla para encender o apagar el historial de tecleo sin abrir el editor.",
+  "hist.days": "Conservar {n} días", "hist.keep_help": "Lo más antiguo se borra solo.",
 };
 
 const EN = {
@@ -440,6 +442,8 @@ const EN = {
   "hist.top": "Your most used keys", "hist.latest": "Latest key presses", "hist.live": "Live", "hist.filter": "Search a key", "hist.no_match": "No key press matches.",
   "hist.delete": "Delete the history", "hist.delete_text": "Removes the {n} saved key presses. This cannot be undone.", "hist.clear": "Delete everything", "hist.cleared": "History deleted",
   "hist.box_title": "What you type", "hist.box_ph": "Whatever you type will show up here, live.", "hist.box_help": "Rebuilt from your key presses: it keeps capitals and deletions, and shortcuts appear in brackets, like [Cmd+C].", "hist.copy": "Copy", "hist.copied": "Text copied",
+  "type.history": "Typing history", "hist.act_toggle": "Turn on or off", "hist.act_on": "Turn on", "hist.act_off": "Turn off", "hist.act_help": "Press the key to switch the typing history on or off without opening the editor.",
+  "hist.days": "Keep {n} days", "hist.keep_help": "The oldest entries are deleted automatically.",
 };
 
 const DICTS = { es: ES, en: EN };

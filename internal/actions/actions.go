@@ -36,6 +36,7 @@ type Env interface {
 	Hardware() Hardware
 	Layer() int
 	LayerName() string
+	SetKeyHistory(mode string) bool
 }
 
 var consumerKeys = map[string]uint16{"playpause": 0xCD, "next": 0xB5, "prev": 0xB6, "mute": 0xE2, "volup": 0xE9, "voldown": 0xEA}
@@ -121,6 +122,11 @@ func dispatch(a config.Action, env Env, capture bool) (string, error) {
 	case "layer":
 		env.Goto(a.To)
 		return "", nil
+	case "history":
+		if env.SetKeyHistory(a.Cmd) {
+			return "on", nil
+		}
+		return "off", nil
 	case "hud":
 		env.HUD(Substitute(a.Text, false), "", true)
 		return "", nil
@@ -412,6 +418,8 @@ func Describe(a *config.Action) string {
 	case "text":
 		return cut(a.Text, 30)
 	case "media", "system":
+		return a.Cmd
+	case "history":
 		return a.Cmd
 	case "obs":
 		return strings.TrimSpace("OBS " + a.Cmd + " " + a.Target)

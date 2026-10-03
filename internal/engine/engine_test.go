@@ -358,6 +358,24 @@ func TestPlainKeysAreReportedAndRecordedOnlyWhenHistoryIsOn(t *testing.T) {
 	e.HandleBoardEvent(board.Event{Kind: 'P', Usage: 0x05})
 	e.HandleBoardEvent(board.Event{Kind: 'R', Usage: 0x05})
 	if _, n := e.KeyLog().Recent(5); n != 1 {
-		t.Fatalf("con el historial apagado no se guarda nada más, hay %d", n)
+		t.Fatalf("with the history off nothing more is stored, there are %d", n)
+	}
+}
+
+func TestHistoryCanBeToggledByAnAction(t *testing.T) {
+	e, r := newTest(t, nil)
+	if e.Config().Settings.KeyHistory {
+		t.Fatal("the history must start off")
+	}
+	if !e.SetKeyHistory("toggle") || !e.Config().Settings.KeyHistory || !e.KeyLog().Enabled() {
+		t.Fatal("toggle must turn it on")
+	}
+	if e.SetKeyHistory("on") != true || e.SetKeyHistory("off") != false || e.KeyLog().Enabled() {
+		t.Fatal("on and off must be explicit")
+	}
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if len(r.huds) != 3 {
+		t.Fatalf("every change must be announced: %v", r.huds)
 	}
 }
