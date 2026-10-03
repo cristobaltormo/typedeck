@@ -78,9 +78,11 @@ export function openKeyboardDrawer() {
     const seen = new Set(Object.keys(learnData.seen).map((k) => parseInt(k, 16)));
     const sugs = learnData.suggestions || [];
     const best = sugs[0];
+    if (/iso/.test(best?.id || layoutId()) && seen.has(0x31) && !seen.has(0x32)) seen.add(0x32);
     wizardHost.append(h("div", { class: "row wrap" },
       h("button", { type: "button", class: `btn ${learning ? "" : "primary"}`, onclick: toggleLearn }, ic(learning ? "check" : "play", 15), learning ? t("kb.detect_stop") : t("kb.detect_start")),
       seen.size ? h("span", { class: "dim" }, t("kb.detect_seen", { n: seen.size })) : null));
+    if (learning) wizardHost.append(h("p", { class: "help", style: { marginTop: "10px" } }, ic("shield", 15), t("kb.detect_locked")));
     if (learning || seen.size) {
       const target = best?.id || layoutId();
       wizardHost.append(h("div", { class: "progress", style: { margin: "12px 0" } }, h("i", { style: { width: best ? Math.min(100, best.recall * 100) + "%" : "0%" } })),

@@ -379,3 +379,32 @@ func TestHistoryCanBeToggledByAnAction(t *testing.T) {
 		t.Fatalf("every change must be announced: %v", r.huds)
 	}
 }
+
+func TestLearningCapturesEveryKeyAndRunsNothing(t *testing.T) {
+	e, r := newTest(t, func(c *config.Config) { c.Layers[0].Keys["04"] = config.KeyDef{Tap: act("a")} })
+	e.mu.Lock()
+	e.learning, e.seen = true, map[string]int{}
+	e.mu.Unlock()
+	m := e.MaskBytes()
+	for _, u := range []int{0x04, 0x1E, 0x31, 0x32, 0x64, 0x4F} {
+		if m[u>>3]&(1<<(u&7)) == 0 {
+			t.Fatalf("key %#x must be captured while learning", u)
+		}
+	}
+	e.KeyDown(0x04, 0)
+	e.KeyDown(0x31, 0)
+	e.KeyUp(0x04)
+	settle()
+	if len(r.snapshot()) != 0 {
+		t.Fatalf("nothing may run while learning: %v", r.snapshot())
+	}
+	if seen := e.Seen(); seen["04"] != 1 || seen["31"] != 1 {
+		t.Fatalf("seen keys: %v", seen)
+	}
+	e.mu.Lock()
+	e.learning = false
+	e.mu.Unlock()
+	if e.MaskBytes()[0]&0x10 == 0 || e.MaskBytes()[0x31>>3]&(1<<(0x31&7)) != 0 {
+		t.Fatal("the normal mask must come back after learning")
+	}
+}

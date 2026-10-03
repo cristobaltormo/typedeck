@@ -118,7 +118,7 @@ export function workView(root) {
       toggle(t("note.follow"), state.follow, async (v) => {
         state.follow = v;
         try { await api("/api/learn", { method: "POST", body: { on: v } }); } catch (e) { toast(e.message, "bad"); state.follow = false; renderInfo(); }
-      }));
+      }, t("note.follow_help")));
   }
 
   function renderDock() {

@@ -409,6 +409,12 @@ func (e *Engine) maskLocked() [32]byte {
 	if time.Now().Before(e.editUntil) {
 		return m
 	}
+	if e.learning {
+		for u := 0x04; u < 0xE0; u++ {
+			m[u>>3] |= 1 << (u & 7)
+		}
+		return m
+	}
 	add := func(keys map[string]config.KeyDef) {
 		for id, kd := range keys {
 			if !kd.HasAction() {
@@ -639,6 +645,14 @@ func (e *Engine) KeyboardChanged(present bool) {
 func (e *Engine) KeyDown(u byte, mods byte) {
 	e.keylog.Press(u, time.Now())
 	id := hexKey(u)
+	e.mu.Lock()
+	if e.learning {
+		e.seen[id]++
+		e.emitLocked(Event{Kind: "watch", Key: id})
+		e.mu.Unlock()
+		return
+	}
+	e.mu.Unlock()
 	e.mu.Lock()
 	e.lastKey, e.lastTS = id, float64(time.Now().UnixNano())/1e9
 	e.emitLocked(Event{Kind: "down", Key: id})
@@ -947,16 +961,15 @@ func (e *Engine) StartLearn() error {
 	e.mu.Lock()
 	e.learning, e.seen = true, map[string]int{}
 	e.mu.Unlock()
-	return e.board.Watch(true)
+	e.syncMaskAsync()
+	return nil
 }
 
 func (e *Engine) StopLearn() {
 	e.mu.Lock()
 	e.learning = false
 	e.mu.Unlock()
-	if e.board != nil {
-		_ = e.board.Watch(false)
-	}
+	e.syncMaskAsync()
 }
 
 func (e *Engine) Seen() map[string]int {

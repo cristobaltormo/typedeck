@@ -136,6 +136,18 @@ before = api("/api/history")["count"]
 raw("SIMQ 00000B0000000000"); time.sleep(0.2); raw("SIMQ 0000000000000000"); time.sleep(0.3)
 check("with the history off nothing is stored", api("/api/history")["count"] == before)
 
+api("/api/learn", {"on": True})
+time.sleep(0.6)
+i_l = last_id()
+raw("SIMQ 0000040000000000"); time.sleep(0.2); raw("SIMQ 0000000000000000")
+raw("SIMQ 0000310000000000"); time.sleep(0.2); raw("SIMQ 0000000000000000")
+time.sleep(0.3)
+evs = events_since(i_l)
+seen = api("/api/learn")["seen"]
+check("while detecting keys, every key is noted and none runs its macro", seen.get("04") == 1 and seen.get("31") == 1 and not any(e["kind"] == "exec" for e in evs), (seen, evs))
+api("/api/learn", {"on": False})
+time.sleep(0.5)
+
 cfg2 = json.loads(json.dumps(cfg))
 cfg2["layers"][1]["keys"] = {"06": {"tap": {"type": "wait", "ms": 10}}}
 api("/api/config", cfg2)

@@ -153,7 +153,7 @@ const ES = {
   "layout.sys.es-iso": "Español ISO (macOS)", "layout.sys.es-pc": "Español (Linux)", "layout.sys.es-win": "Español (Windows)",
   "layout.sys.us": "US", "layout.sys.qwerty": "Otra QWERTY",
   "look.help": "Cómo se ve la tecla en el editor, la hoja y las pantallas.",
-  "note.follow": "Seguir mi teclado",
+  "note.follow": "Elegir tecla al pulsar",
   "pal.keyboard": "Ver ficha del teclado",
   "settings.input": "Teclado y escritura",
   "settings.input_sub": "Cómo se envían los atajos, el texto y las teclas multimedia, y cuándo cuenta una pulsación como larga o doble.",
@@ -221,6 +221,7 @@ const ES = {
   "type.history": "Historial de tecleo", "hist.act_toggle": "Activar o desactivar", "hist.act_on": "Activar", "hist.act_off": "Desactivar", "hist.act_help": "Pulsa la tecla para encender o apagar el historial de tecleo sin abrir el editor.",
   "hist.days": "Conservar {n} días", "hist.keep_help": "Lo más antiguo se borra solo.",
   "gallery.enlarge": "Ampliar", "key.moved": "{from} movida a {to}", "key.swapped": "{from} y {to} intercambiadas", "key.copied_to": "{from} copiada en {to}",
+  "note.follow_help": "Al activarlo, la tecla que pulses en tu teclado real se selecciona sola en el editor para configurarla. Mientras está activo, tu teclado no escribe en el ordenador (salvo en los campos del editor).", "kb.detect_locked": "Mientras detectas, tu teclado no escribe nada en el ordenador: solo se anotan las teclas que pulsas.",
 };
 
 const EN = {
@@ -378,7 +379,7 @@ const EN = {
   "layout.sys.es-iso": "Spanish ISO (macOS)", "layout.sys.es-pc": "Spanish (Linux)", "layout.sys.es-win": "Spanish (Windows)",
   "layout.sys.us": "US", "layout.sys.qwerty": "Other QWERTY",
   "look.help": "How the key looks in the editor, the sheet and the other screens.",
-  "note.follow": "Follow my keyboard",
+  "note.follow": "Pick the key I press",
   "pal.keyboard": "Open keyboard details",
   "settings.input": "Keyboard and typing",
   "settings.input_sub": "How shortcuts, text and media keys are sent, and when a press counts as long or double.",
@@ -446,6 +447,7 @@ const EN = {
   "type.history": "Typing history", "hist.act_toggle": "Turn on or off", "hist.act_on": "Turn on", "hist.act_off": "Turn off", "hist.act_help": "Press the key to switch the typing history on or off without opening the editor.",
   "hist.days": "Keep {n} days", "hist.keep_help": "The oldest entries are deleted automatically.",
   "gallery.enlarge": "Enlarge", "key.moved": "{from} moved to {to}", "key.swapped": "{from} and {to} swapped", "key.copied_to": "{from} copied to {to}",
+  "note.follow_help": "When on, the key you press on your real keyboard is selected in the editor so you can set it up. While it is on, your keyboard does not type into the computer (except in the editor's fields).", "kb.detect_locked": "While detecting, your keyboard types nothing into the computer: the keys you press are only noted.",
 };
 
 const DICTS = { es: ES, en: EN };

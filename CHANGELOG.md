@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Dragging a macro to another key uses pointer events instead of the browser's drag and drop, which did not start on every browser.
+- The key detection assistant noted the ISO key next to Enter (Ç) only when the keyboard sent it as 0x32; keyboards that send 0x31 now show it as seen.
+
+### Changed
+- While the key detection assistant or "Pick the key I press" is on, every key is captured: the keyboard types nothing into the computer, so no
+  stray press reaches an application. Typing in a field of the editor still works.
+- "Follow my keyboard" is now "Pick the key I press" and explains itself under the switch.
+
 ## 0.7.0 - 2026-10-03
 
 ### Added
