@@ -194,7 +194,7 @@ var v2Names = map[string]string{"NUMLOCK": "53", "KP/": "54", "KP*": "55", "KP-"
 func Parse(data []byte) (Config, error) {
 	var probe map[string]any
 	if err := json.Unmarshal(data, &probe); err != nil {
-		return Config{}, fmt.Errorf("json invalido: %w", err)
+		return Config{}, fmt.Errorf("invalid json: %w", err)
 	}
 	ver, _ := probe["version"].(float64)
 	switch {
@@ -310,7 +310,7 @@ func set(xs ...string) map[string]bool {
 
 func str(s, name string, max int) (string, error) {
 	if len(s) > max {
-		return "", fmt.Errorf("%s: demasiado largo", name)
+		return "", fmt.Errorf("%s: too long", name)
 	}
 	return s, nil
 }
@@ -319,7 +319,7 @@ func bptr(b bool) *bool { return &b }
 
 func cleanAction(a Action, where string, depth int) (Action, error) {
 	if !actionSet[a.Type] {
-		return a, fmt.Errorf("%s: tipo de acción inválido", where)
+		return a, fmt.Errorf("%s: invalid action type", where)
 	}
 	if a.Type == "open" {
 		a.Type = "app"
@@ -403,15 +403,15 @@ func cleanAction(a Action, where string, depth int) (Action, error) {
 		}
 	case "sequence":
 		if depth >= 1 {
-			return a, fmt.Errorf("%s: secuencias anidadas no permitidas", where)
+			return a, fmt.Errorf("%s: nested sequences are not allowed", where)
 		}
 		out.Steps, err = cleanSteps(a.Steps, where+".steps", depth+1)
 	case "if":
 		if depth >= 2 {
-			return a, fmt.Errorf("%s: condiciones anidadas no permitidas", where)
+			return a, fmt.Errorf("%s: nested conditions are not allowed", where)
 		}
 		if !condKinds[a.Cond] {
-			return a, fmt.Errorf("%s: condición inválida", where)
+			return a, fmt.Errorf("%s: invalid condition", where)
 		}
 		out.Cond, out.Not = a.Cond, a.Not
 		out.Target = field(a.Target, "target", 200)
@@ -429,7 +429,7 @@ const MaxSteps = 100
 
 func cleanSteps(in []Action, where string, depth int) ([]Action, error) {
 	if len(in) > MaxSteps {
-		return nil, fmt.Errorf("%s: máximo %d pasos", where, MaxSteps)
+		return nil, fmt.Errorf("%s: at most %d steps", where, MaxSteps)
 	}
 	out := make([]Action, 0, len(in))
 	for i, s := range in {
@@ -446,11 +446,11 @@ func cleanKeys(keys map[string]KeyDef, where string) (map[string]KeyDef, error) 
 	out := map[string]KeyDef{}
 	for id, kd := range keys {
 		if !keyID.MatchString(id) {
-			return nil, fmt.Errorf("%s: tecla desconocida %s", where, id)
+			return nil, fmt.Errorf("%s: unknown key %s", where, id)
 		}
 		n, _ := strconv.ParseUint(id, 16, 8)
 		if n < 0x04 || n > 0xA4 {
-			return nil, fmt.Errorf("%s: la tecla %s no es válida", where, id)
+			return nil, fmt.Errorf("%s: key %s is not valid", where, id)
 		}
 		id = strings.ToUpper(id)
 		var c KeyDef
@@ -466,12 +466,12 @@ func cleanKeys(keys map[string]KeyDef, where string) (map[string]KeyDef, error) 
 			*p = &a
 		}
 		if len(kd.Label) > 40 || len(kd.Icon) > 30 {
-			return nil, fmt.Errorf("%s/%s: texto demasiado largo", where, id)
+			return nil, fmt.Errorf("%s/%s: text too long", where, id)
 		}
 		c.Label, c.Icon = kd.Label, kd.Icon
 		if kd.Color != "" {
 			if !hexColor.MatchString(kd.Color) {
-				return nil, fmt.Errorf("%s/%s: color inválido", where, id)
+				return nil, fmt.Errorf("%s/%s: invalid color", where, id)
 			}
 			c.Color = kd.Color
 		}
@@ -506,10 +506,10 @@ func oneOf(v string, def string, opts ...string) string {
 
 func Validate(c Config) (Config, error) {
 	if len(c.Layers) == 0 {
-		return c, errors.New("falta al menos una capa")
+		return c, errors.New("at least one layer is required")
 	}
 	if len(c.Layers) > MaxLayers {
-		return c, fmt.Errorf("máximo %d capas", MaxLayers)
+		return c, fmt.Errorf("at most %d layers", MaxLayers)
 	}
 	d := DefaultSettings()
 	s := c.Settings
@@ -552,16 +552,16 @@ func Validate(c Config) (Config, error) {
 		l := c.Layers[i]
 		l.Name = strings.TrimSpace(l.Name)
 		if l.Name == "" {
-			return c, fmt.Errorf("capa %d: falta el nombre", i)
+			return c, fmt.Errorf("layer %d: the name is missing", i)
 		}
 		if len(l.Name) > 30 {
 			l.Name = l.Name[:30]
 		}
 		if l.Color != "" && !hexColor.MatchString(l.Color) {
-			return c, fmt.Errorf("capa %d: color inválido", i)
+			return c, fmt.Errorf("layer %d: invalid color", i)
 		}
 		if len(l.AutoApps) > 20 {
-			return c, fmt.Errorf("capa %d: demasiadas apps", i)
+			return c, fmt.Errorf("layer %d: too many apps", i)
 		}
 		apps := []string{}
 		for _, a := range l.AutoApps {
@@ -615,12 +615,12 @@ func LoadWithNote(p Paths) (Config, string, error) {
 		}
 		if rc, err := Parse(raw); err == nil {
 			if err := Save(p, rc, false, false); err == nil {
-				return rc, fmt.Sprintf("la configuración estaba dañada (%v): se recuperó la copia %s y el original quedó en %s", perr, filepath.Base(f), filepath.Base(broken)), nil
+				return rc, fmt.Sprintf("the configuration was damaged (%v): backup %s was restored and the original was kept as %s", perr, filepath.Base(f), filepath.Base(broken)), nil
 			}
 		}
 	}
 	d := Default()
-	return d, fmt.Sprintf("la configuración estaba dañada (%v) y no había copias válidas: se empezó de cero; el original quedó en %s", perr, filepath.Base(broken)), Save(p, d, false, false)
+	return d, fmt.Sprintf("the configuration was damaged (%v) and there were no valid backups: starting from scratch; the original was kept as %s", perr, filepath.Base(broken)), Save(p, d, false, false)
 }
 
 func Save(p Paths, c Config, backup, force bool) error {
@@ -697,7 +697,7 @@ func ListBackups(p Paths) []BackupInfo {
 
 func RestoreBackup(p Paths, name string) (Config, error) {
 	if !backupRe.MatchString(name) {
-		return Config{}, errors.New("copia desconocida")
+		return Config{}, errors.New("unknown backup")
 	}
 	b, err := os.ReadFile(filepath.Join(p.Backups(), name))
 	if err != nil {

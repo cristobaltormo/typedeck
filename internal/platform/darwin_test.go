@@ -31,7 +31,7 @@ const realMapping = `(
 func TestModifierCompensation(t *testing.T) {
 	m := parseModifierMapping(realMapping)
 	if len(m) != 4 || m[0xE2] != 0xE3 || m[0xE3] != 0xE2 {
-		t.Fatalf("mapeo mal leido: %v", m)
+		t.Fatalf("mapping read wrongly: %v", m)
 	}
 	cases := []struct{ in, want byte }{
 		{hid.ModGui, hid.ModAlt},
@@ -42,11 +42,11 @@ func TestModifierCompensation(t *testing.T) {
 	}
 	for _, c := range cases {
 		if got := invertMods(m, c.in); got != c.want {
-			t.Errorf("mods %02X -> %02X, esperaba %02X", c.in, got, c.want)
+			t.Errorf("mods %02X -> %02X, expected %02X", c.in, got, c.want)
 		}
 	}
 	if got := invertMods(nil, hid.ModGui); got != hid.ModGui {
-		t.Errorf("sin remapeo debe dejarlo igual: %02X", got)
+		t.Errorf("without remapping it must stay the same: %02X", got)
 	}
 }
 
@@ -59,18 +59,18 @@ func TestAdaptSwapsISOKeysOnlyForANSIType(t *testing.T) {
 	modMap, modAt = nil, time.Now()
 	modMu.Unlock()
 	if got := (&darwin{}).AdaptStroke(hid.Stroke{Usage: 0x64}, es); got.Usage != 0x35 {
-		t.Errorf("0x64 con ANSI+es-iso debe cruzarse: %02X", got.Usage)
+		t.Errorf("0x64 with ANSI+es-iso must be swapped: %02X", got.Usage)
 	}
 	if got := (&darwin{}).AdaptStroke(hid.Stroke{Usage: 0x35}, es); got.Usage != 0x64 {
-		t.Errorf("0x35 con ANSI+es-iso debe cruzarse: %02X", got.Usage)
+		t.Errorf("0x35 with ANSI+es-iso must be swapped: %02X", got.Usage)
 	}
 	if got := (&darwin{}).AdaptStroke(hid.Stroke{Usage: 0x64}, hid.LayoutByName("us")); got.Usage != 0x64 {
-		t.Errorf("con US no se cruza: %02X", got.Usage)
+		t.Errorf("with US it is not swapped: %02X", got.Usage)
 	}
 	kbMu.Lock()
 	kbType = 41
 	kbMu.Unlock()
 	if got := (&darwin{}).AdaptStroke(hid.Stroke{Usage: 0x64}, es); got.Usage != 0x64 {
-		t.Errorf("con teclado ISO no se cruza: %02X", got.Usage)
+		t.Errorf("with an ISO keyboard it is not swapped: %02X", got.Usage)
 	}
 }

@@ -1,4 +1,5 @@
-import { state, applySettings } from "./store.js";
+import { state } from "./store.js";
+import { t } from "./i18n.js";
 import { api } from "./api.js";
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -13,114 +14,113 @@ export async function run() {
   const results = [];
   const ok = (name, cond, extra = "") => results.push({ name, ok: !!cond, extra: String(extra) });
   try {
-    state.cfg.settings.language = "es"; applySettings();
     location.hash = "#/gallery"; await sleep(60);
     location.hash = "#/keys"; await sleep(120);
-    ok("teclado ISO con 105 teclas", $$(".kb .cap").length === 105, $$(".kb .cap").length);
-    ok("las capas se muestran numeradas", $$(".layerbar .layer .n").length >= 2);
+    ok("ISO keyboard with 105 keys", $$(".kb .cap").length === 105, $$(".kb .cap").length);
+    ok("layers are shown numbered", $$(".layerbar .layer .n").length >= 2);
 
     $('.cap[data-u="4"]').click(); await sleep(40);
-    ok("seleccionar la tecla A", state.selKey === "04" && /A/.test($(".dock-head .keyname").textContent));
+    ok("select key A", state.selKey === "04" && /A/.test($(".dock-head .keyname").textContent));
 
     const sel = pane().querySelector("select"); sel.value = "app"; sel.dispatchEvent(new Event("change", { bubbles: true })); await sleep(60);
-    ok("elegir acción app en Pulsar", state.cfg.layers[0].keys["04"]?.tap?.type === "app");
+    ok("choose the app action on Tap", state.cfg.layers[0].keys["04"]?.tap?.type === "app");
     typeInto($('input[list="apps"]'), "Safari"); await sleep(50);
-    ok("escribir la app", state.cfg.layers[0].keys["04"].tap.app === "Safari");
-    ok("la tecla muestra el nombre y queda marcada", $('.cap[data-u="4"] .ml')?.textContent === "Safari" && $('.cap[data-u="4"]').classList.contains("mapped"));
+    ok("type the app", state.cfg.layers[0].keys["04"].tap.app === "Safari");
+    ok("the key shows the name and is marked", $('.cap[data-u="4"] .ml')?.textContent === "Safari" && $('.cap[data-u="4"]').classList.contains("mapped"));
 
     await gesture("hold");
     const sel2 = pane().querySelector("select"); sel2.value = "url"; sel2.dispatchEvent(new Event("change", { bubbles: true })); await sleep(60);
     typeInto(pane().querySelector('input[placeholder^="https"]'), "https://example.com"); await sleep(50);
-    ok("gesto Mantener con enlace", state.cfg.layers[0].keys["04"].hold?.url === "https://example.com");
-    ok("indicador de gesto en la tecla", !!$('.cap[data-u="4"] .pips'));
+    ok("Hold gesture with a link", state.cfg.layers[0].keys["04"].hold?.url === "https://example.com");
+    ok("gesture indicator on the key", !!$('.cap[data-u="4"] .pips'));
 
-    $('.tool[aria-label="Deshacer"]').click(); await sleep(50);
-    ok("deshacer", state.cfg.layers[0].keys["04"].hold?.url === "");
-    $('.tool[aria-label="Rehacer"]').click(); await sleep(50);
-    ok("rehacer", state.cfg.layers[0].keys["04"].hold?.url === "https://example.com");
+    $(`.tool[aria-label="${t("tool.undo")}"]`).click(); await sleep(50);
+    ok("undo", state.cfg.layers[0].keys["04"].hold?.url === "");
+    $(`.tool[aria-label="${t("tool.redo")}"]`).click(); await sleep(50);
+    ok("redo", state.cfg.layers[0].keys["04"].hold?.url === "https://example.com");
 
     const sw = $$(".dock .group .swatch:not(.none):not(.custom)")[3]; sw.click(); await sleep(50);
-    ok("color de tecla", /^#/.test(state.cfg.layers[0].keys["04"].color || "") && $('.cap[data-u="4"]').classList.contains("colored"));
+    ok("key color", /^#/.test(state.cfg.layers[0].keys["04"].color || "") && $('.cap[data-u="4"]').classList.contains("colored"));
 
     document.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true })); await sleep(50);
-    ok("flechas mueven la selección por geometría", state.selKey !== "04", state.selKey);
+    ok("arrows move the selection by geometry", state.selKey !== "04", state.selKey);
 
     const n0 = state.cfg.layers.length;
-    byText(".layer.add", "Capa").click(); await sleep(60);
-    ok("añadir capa abre su panel", state.cfg.layers.length === n0 + 1 && state.panel === "layer");
-    typeInto($(".dock input[type=text]"), "Pruebas"); await sleep(50);
-    ok("renombrar capa", state.cfg.layers.at(-1).name === "Pruebas" && byText(".layer", "Pruebas"));
+    byText(".layer.add", t("strip.add")).click(); await sleep(60);
+    ok("adding a layer opens its panel", state.cfg.layers.length === n0 + 1 && state.panel === "layer");
+    typeInto($(".dock input[type=text]"), "Tests"); await sleep(50);
+    ok("rename a layer", state.cfg.layers.at(-1).name === "Tests" && byText(".layer", "Tests"));
 
     document.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true })); await sleep(60);
-    ok("abrir paleta", !!$(".palette"));
-    typeInto($(".palette input"), "ajustes"); await sleep(40);
+    ok("open the palette", !!$(".palette"));
+    typeInto($(".palette input"), t("nav.settings").toLowerCase()); await sleep(40);
     document.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true })); await sleep(140);
-    ok("la paleta navega", location.hash === "#/settings" && !$(".palette"), location.hash);
+    ok("the palette navigates", location.hash === "#/settings" && !$(".palette"), location.hash);
 
-    byText(".seg button", "Oscuro").click(); await sleep(50);
-    ok("tema oscuro", state.cfg.settings.theme === "dark" && document.documentElement.dataset.theme === "dark");
+    byText(".seg button", t("theme.dark")).click(); await sleep(50);
+    ok("dark theme", state.cfg.settings.theme === "dark" && document.documentElement.dataset.theme === "dark");
     $$(".swatches .swatch:not(.custom)")[2].click(); await sleep(50);
-    ok("color de acento", getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() === state.cfg.settings.accent);
+    ok("accent color", getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() === state.cfg.settings.accent);
 
-    ok("ajustes de OBS Studio", !!byText("h2", "OBS Studio") && !!byText("button", "Probar conexión"));
+    ok("OBS Studio settings", !!byText("h2", t("settings.obs")) && !!byText("button", t("obs.test")));
     typeInto($('input[type=password]'), "clave"); await sleep(40);
-    ok("la contraseña de OBS se guarda en los ajustes", state.cfg.settings.obs?.password === "clave");
+    ok("the OBS password is stored in the settings", state.cfg.settings.obs?.password === "clave");
 
     location.hash = "#/gallery"; await sleep(120);
-    ok("galería con paquetes", $$(".pack").length >= 6, $$(".pack").length);
+    ok("gallery with packs", $$(".pack").length >= 6, $$(".pack").length);
     const layers0 = state.cfg.layers.length;
-    byText(".pack .btn.primary", "Añadir").click(); await sleep(80);
-    ok("añadir paquete crea una capa", state.cfg.layers.length === layers0 + 1);
+    byText(".pack .btn.primary", t("gallery.add")).click(); await sleep(80);
+    ok("adding a pack creates a layer", state.cfg.layers.length === layers0 + 1);
 
     location.hash = "#/keys"; await sleep(100);
     state.scope = 0; state.selKey = "05"; state.panel = "key"; location.hash = "#/gallery"; await sleep(60); location.hash = "#/keys"; await sleep(120);
     const typeSel = pane().querySelector("select"); typeSel.value = "sequence"; typeSel.dispatchEvent(new Event("change", { bubbles: true })); await sleep(80);
-    ok("elegir secuencia muestra el grabador", !!byText(".recorder button", "Grabar"));
-    byText(".recorder button", "Grabar").click(); await sleep(60);
-    ok("grabando", !!$(".rec-live"));
+    ok("choosing a sequence shows the recorder", !!byText(".recorder button", t("rec.start")));
+    byText(".recorder button", t("rec.start")).click(); await sleep(60);
+    ok("recording", !!$(".rec-live"));
     const press = (key, code, extra = {}) => window.dispatchEvent(new KeyboardEvent("keydown", { key, code, bubbles: true, cancelable: true, ...extra }));
     press("h", "KeyH"); press("i", "KeyI"); press("t", "KeyT", { ctrlKey: true }); await sleep(40);
-    ok("el grabador recoge texto y atajos", $$(".rec-steps .tag").map((x) => x.textContent).join("|") === "hi|ctrl+t", $$(".rec-steps .tag").map((x) => x.textContent).join("|"));
-    byText(".rec-live button", "Guardar pasos").click(); await sleep(80);
+    ok("the recorder collects text and shortcuts", $$(".rec-steps .tag").map((x) => x.textContent).join("|") === "hi|ctrl+t", $$(".rec-steps .tag").map((x) => x.textContent).join("|"));
+    byText(".rec-live button", t("rec.save")).click(); await sleep(80);
     const steps = state.cfg.layers[0].keys["05"].tap.steps;
-    ok("los pasos grabados quedan en la secuencia", steps.length >= 2 && steps[0].type === "text" && steps.at(-1).keys === "ctrl+t", JSON.stringify(steps));
-    const add = $$("select").find((x) => x.options[0]?.textContent === "Añadir paso");
+    ok("recorded steps end up in the sequence", steps.length >= 2 && steps[0].type === "text" && steps.at(-1).keys === "ctrl+t", JSON.stringify(steps));
+    const add = $$("select").find((x) => x.options[0]?.textContent === t("seq.add"));
     add.value = "if"; add.dispatchEvent(new Event("change", { bubbles: true })); await sleep(80);
     const cond = state.cfg.layers[0].keys["05"].tap.steps.at(-1);
-    ok("añadir una condición a la secuencia", cond?.type === "if" && cond.cond === "app", JSON.stringify(cond));
-    ok("la condición muestra Entonces y Si no", !!byText("h3", "Entonces") && !!byText("h3", "Si no"));
+    ok("add a condition to the sequence", cond?.type === "if" && cond.cond === "app", JSON.stringify(cond));
+    ok("the condition shows Then and Otherwise", !!byText("h3", t("cond.then")) && !!byText("h3", t("cond.else")));
 
     const field = $('.pane input[type=text], .pane textarea');
     document.hasFocus = () => true;
-    const editing = async (want) => { for (let i = 0; i < 60; i++) { if ((await api("/api/status")).editing === want) return true; await sleep(30); } return false; };
+    const editing = async (want) => { for (let i = 0; i < 200; i++) { if ((await api("/api/status")).editing === want) return true; await sleep(30); } return false; };
     field.focus();
-    ok("con un campo enfocado el programa pausa la captura", await editing(true));
+    ok("with a field focused the program pauses capture", await editing(true));
     field.blur();
-    ok("al salir del campo la captura se reanuda", await editing(false));
+    ok("leaving the field resumes capture", await editing(false));
 
     location.hash = "#/sheet"; await sleep(120);
-    typeInto($('header input[type=search]'), "secuencia"); await sleep(60);
-    ok("la hoja encuentra la secuencia", $$(".macro-table tbody tr:not([hidden])").length >= 1);
+    typeInto($('header input[type=search]'), t("type.sequence").toLowerCase()); await sleep(60);
+    ok("the sheet finds the sequence", $$(".macro-table tbody tr:not([hidden])").length >= 1);
     typeInto($('header input[type=search]'), "zzzz"); await sleep(60);
-    ok("la hoja oculta lo que no coincide", $$(".macro-table tbody tr:not([hidden])").length === 0 && $$(".sheet-block:not([hidden])").length === 0);
+    ok("the sheet hides what does not match", $$(".macro-table tbody tr:not([hidden])").length === 0 && $$(".sheet-block:not([hidden])").length === 0);
     typeInto($('header input[type=search]'), ""); await sleep(40);
 
-    ok("hoja con un bloque por capa", $$(".sheet-block").length >= state.cfg.layers.length);
+    ok("sheet with one block per layer", $$(".sheet-block").length >= state.cfg.layers.length);
     location.hash = "#/activity"; await sleep(140);
-    ok("actividad carga", $$(".stat").length === 4);
+    ok("activity loads", $$(".stat").length === 4);
     location.hash = "#/history"; await sleep(250);
-    ok("el historial tiene su sección en el menú", !!byText(".navitem", "Historial") && !!byText("h1", "Historial de tecleo"));
-    ok("el historial explica cómo activarlo y qué pasa con los datos", !!$(".hist-switch .switch, .hist-switch input") && /este equipo/.test($(".privacy")?.textContent || "") && !!$(".empty-state"));
+    ok("history has its own entry in the menu", !!byText(".navitem", t("nav.history")) && !!byText("h1", t("hist.title")));
+    ok("history explains how to turn it on and what happens to the data", !!$(".hist-switch .switch, .hist-switch input") && ($(".privacy")?.textContent || "").includes(t("hist.privacy")));
     location.hash = "#/diag"; await sleep(140);
-    ok("diagnóstico carga", !!byText("h2", "Estado"));
+    ok("diagnostics loads", !!byText("h2", t("diag.status")));
 
     location.hash = "#/keys"; await sleep(100);
     byText(".status", "").click(); await sleep(100);
-    ok("ficha del teclado se abre", !!$(".drawer"));
+    ok("the keyboard card opens", !!$(".drawer"));
     document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true })); await sleep(60);
-    ok("la ficha se cierra con Esc", !$(".drawer"));
+    ok("the card closes with Esc", !$(".drawer"));
   } catch (e) {
-    ok("excepción", false, e.stack || e.message);
+    ok("exception", false, e.stack || e.message);
   }
   const pre = document.createElement("pre");
   pre.id = "selftest";

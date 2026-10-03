@@ -85,7 +85,7 @@ var badChars = strings.NewReplacer("&", "", "|", "", "<", "", ">", "", "^", "", 
 
 func (*windows) OpenURL(u string) error {
 	if !strings.HasPrefix(u, "http://") && !strings.HasPrefix(u, "https://") && !strings.HasPrefix(u, "mailto:") {
-		return errors.New("solo se abren enlaces http, https o mailto")
+		return errors.New("only http, https or mailto links can be opened")
 	}
 	return Detached("rundll32.exe", "url.dll,FileProtocolHandler", u)
 }
@@ -157,7 +157,7 @@ func (*windows) OpenApp(name string) error {
 		return Detached("cmd", "/C", "start", "", s.Path)
 	}
 	if name = badChars.Replace(name); name == "" {
-		return errors.New("falta el nombre de la app")
+		return errors.New("the app name is missing")
 	}
 	return Detached("cmd", "/C", "start", "", name)
 }
@@ -167,7 +167,7 @@ func (*windows) OpenApp(name string) error {
 func (*windows) QuitApp(name string) error {
 	name = badChars.Replace(strings.TrimSpace(name))
 	if name == "" {
-		return errors.New("falta el nombre de la app")
+		return errors.New("the app name is missing")
 	}
 	exe := name
 	if !strings.HasSuffix(strings.ToLower(exe), ".exe") {
@@ -179,7 +179,7 @@ func (*windows) QuitApp(name string) error {
 	if closeWindowsTitled(name) > 0 {
 		return nil
 	}
-	return fmt.Errorf("no se pudo cerrar %q (¿está abierta?)", name)
+	return fmt.Errorf("could not close %q (is it open?)", name)
 }
 
 var (
@@ -323,7 +323,7 @@ func keyEvent(vk uint16, up bool) {
 
 func sendCombo(mods []string, vk uint16) error {
 	if vk == 0 {
-		return errors.New("tecla sin equivalente en Windows")
+		return errors.New("key without a Windows equivalent")
 	}
 	for _, m := range mods {
 		keyEvent(vkMods[m], false)
@@ -348,7 +348,7 @@ func (*windows) SoftHotkey(spec string) error {
 	if r := []rune(key); len(r) == 1 {
 		v, _, _ := pVkKeyScanW.Call(uintptr(r[0]))
 		if int16(v) == -1 {
-			return fmt.Errorf("tecla desconocida: %s", key)
+			return fmt.Errorf("unknown key: %s", key)
 		}
 		m := append([]string{}, mods...)
 		if v&0x100 != 0 {
@@ -356,7 +356,7 @@ func (*windows) SoftHotkey(spec string) error {
 		}
 		return sendCombo(m, uint16(v&0xFF))
 	}
-	return fmt.Errorf("tecla desconocida: %s", key)
+	return fmt.Errorf("unknown key: %s", key)
 }
 
 func (*windows) SoftStroke(st hid.Stroke) error {
@@ -404,7 +404,7 @@ func setClipboard(text string) error {
 			break
 		}
 		if i > 20 {
-			return errors.New("no se pudo abrir el portapapeles")
+			return errors.New("could not open the clipboard")
 		}
 		time.Sleep(20 * time.Millisecond)
 	}
@@ -412,16 +412,16 @@ func setClipboard(text string) error {
 	pEmptyClipboard.Call()
 	h, _, _ := pGlobalAlloc.Call(0x2, uintptr(len(u)*2))
 	if h == 0 {
-		return errors.New("sin memoria para el portapapeles")
+		return errors.New("out of memory for the clipboard")
 	}
 	p, _, _ := pGlobalLock.Call(h)
 	if p == 0 {
-		return errors.New("no se pudo reservar el portapapeles")
+		return errors.New("could not allocate the clipboard")
 	}
 	copy(unsafe.Slice((*uint16)(ptr(p)), len(u)), u)
 	pGlobalUnlock.Call(h)
 	if r, _, _ := pSetClipboardData.Call(13, h); r == 0 {
-		return errors.New("no se pudo escribir en el portapapeles")
+		return errors.New("could not write to the clipboard")
 	}
 	return nil
 }
@@ -440,7 +440,7 @@ func (p *windows) Paste(text string) error {
 func (*windows) SoftMedia(cmd string, step int) (string, error) {
 	vk := map[string]uint16{"playpause": 0xB3, "next": 0xB0, "prev": 0xB1, "volup": 0xAF, "voldown": 0xAE, "mute": 0xAD}[cmd]
 	if vk == 0 {
-		return "", fmt.Errorf("orden multimedia desconocida: %s", cmd)
+		return "", fmt.Errorf("unknown media command: %s", cmd)
 	}
 	n := 1
 	if cmd == "volup" || cmd == "voldown" {
@@ -579,9 +579,9 @@ func (*windows) ConfigDir() string {
 
 func (*windows) Doctor() []Check {
 	return []Check{
-		{have("taskkill"), "taskkill disponible (cerrar aplicaciones)", "falta taskkill: no se podrán cerrar aplicaciones"},
-		{have("schtasks"), "schtasks disponible (arranque con la sesión)", "falta schtasks: typedeck install no funcionará"},
-		{have("powershell.exe"), "PowerShell disponible (carteles de aviso)", "falta PowerShell: no habrá carteles de aviso"},
+		{have("taskkill"), "taskkill available (closing applications)", "taskkill is missing: applications cannot be closed"},
+		{have("schtasks"), "schtasks available (start with the session)", "schtasks is missing: typedeck install will not work"},
+		{have("powershell.exe"), "PowerShell available (popups)", "PowerShell is missing: there will be no popups"},
 	}
 }
 
@@ -592,7 +592,7 @@ func (*windows) InstallService(exe string) (string, error) {
 		return "", fmt.Errorf("schtasks: %s", out)
 	}
 	_, _ = Run(15*time.Second, "", "schtasks", "/Run", "/TN", taskName)
-	return "Tarea programada «" + taskName + "» creada: arranca al iniciar sesión (y ya está en marcha)", nil
+	return "Scheduled task \"" + taskName + "\" created: it starts when you sign in (and is already running)", nil
 }
 
 func (*windows) UninstallService() (string, error) {
@@ -601,5 +601,5 @@ func (*windows) UninstallService() (string, error) {
 		return "", fmt.Errorf("schtasks: %s", out)
 	}
 	_ = exec.Command("taskkill", "/IM", "typedeck.exe").Run()
-	return "Tarea quitada (la configuración se conserva)", nil
+	return "Task removed (the configuration is kept)", nil
 }

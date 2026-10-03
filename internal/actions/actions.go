@@ -87,7 +87,7 @@ func dispatch(a config.Action, env Env, capture bool) (string, error) {
 	case "shell":
 		cmd := Substitute(a.Cmd, true)
 		if strings.TrimSpace(cmd) == "" {
-			return "", errors.New("comando vacío")
+			return "", errors.New("empty command")
 		}
 		sh, args := platform.Current.ShellCommand(cmd)
 		if capture || (a.ShowOutput != nil && *a.ShowOutput) {
@@ -96,7 +96,7 @@ func dispatch(a config.Action, env Env, capture bool) (string, error) {
 		return "", detached(sh, args...)
 	case "ssh":
 		if strings.TrimSpace(a.Host) == "" || strings.TrimSpace(a.Cmd) == "" {
-			return "", errors.New("falta el servidor o el comando")
+			return "", errors.New("the server or the command is missing")
 		}
 		args := []string{"-o", "BatchMode=yes", "-o", "ConnectTimeout=5", a.Host, Substitute(a.Cmd, true)}
 		if capture || a.ShowOutput == nil || *a.ShowOutput {
@@ -145,7 +145,7 @@ func dispatch(a config.Action, env Env, capture bool) (string, error) {
 		}
 		return runSteps(a.Else, env)
 	}
-	return "", fmt.Errorf("acción desconocida: %s", a.Type)
+	return "", fmt.Errorf("unknown action: %s", a.Type)
 }
 
 func runSteps(steps []config.Action, env Env) (string, error) {
@@ -190,7 +190,7 @@ func condition(a config.Action, env Env) (bool, error) {
 	case "clipboard":
 		ok = v != "" && strings.Contains(strings.ToLower(platform.Current.Clipboard()), strings.ToLower(v))
 	default:
-		return false, fmt.Errorf("condición desconocida: %s", a.Cond)
+		return false, fmt.Errorf("unknown condition: %s", a.Cond)
 	}
 	return ok != a.Not, nil
 }
@@ -218,7 +218,7 @@ func inTimeRange(spec string, now time.Time) bool {
 
 func appAction(a config.Action) error {
 	if strings.TrimSpace(a.App) == "" {
-		return errors.New("falta el nombre de la app")
+		return errors.New("the app name is missing")
 	}
 	switch a.Mode {
 	case "quit":
@@ -317,7 +317,7 @@ func system(cmd string, env Env) (string, error) {
 		}
 	case "sleepdisplay", "sleep", "screensaver", "screenshot", "darkmode":
 	default:
-		return "", fmt.Errorf("orden de sistema desconocida: %s", cmd)
+		return "", fmt.Errorf("unknown system command: %s", cmd)
 	}
 	return "", platform.Current.System(cmd)
 }
@@ -327,7 +327,7 @@ var httpClient = &http.Client{Timeout: 8 * time.Second}
 func httpAction(a config.Action) (string, error) {
 	u := Substitute(a.URL, false)
 	if !strings.HasPrefix(u, "http://") && !strings.HasPrefix(u, "https://") {
-		return "", errors.New("solo http o https")
+		return "", errors.New("only http or https")
 	}
 	var body io.Reader
 	if a.Body != "" {

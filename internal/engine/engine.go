@@ -796,7 +796,7 @@ func (e *Engine) runAction(u byte, gesture string, a config.Action, label string
 	case e.sem <- struct{}{}:
 		defer func() { <-e.sem }()
 	case <-time.After(3 * time.Second):
-		e.hudFn(e.tr("error"), "demasiadas acciones a la vez", 2, true)
+		e.hudFn(e.tr("error"), "too many actions at once", 2, true)
 		return
 	}
 	e.mu.Lock()
@@ -942,7 +942,7 @@ func (e *Engine) Status() Status {
 
 func (e *Engine) StartLearn() error {
 	if e.board == nil {
-		return fmt.Errorf("placa no conectada")
+		return fmt.Errorf("board not connected")
 	}
 	e.mu.Lock()
 	e.learning, e.seen = true, map[string]int{}

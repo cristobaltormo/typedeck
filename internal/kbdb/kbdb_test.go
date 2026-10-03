@@ -8,10 +8,10 @@ func TestIdentifyYourKeyboard(t *testing.T) {
 		t.Fatalf("identidad: %+v", id)
 	}
 	if id.Vendor != "SINO WEALTH" || !id.VendorIsChip || !id.Generic {
-		t.Fatalf("fabricante de controlador y nombre genérico: %+v", id)
+		t.Fatalf("chip vendor and generic name: %+v", id)
 	}
 	if id.Confidence != "verified" || id.Layout != "full-iso" {
-		t.Fatalf("modelo verificado con el asistente de teclas: %+v", id)
+		t.Fatalf("model verified with the key wizard: %+v", id)
 	}
 }
 
@@ -32,7 +32,7 @@ func TestFormFactorFromName(t *testing.T) {
 	}
 	for name, want := range cases {
 		if got := Identify("1234", "0001", "", name).FormFactor; got != want {
-			t.Errorf("%q -> %q, esperaba %q", name, got, want)
+			t.Errorf("%q -> %q, expected %q", name, got, want)
 		}
 	}
 }
@@ -42,7 +42,7 @@ func TestLayoutNeedsFormAndStandard(t *testing.T) {
 		t.Errorf("tkl-iso: %q", l)
 	}
 	if l := Identify("1234", "1", "", "Foo TKL").Layout; l != "" {
-		t.Errorf("sin ISO/ANSI no se decide: %q", l)
+		t.Errorf("without ISO/ANSI it is not decided: %q", l)
 	}
 }
 
@@ -57,9 +57,9 @@ func TestVerifiedModelWins(t *testing.T) {
 func TestSharedControllerIDsAreNotAutoVerified(t *testing.T) {
 	id := Identify("258A", "0016", "Otra Marca", "Mini 60% Keyboard")
 	if id.Confidence == "verified" || id.Layout != "" && id.FormFactor != "60" {
-		t.Fatalf("no debe heredar el modelo de otro teclado: %+v", id)
+		t.Fatalf("must not inherit the model of another keyboard: %+v", id)
 	}
 	if id.FormFactor != "60" {
-		t.Fatalf("el nombre dice 60%%: %+v", id)
+		t.Fatalf("the name says 60%%: %+v", id)
 	}
 }

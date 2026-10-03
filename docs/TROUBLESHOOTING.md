@@ -15,7 +15,7 @@ running, whether the board and the keyboard are seen.
 ## The board is connected but the keyboard is not seen
 
 `/api/board` with `{"cmd":"bus"}` shows the state of the USB line. `hrsl=0x84` or `0x40`/`0x80` means a device is attached;
-`hrsl=0x03` with `estado=0x12` means the shield sees nothing.
+`hrsl=0x03` with `state=0x12` means the shield sees nothing.
 
 - Unplug the keyboard from the shield and plug it in again.
 - If it appeared right after switching a KVM, see [HARDWARE.md](HARDWARE.md): the firmware restarts itself through the

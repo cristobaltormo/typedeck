@@ -61,14 +61,14 @@ func TestConditionalRunsTheRightBranch(t *testing.T) {
 	hud := func(s string) config.Action { return config.Action{Type: "hud", Text: s} }
 	a := config.Action{Type: "if", Cond: "layer", Target: "2", Steps: []config.Action{hud("then")}, Else: []config.Action{{Type: "wait", Ms: 1}, {Type: "app"}}}
 	if r := Execute(a, fakeEnv{layer: 1}, false); !r.OK {
-		t.Fatalf("la rama de la capa 2 debía ejecutarse: %+v", r)
+		t.Fatalf("the branch for layer 2 should have run: %+v", r)
 	}
 	if r := Execute(a, fakeEnv{layer: 0}, false); r.OK {
-		t.Fatal("la rama contraria debía ejecutarse y fallar por la app vacía")
+		t.Fatal("the other branch should have run and failed on the empty app")
 	}
 	byName := config.Action{Type: "if", Cond: "layer", Target: "dos", Steps: []config.Action{hud("x")}}
 	if ok, _ := condition(byName, fakeEnv{layer: 1}); !ok {
-		t.Fatal("la capa se debe poder indicar por nombre")
+		t.Fatal("a layer must be selectable by name")
 	}
 	not := config.Action{Type: "if", Cond: "os", Target: platform.Current.Name(), Not: true}
 	if ok, _ := condition(not, fakeEnv{}); ok {

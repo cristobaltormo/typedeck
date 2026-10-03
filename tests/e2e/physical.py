@@ -40,16 +40,16 @@ print("Configuracion original restaurada.\n")
 execs = [(e["key"], e["gesture"]) for e in events if e["kind"] == "exec"]
 layers = [(e["layer"], e.get("auto", False)) for e in events if e["kind"] == "layer"]
 checks = [
-    ("Pausa (tecla capturada) ejecuta su accion", ("48", "tap") in execs),
-    ("BloqDesp: pulsacion corta", ("47", "tap") in execs),
-    ("BloqDesp: pulsacion larga", ("47", "hold") in execs),
-    ("ImpPant: pulsacion simple", ("46", "tap") in execs),
-    ("ImpPant: doble pulsacion", ("46", "double") in execs),
-    ("Bloq Mayus corta ejecuta su accion", ("39", "tap") in execs),
-    ("Bloq Mayus mantenida activa la capa 2 (momentanea)", (1, True) in layers),
-    ("Al soltar Bloq Mayus se vuelve a la capa 1", (0, True) in layers),
-    ("Q dentro de la capa momentanea ejecuta su accion", ("14", "tap") in execs),
+    ("Pause (a captured key) runs its action", ("48", "tap") in execs),
+    ("ScrollLock: short press", ("47", "tap") in execs),
+    ("ScrollLock: long press", ("47", "hold") in execs),
+    ("PrintScreen: single press", ("46", "tap") in execs),
+    ("PrintScreen: double press", ("46", "double") in execs),
+    ("Caps Lock short press runs its action", ("39", "tap") in execs),
+    ("Caps Lock held activates layer 2 (momentary)", (1, True) in layers),
+    ("Releasing Caps Lock goes back to layer 1", (0, True) in layers),
+    ("Q inside the momentary layer runs its action", ("14", "tap") in execs),
 ]
 for name, ok in checks:
-    print(("PASS  " if ok else "FALLA ") + name)
+    print(("PASS  " if ok else "FAIL  ") + name)
 print(f"\n{sum(ok for _, ok in checks)}/{len(checks)} comprobaciones fisicas correctas")

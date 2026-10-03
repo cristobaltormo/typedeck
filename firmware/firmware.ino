@@ -7,7 +7,7 @@
 
 #include <avr/wdt.h>
 #include <EEPROM.h>
-#define FW_VERSION "12"
+#define FW_VERSION "13"
 #define HB_TIMEOUT_MS 5000UL
 
 USB Usb;
@@ -310,11 +310,11 @@ void handle(char *cmd) {
   }
   if (!strcmp(cmd, "STATS")) {
     Serial.print(F("n=")); Serial.print(statN);
-    Serial.print(F(" media_us=")); Serial.print(statN ? statSum / statN : 0);
+    Serial.print(F(" avg_us=")); Serial.print(statN ? statSum / statN : 0);
     Serial.print(F(" max_us=")); Serial.print(statMax);
-    Serial.print(F(" hid_listo=")); Serial.print(Hid.isReady());
-    Serial.print(F(" estado=0x")); Serial.print(Usb.getUsbTaskState(), HEX);
-    Serial.print(F(" captura=")); Serial.println(capActive());
+    Serial.print(F(" hid_ready=")); Serial.print(Hid.isReady());
+    Serial.print(F(" state=0x")); Serial.print(Usb.getUsbTaskState(), HEX);
+    Serial.print(F(" capture=")); Serial.println(capActive());
     statN = statSum = statMax = 0; return;
   }
   if (!strncmp(cmd, "VBUS ", 5)) { Usb.vbusPower(atoi(cmd + 5) ? vbus_on : vbus_off); Serial.println(F("OK")); return; }
@@ -332,9 +332,9 @@ void handle(char *cmd) {
   }
   if (!strcmp(cmd, "BUS")) {
     Serial.print(F("hrsl=0x")); Serial.print(Usb.regRd(rHRSL), HEX);
-    Serial.print(F(" estado=0x")); Serial.print(Usb.getUsbTaskState(), HEX);
-    Serial.print(F(" reinicios=")); Serial.print(softResets);
-    Serial.print(F(" sin_teclado_s=")); Serial.println((millis() - lastDeviceSeen) / 1000);
+    Serial.print(F(" state=0x")); Serial.print(Usb.getUsbTaskState(), HEX);
+    Serial.print(F(" restarts=")); Serial.print(softResets);
+    Serial.print(F(" no_keyboard_s=")); Serial.println((millis() - lastDeviceSeen) / 1000);
     return;
   }
   if (!strncmp(cmd, "WATCH ", 6)) { watch = atoi(cmd + 6) != 0; Serial.println(F("OK")); return; }
@@ -398,7 +398,7 @@ void loop() {
   }
   else if ((softResets < 3 || EEPROM.read(EE_SEEN) == 0xA5) && millis() - lastRunningMs > 9000) {
     softResets++; softMagic = SOFT_MAGIC;
-    Serial.println(F("RESET sin teclado")); Serial.flush();
+    Serial.println(F("RESET no keyboard")); Serial.flush();
     bootloaderReset();
   }
   if (running != kbdPresent) { kbdPresent = running; Serial.println(running ? F("K 1") : F("K 0")); }

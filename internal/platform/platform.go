@@ -33,7 +33,7 @@ type Check struct {
 	Problem string
 }
 
-var ErrUnsupported = errors.New("no disponible en este sistema")
+var ErrUnsupported = errors.New("not available on this system")
 
 type Platform interface {
 	Name() string
@@ -91,7 +91,7 @@ func Run(timeout time.Duration, stdin string, name string, args ...string) (stri
 	err := cmd.Run()
 	out := strings.TrimSpace(buf.String())
 	if ctx.Err() == context.DeadlineExceeded {
-		return out, fmt.Errorf("tiempo agotado (%s)", timeout)
+		return out, fmt.Errorf("timed out (%s)", timeout)
 	}
 	if err != nil {
 		if out == "" {
@@ -142,7 +142,7 @@ func have(name string) bool {
 func splitHotkey(spec string) (mods []string, key string, err error) {
 	parts := strings.Split(strings.ToLower(strings.TrimSpace(spec)), "+")
 	if len(parts) == 0 || parts[len(parts)-1] == "" {
-		return nil, "", errors.New("atajo vacío")
+		return nil, "", errors.New("empty shortcut")
 	}
 	for _, p := range parts[:len(parts)-1] {
 		switch p = strings.TrimSpace(p); p {
@@ -155,7 +155,7 @@ func splitHotkey(spec string) (mods []string, key string, err error) {
 		case "ctrl", "control":
 			mods = append(mods, "ctrl")
 		default:
-			return nil, "", fmt.Errorf("modificador desconocido: %s", p)
+			return nil, "", fmt.Errorf("unknown modifier: %s", p)
 		}
 	}
 	key = strings.TrimSpace(parts[len(parts)-1])

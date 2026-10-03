@@ -13,8 +13,8 @@ Events can arrive at any time.
 | `INFO` | `vid=... pid=... mfr="..." prod="..." ...` then `END` | Details of the connected keyboard |
 | `RDESC <iface> <len>` | hex dump then `END` | HID report descriptor of an interface |
 | `SYS` | `mcu= f_cpu= board= fw= vcc_mv= free_ram= max3421e_rev= uptime_s=` | The board itself: real supply voltage, free memory, shield chip revision |
-| `BUS` | `hrsl=0x.. estado=0x.. reinicios=N sin_teclado_s=N` | USB line state (HRSL: 0x80 J, 0x40 K, 0x00 nothing attached) and board restarts since the keyboard was last seen |
-| `STATS` | `n= media_us= max_us= hid_listo= estado= captura=` | Internal latency and state |
+| `BUS` | `hrsl=0x.. state=0x.. restarts=N no_keyboard_s=N` | USB line state (HRSL: 0x80 J, 0x40 K, 0x00 nothing attached) and board restarts since the keyboard was last seen |
+| `STATS` | `n= avg_us= max_us= hid_ready= state= capture=` | Internal latency and state |
 | `WATCH 0\|1` | `OK` | Emit `W <usage>` for every key pressed |
 | `VBUS 0\|1` | `OK` | Diagnostic only: drives the shield's VBUS switch. It does not cut the keyboard's power on the reference shield |
 | `BOOTLOG` | `cold=N recoveries=N slow=N first_seen_ds=N this_boot=cold\|recovery` | Persistent boot statistics (EEPROM): cold starts, restarts caused by a missing keyboard, boots where the keyboard took over 5 s, deciseconds until the keyboard was first seen |
@@ -25,7 +25,7 @@ Events can arrive at any time.
 | `DBG 0\|1`, `LEDS <n>`, `LAYER <n>`, `L 0\|1` | `OK` | Debugging and the on-board LED |
 
 Events: `D <usage> <mods>` (captured key down), `U <usage>` (up), `W <usage>` (observed), `P <usage>` and `R <usage>` (any other key down and up, after `KEYS 1`), `K 1` and `K 0` (keyboard attached to or
-removed from the shield), `RESET sin teclado` (the board is about to restart to recover the keyboard).
+removed from the shield), `RESET no keyboard` (the board is about to restart to recover the keyboard).
 
 The firmware forwards two keyboard reports: the boot report (interface 1) and the consumer report (report 2 of interface 2).
 It does not forward the NKRO mode, system control or the keyboard's built-in mouse yet; the current limit is 6 simultaneous keys.

@@ -49,11 +49,11 @@ func (s *Server) inspectPack(w http.ResponseWriter, r *http.Request) {
 	}
 	p := in.Pack
 	if p.Format == "" || len(p.Layers) == 0 && len(p.Global) == 0 {
-		fail(w, 400, "no es un archivo de macros de Typedeck")
+		fail(w, 400, "not a Typedeck macro file")
 		return
 	}
 	if len(p.Layers) > config.MaxLayers {
-		fail(w, 400, "demasiadas capas")
+		fail(w, 400, "too many layers")
 		return
 	}
 	for i := range p.Layers {

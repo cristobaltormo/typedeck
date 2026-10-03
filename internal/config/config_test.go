@@ -25,7 +25,7 @@ func TestMigrateV1(t *testing.T) {
 		t.Fatalf("KPENTER -> %+v", c.Global)
 	}
 	if c.Global["53"].Tap == nil || c.Global["53"].Tap.Type != "layer" {
-		t.Fatal("NumLock debe cambiar de capa por defecto")
+		t.Fatal("NumLock must switch layers by default")
 	}
 	if c.Layers[0].Keys["54"].Tap.Cmd != "mute" {
 		t.Fatalf("KP/ -> %+v", c.Layers[0].Keys["54"])
@@ -48,7 +48,7 @@ func TestMigrateV2KeepsEverything(t *testing.T) {
 		t.Fatalf("KP8 -> %+v %+v", k.Tap, k.Hold)
 	}
 	if !c.Global["63"].Tap.Confirm {
-		t.Fatal("se pierde confirm")
+		t.Fatal("confirm is lost")
 	}
 }
 
@@ -72,7 +72,7 @@ func TestValidateRejects(t *testing.T) {
 		c := Default()
 		mutate(&c)
 		if _, err := Validate(c); err == nil {
-			t.Errorf("%s: debía fallar", name)
+			t.Errorf("%s: should have failed", name)
 		}
 	}
 }
@@ -87,10 +87,10 @@ func TestValidateClampsAndNormalises(t *testing.T) {
 	}
 	s := out.Settings
 	if s.HoldMS != 1500 || s.KeySize != 64 || s.Accent != "#2563eb" || s.Input != "auto" {
-		t.Fatalf("ajustes sin acotar: %+v", s)
+		t.Fatalf("settings not clamped: %+v", s)
 	}
 	if out.Layers[0].Keys["5F"].Tap.Minutes != 600 {
-		t.Fatal("la clave 5f debía pasar a 5F y acotar minutos")
+		t.Fatal("key 5f must become 5F and the minutes must be clamped")
 	}
 }
 
@@ -106,7 +106,7 @@ func TestSaveLoadBackupRestore(t *testing.T) {
 	}
 	got, _ := Load(p)
 	if got.Layers[0].Name != "Otra" {
-		t.Fatal("no se guardó")
+		t.Fatal("it was not saved")
 	}
 	b := ListBackups(p)
 	if len(b) != 1 || b[0].Layers != 2 {
@@ -120,7 +120,7 @@ func TestSaveLoadBackupRestore(t *testing.T) {
 		t.Fatal("ruta maliciosa aceptada")
 	}
 	if _, err := os.Stat(p.Config() + ".tmp"); err == nil {
-		t.Fatal("queda un temporal")
+		t.Fatal("a temporary file is left")
 	}
 }
 
@@ -154,10 +154,10 @@ func TestCorruptConfigRecoversFromBackup(t *testing.T) {
 	}
 	got, note, err := LoadWithNote(p)
 	if err != nil || got.Layers[0].Name != "Buena" || note == "" {
-		t.Fatalf("no recuperó: %v %q %+v", err, note, got.Layers[0])
+		t.Fatalf("no recovery: %v %q %+v", err, note, got.Layers[0])
 	}
 	if m, _ := filepath.Glob(filepath.Join(p.Dir, "config.broken-*.json")); len(m) != 1 {
-		t.Fatal("el original dañado debe conservarse")
+		t.Fatal("the damaged original must be kept")
 	}
 	if again, note, err := LoadWithNote(p); err != nil || note != "" || again.Layers[0].Name != "Buena" {
 		t.Fatalf("segunda carga: %v %q", err, note)
@@ -184,13 +184,13 @@ func TestOBSActionAndSettings(t *testing.T) {
 		t.Fatal(err)
 	}
 	if out.Settings.OBS.Host != "127.0.0.1" || out.Settings.OBS.Port != 65535 || len(out.Settings.OBS.Password) != 200 {
-		t.Fatalf("ajustes de OBS sin acotar: %+v", out.Settings.OBS)
+		t.Fatalf("OBS settings not clamped: %+v", out.Settings.OBS)
 	}
 	if a := out.Layers[0].Keys["04"].Tap; a.Cmd != "record" {
-		t.Fatalf("una orden desconocida debe volver a la de por defecto: %+v", a)
+		t.Fatalf("an unknown command must fall back to the default: %+v", a)
 	}
 	if a := out.Layers[0].Keys["05"].Tap; a.Cmd != "scene" || a.Target != "#2" {
-		t.Fatalf("acción válida alterada: %+v", a)
+		t.Fatalf("a valid action was altered: %+v", a)
 	}
 }
 
@@ -204,31 +204,31 @@ func TestConditionalAndSequenceLimits(t *testing.T) {
 		t.Fatal(err)
 	}
 	if got := c.Layers[0].Keys["04"].Tap.Steps[0]; got.Cond != "os" || len(got.Else) != 1 {
-		t.Fatalf("la condición se perdió: %+v", got)
+		t.Fatalf("the condition was lost: %+v", got)
 	}
 	nested := Action{Type: "if", Cond: "os", Steps: []Action{{Type: "if", Cond: "os", Steps: []Action{{Type: "if", Cond: "os"}}}}}
 	if _, err := Validate(wrap(nested)); err == nil {
 		t.Error("tres condiciones anidadas aceptadas")
 	}
 	if _, err := Validate(wrap(Action{Type: "if", Cond: "nope"})); err == nil {
-		t.Error("condición desconocida aceptada")
+		t.Error("an unknown condition was accepted")
 	}
 	long := Action{Type: "sequence"}
 	for i := 0; i < MaxSteps+1; i++ {
 		long.Steps = append(long.Steps, Action{Type: "wait", Ms: 1})
 	}
 	if _, err := Validate(wrap(long)); err == nil {
-		t.Error("secuencia demasiado larga aceptada")
+		t.Error("a sequence that is too long was accepted")
 	}
 	long.Steps = long.Steps[:MaxSteps]
 	if _, err := Validate(wrap(long)); err != nil {
-		t.Errorf("secuencia de %d pasos rechazada: %v", MaxSteps, err)
+		t.Errorf("a sequence of %d steps was rejected: %v", MaxSteps, err)
 	}
 }
 
 func TestDefaultLanguageIsEnglish(t *testing.T) {
 	if got := Default().Settings.Language; got != "en" {
-		t.Fatalf("idioma por defecto %q", got)
+		t.Fatalf("default language %q", got)
 	}
 	c, err := Parse([]byte(`{"version":3,"settings":{"language":"es"},"layers":[{"name":"x","keys":{}}]}`))
 	if err != nil || c.Settings.Language != "es" {

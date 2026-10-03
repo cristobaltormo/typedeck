@@ -65,7 +65,7 @@ func wayland() bool {
 
 func (*linux) OpenURL(u string) error {
 	if !have("xdg-open") {
-		return errors.New("falta xdg-open (paquete xdg-utils)")
+		return errors.New("xdg-open is missing (xdg-utils package)")
 	}
 	return Detached("xdg-open", u)
 }
@@ -89,7 +89,7 @@ func (*linux) OpenApp(name string) error {
 	if p, err := exec.LookPath(strings.ToLower(strings.TrimSpace(name))); err == nil {
 		return Detached(p)
 	}
-	return fmt.Errorf("no se encuentra la aplicación %q", name)
+	return fmt.Errorf("application %q not found", name)
 }
 
 func (*linux) QuitApp(name string) error {
@@ -98,13 +98,13 @@ func (*linux) QuitApp(name string) error {
 		base = execBase(e.Exec)
 	}
 	if base == "" {
-		return errors.New("falta el nombre de la app")
+		return errors.New("the app name is missing")
 	}
 	if len(base) > 15 {
 		base = base[:15]
 	}
 	if _, err := Run(3*time.Second, "", "pkill", "-TERM", "-x", base); err != nil {
-		return fmt.Errorf("no se pudo cerrar %q (¿está abierta?)", name)
+		return fmt.Errorf("could not close %q (is it open?)", name)
 	}
 	return nil
 }
@@ -312,9 +312,9 @@ func press(mods []string, key string) error {
 		return err
 	}
 	if wayland() {
-		return errors.New("sin la placa, las teclas por software necesitan wtype (Wayland con wlroots) o cambiar a X11; con la placa conectada no hace falta")
+		return errors.New("without the board, software keys need wtype (Wayland with wlroots) or X11; with the board connected they are not needed")
 	}
-	return errors.New("sin la placa, las teclas por software necesitan xdotool; con la placa conectada no hace falta")
+	return errors.New("without the board, software keys need xdotool; with the board connected it is not needed")
 }
 
 func (*linux) SoftHotkey(spec string) error {
@@ -333,7 +333,7 @@ func (*linux) SoftHotkey(spec string) error {
 	if len([]rune(key)) == 1 {
 		return press(mods, key)
 	}
-	return fmt.Errorf("tecla desconocida: %s", key)
+	return fmt.Errorf("unknown key: %s", key)
 }
 
 func (*linux) SoftStroke(st hid.Stroke) error {
@@ -348,7 +348,7 @@ func (*linux) SoftStroke(st hid.Stroke) error {
 	}
 	k := xkey(st.Usage)
 	if k == "" {
-		return fmt.Errorf("tecla sin equivalente: 0x%02X", st.Usage)
+		return fmt.Errorf("key without an equivalent: 0x%02X", st.Usage)
 	}
 	return press(mods, k)
 }
@@ -375,7 +375,7 @@ func setClipboard(text string) error {
 			}
 		}
 	}
-	return errors.New("para pegar texto hace falta wl-clipboard (Wayland) o xclip (X11)")
+	return errors.New("pasting text needs wl-clipboard (Wayland) or xclip (X11)")
 }
 
 func (p *linux) Paste(text string) error {
@@ -404,7 +404,7 @@ func (*linux) SoftMedia(cmd string, step int) (string, error) {
 			_, err := Run(3*time.Second, "", "amixer", "-q", "set", "Master", fmt.Sprintf("%d%%%s", step, sign))
 			return "", err
 		}
-		return "", errors.New("falta wpctl, pactl o amixer")
+		return "", errors.New("wpctl, pactl or amixer is missing")
 	case "mute":
 		switch {
 		case have("wpctl"):
@@ -417,14 +417,14 @@ func (*linux) SoftMedia(cmd string, step int) (string, error) {
 			_, err := Run(3*time.Second, "", "amixer", "-q", "set", "Master", "toggle")
 			return "", err
 		}
-		return "", errors.New("falta wpctl, pactl o amixer")
+		return "", errors.New("wpctl, pactl or amixer is missing")
 	}
 	verb := map[string]string{"playpause": "play-pause", "next": "next", "prev": "previous"}[cmd]
 	if verb == "" {
-		return "", fmt.Errorf("orden multimedia desconocida: %s", cmd)
+		return "", fmt.Errorf("unknown media command: %s", cmd)
 	}
 	if !have("playerctl") {
-		return "", errors.New("falta playerctl para controlar el reproductor (con la placa conectada no hace falta)")
+		return "", errors.New("playerctl is missing to control the player (not needed with the board connected)")
 	}
 	_, err := Run(3*time.Second, "", "playerctl", verb)
 	return "", err
@@ -455,7 +455,7 @@ func (*linux) System(cmd string) error {
 		case !wayland():
 			return firstOf([]string{"xset", "dpms", "force", "off"})
 		}
-		return fmt.Errorf("apagar la pantalla no está disponible en este escritorio Wayland: %w", ErrUnsupported)
+		return fmt.Errorf("turning the display off is not available on this Wayland desktop: %w", ErrUnsupported)
 	case "screensaver":
 		return firstOf([]string{"xdg-screensaver", "activate"}, []string{"loginctl", "lock-session"})
 	case "screenshot":
@@ -467,10 +467,10 @@ func (*linux) System(cmd string) error {
 		if have("grim") && have("slurp") && have("wl-copy") {
 			return Detached("sh", "-c", `grim -g "$(slurp)" - | wl-copy`)
 		}
-		return fmt.Errorf("falta una herramienta de capturas (gnome-screenshot, spectacle, flameshot o grim+slurp): %w", ErrUnsupported)
+		return fmt.Errorf("a screenshot tool is missing (gnome-screenshot, spectacle, flameshot or grim+slurp): %w", ErrUnsupported)
 	case "darkmode":
 		if !have("gsettings") {
-			return fmt.Errorf("el cambio de tema solo está disponible en GNOME: %w", ErrUnsupported)
+			return fmt.Errorf("switching the theme is only available on GNOME: %w", ErrUnsupported)
 		}
 		cur, err := Run(3*time.Second, "", "gsettings", "get", "org.gnome.desktop.interface", "color-scheme")
 		if err != nil {
@@ -631,21 +631,21 @@ func (*linux) Doctor() []Check {
 		sess = "Wayland"
 	}
 	checks := []Check{
-		{true, "sesión gráfica: " + sess, ""},
-		{have("xdg-open"), "xdg-open disponible (enlaces y archivos)", "falta xdg-open: instala xdg-utils para abrir enlaces"},
-		{have("notify-send"), "notify-send disponible (carteles de aviso)", "falta notify-send: instala libnotify-bin para ver los carteles"},
-		{front().id != "", "se puede saber la aplicación en primer plano (capas por aplicación)",
-			"no se puede saber la ventana activa: las capas por aplicación necesitan X11 con xprop, Sway o Hyprland (GNOME y KDE en Wayland no lo permiten)"},
-		{(!wayland() && have("xdotool")) || have("wtype"), "teclas por software disponibles (xdotool o wtype)",
-			"sin xdotool ni wtype, las teclas por software no funcionan; con la placa conectada no hacen falta"},
+		{true, "graphical session: " + sess, ""},
+		{have("xdg-open"), "xdg-open available (links and files)", "xdg-open is missing: install xdg-utils to open links"},
+		{have("notify-send"), "notify-send available (popups)", "notify-send is missing: install libnotify-bin to see the popups"},
+		{front().id != "", "the front application can be read (per-application layers)",
+			"the active window cannot be read: per-application layers need X11 with xprop, Sway or Hyprland (GNOME and KDE on Wayland do not allow it)"},
+		{(!wayland() && have("xdotool")) || have("wtype"), "software keys available (xdotool or wtype)",
+			"without xdotool or wtype, software keys do not work; they are not needed with the board connected"},
 	}
 	acm, _ := filepath.Glob("/dev/ttyACM*")
 	switch {
 	case len(acm) == 0:
-		checks = append(checks, Check{true, "sin /dev/ttyACM*: no se puede comprobar el permiso del puerto (enchufa la placa)", ""})
+		checks = append(checks, Check{true, "no /dev/ttyACM*: the port permission cannot be checked (plug the board in)", ""})
 	default:
-		checks = append(checks, Check{len(candidatesACM()) > 0, "tu usuario puede abrir " + acm[0],
-			"tu usuario no puede abrir " + acm[0] + ": copia packaging/linux/99-typedeck.rules a /etc/udev/rules.d/ o añádelo al grupo dialout (y vuelve a iniciar sesión)"})
+		checks = append(checks, Check{len(candidatesACM()) > 0, "your user can open " + acm[0],
+			"your user cannot open " + acm[0] + ": copy packaging/linux/99-typedeck.rules to /etc/udev/rules.d/ or add yourself to the dialout group (and sign in again)"})
 	}
 	return checks
 }
@@ -670,7 +670,7 @@ func unitPath() string {
 
 func (*linux) InstallService(exe string) (string, error) {
 	if !have("systemctl") {
-		return "", errors.New("hace falta systemd; sin él, lanza typedeck desde el arranque de tu escritorio")
+		return "", errors.New("systemd is needed; without it, start typedeck from your desktop session startup")
 	}
 	unit := fmt.Sprintf(`[Unit]
 Description=Typedeck: macros para tu teclado
@@ -696,7 +696,7 @@ WantedBy=default.target
 			return "", fmt.Errorf("systemctl --user %s: %s", c[0], strings.TrimSpace(string(out)))
 		}
 	}
-	return "Servicio instalado y en marcha: " + p + "\nRegistro: journalctl --user -u typedeck", nil
+	return "Service installed and running: " + p + "\nRegistro: journalctl --user -u typedeck", nil
 }
 
 func (*linux) UninstallService() (string, error) {
@@ -709,5 +709,5 @@ func (*linux) UninstallService() (string, error) {
 	if have("systemctl") {
 		_ = exec.Command("systemctl", "--user", "daemon-reload").Run()
 	}
-	return "Servicio quitado (la configuración se conserva)", nil
+	return "Service removed (the configuration is kept)", nil
 }

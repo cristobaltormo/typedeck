@@ -37,19 +37,19 @@ func TestDesktopEntries(t *testing.T) {
 		t.Fatalf("aplicaciones: %v", names)
 	}
 	if e, ok := findEntry("code"); !ok || e.Name != "Visual Studio Code" {
-		t.Fatalf("por id: %+v %v", e, ok)
+		t.Fatalf("by id: %+v %v", e, ok)
 	}
 	if e, ok := findEntry("visual studio"); !ok || e.ID != "code" {
 		t.Fatalf("parcial: %+v %v", e, ok)
 	}
 	if e, ok := entryFor("Code", ""); !ok || e.ID != "code" {
-		t.Fatalf("por clase de ventana: %+v %v", e, ok)
+		t.Fatalf("by window class: %+v %v", e, ok)
 	}
 	if e, ok := entryFor("", "firefox"); !ok || e.Name != "Firefox" {
-		t.Fatalf("por proceso: %+v %v", e, ok)
+		t.Fatalf("by process: %+v %v", e, ok)
 	}
 	if _, ok := findEntry("oculta"); ok {
-		t.Fatal("una app con NoDisplay no debe ofrecerse")
+		t.Fatal("an app with NoDisplay must not be offered")
 	}
 	if got := execBase("env MOZ_X=1 firefox %u"); got != "firefox" {
 		t.Fatalf("execBase: %q", got)
@@ -68,7 +68,7 @@ func TestXKBToHID(t *testing.T) {
 			want = ""
 		}
 		if got := xkbToHID(c.l, c.v); got != want {
-			t.Errorf("%s/%s -> %q, esperaba %q", c.l, c.v, got, want)
+			t.Errorf("%s/%s -> %q, expected %q", c.l, c.v, got, want)
 		}
 	}
 }
@@ -77,7 +77,7 @@ func TestXKeyNames(t *testing.T) {
 	cases := map[byte]string{0x04: "a", 0x27: "0", 0x3A: "F1", 0x45: "F12", 0x28: "Return", 0x4F: "Right", 0x2C: "space", 0x68: "F13"}
 	for u, want := range cases {
 		if got := xkey(u); got != want {
-			t.Errorf("%02X -> %q, esperaba %q", u, got, want)
+			t.Errorf("%02X -> %q, expected %q", u, got, want)
 		}
 	}
 }
@@ -88,6 +88,6 @@ func TestFocusedNode(t *testing.T) {
 		t.Fatalf("%v", n)
 	}
 	if focusedNode(map[string]any{"nodes": []any{}}) != nil {
-		t.Fatal("sin foco debe dar nil")
+		t.Fatal("without focus it must return nil")
 	}
 }

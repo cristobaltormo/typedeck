@@ -23,38 +23,38 @@ func doctor() int {
 		if ok {
 			fmt.Println("  ok      ", okMsg)
 		} else {
-			fmt.Println("  FALLA   ", badMsg)
+			fmt.Println("  FAIL    ", badMsg)
 			bad++
 		}
 	}
 	fmt.Println("Typedeck", version)
 	paths := config.DefaultPaths()
 	_, err := config.Load(paths)
-	check(err == nil, "configuración válida en "+paths.Config(), fmt.Sprint("configuración: ", err))
+	check(err == nil, "valid configuration in "+paths.Config(), fmt.Sprint("configuration: ", err))
 	if platform.Current.Name() == "darwin" {
 		_, err = os.Stat(hud.Binary)
-		check(err == nil, "cartel flotante instalado", "falta el cartel flotante ("+hud.Binary+"); se usarán notificaciones")
+		check(err == nil, "floating popup installed", "the floating popup is missing ("+hud.Binary+"); notifications will be used")
 	}
 	for _, c := range platform.Current.Doctor() {
 		check(c.OK, c.Message, c.Problem)
 	}
 	if running, connected, fw, kb := askRunningService(); running {
-		check(true, "Typedeck ya está en marcha (editor en http://127.0.0.1:7788)", "")
-		check(connected, "placa conectada, firmware "+fw, "el servicio no ve la placa (cable o puerto)")
-		check(kb != "", "teclado detectado: "+kb, "la placa no ve ningún teclado en el shield")
+		check(true, "Typedeck is already running (editor at http://127.0.0.1:7788)", "")
+		check(connected, "board connected, firmware "+fw, "the service cannot see the board (cable or port)")
+		check(kb != "", "keyboard detected: "+kb, "the board sees no keyboard on the shield")
 	} else {
 		rw, port, err := (&board.SerialConnector{}).Open()
 		if err == nil {
 			rw.Close()
 		}
-		check(err == nil, "placa encontrada en "+port, "no se encuentra la placa (cable, puerto o programa en marcha usando el puerto)")
+		check(err == nil, "board found at "+port, "board not found (cable, port, or a running program using the port)")
 	}
 	time.Sleep(100 * time.Millisecond)
 	if bad > 0 {
-		fmt.Printf("%d comprobaciones fallan\n", bad)
+		fmt.Printf("%d checks failed\n", bad)
 		return 1
 	}
-	fmt.Println("todo en orden")
+	fmt.Println("all good")
 	return 0
 }
 

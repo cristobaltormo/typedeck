@@ -197,7 +197,7 @@ func (*darwin) SoftHotkey(spec string) error {
 		return err
 	}
 	if len([]rune(key)) != 1 {
-		return fmt.Errorf("tecla desconocida: %s", key)
+		return fmt.Errorf("unknown key: %s", key)
 	}
 	_, err = osascript(fmt.Sprintf(`tell application "System Events" to keystroke %q%s`, key, using(mods)))
 	return err
@@ -267,7 +267,7 @@ func (*darwin) SoftMedia(cmd string, step int) (string, error) {
 			return p, err
 		}
 	}
-	return "", errors.New("no hay Spotify ni Música abiertos")
+	return "", errors.New("neither Spotify nor Music is open")
 }
 
 func (*darwin) System(cmd string) error {
@@ -347,8 +347,8 @@ func (*darwin) ConfigDir() string {
 
 func (*darwin) Doctor() []Check {
 	return []Check{
-		{have("lsappinfo"), "lsappinfo disponible (capas por aplicación)", "falta lsappinfo: sin él no hay capas por aplicación"},
-		{have("osascript"), "osascript disponible", "falta osascript: abrir y cerrar aplicaciones lo necesita"},
+		{have("lsappinfo"), "lsappinfo available (per-application layers)", "lsappinfo is missing: without it there are no per-application layers"},
+		{have("osascript"), "osascript disponible", "osascript is missing: opening and closing applications needs it"},
 	}
 }
 
@@ -378,7 +378,7 @@ func (*darwin) InstallService(exe string) (string, error) {
 	if out, err := exec.Command("launchctl", "bootstrap", "gui/"+uid, plist).CombinedOutput(); err != nil {
 		return "", fmt.Errorf("launchctl: %s", strings.TrimSpace(string(out)))
 	}
-	return "Servicio instalado y en marcha: " + plist, nil
+	return "Service installed and running: " + plist, nil
 }
 
 func (*darwin) UninstallService() (string, error) {
@@ -388,5 +388,5 @@ func (*darwin) UninstallService() (string, error) {
 	if err := os.Remove(plist); err != nil && !os.IsNotExist(err) {
 		return "", err
 	}
-	return "Servicio quitado (la configuración se conserva)", nil
+	return "Service removed (the configuration is kept)", nil
 }

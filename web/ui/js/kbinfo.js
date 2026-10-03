@@ -47,7 +47,7 @@ export function openKeyboardDrawer() {
     return h("div", {}, list.map((r) => {
       const fw = FORWARDED.has(r.kind);
       return h("div", { class: "report" }, h("span", { class: "id" }, r.id ? `ID ${r.id}` : t("kb.report_main")),
-        h("span", { class: "grow" }, t(REPORT_KIND[r.kind] || "kind.other"), r.detail ? h("span", { class: "faint" }, ` - ${r.detail.replace(/^interfaz \d+: /, "")}`) : null),
+        h("span", { class: "grow" }, t(REPORT_KIND[r.kind] || "kind.other"), r.detail ? h("span", { class: "faint" }, ` - ${r.detail.replace(/^interface \d+: /, "")}`) : null),
         h("span", { class: fw ? "ok" : "faint" }, fw ? t("kb.forwarded") : t("kb.not_forwarded")));
     }));
   }

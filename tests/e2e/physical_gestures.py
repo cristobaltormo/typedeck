@@ -14,7 +14,7 @@ try:
     assert api("/api/config", trial).get("ok")
     time.sleep(0.8)
     since = api("/api/status")["last_id"]; t0 = time.time(); out = []
-    print("LISTO: pulsa la tecla ahora", flush=True)
+    print("READY: press the key now", flush=True)
     while time.time() - t0 < 45:
         r = api(f"/api/events?since={since}&wait=2"); since = r["last_id"]
         for e in r["events"]:

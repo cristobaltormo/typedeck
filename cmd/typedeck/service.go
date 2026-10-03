@@ -17,7 +17,7 @@ func service(what string) int {
 			exe, e = filepath.EvalSymlinks(exe)
 		}
 		if e != nil {
-			fmt.Fprintln(os.Stderr, "no se pudo localizar el ejecutable:", e)
+			fmt.Fprintln(os.Stderr, "could not locate the executable:", e)
 			return 1
 		}
 		msg, err = platform.Current.InstallService(exe)

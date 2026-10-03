@@ -242,7 +242,7 @@ func readFrame(r *bufio.Reader) (op byte, payload []byte, err error) {
 		return
 	}
 	if h[0]&0x80 == 0 || h[0]&0x70 != 0 || h[1]&0x80 == 0 {
-		return 0, nil, errors.New("trama no admitida")
+		return 0, nil, errors.New("unsupported frame")
 	}
 	op = h[0] & 0x0f
 	n := uint64(h[1] & 0x7f)
@@ -261,7 +261,7 @@ func readFrame(r *bufio.Reader) (op byte, payload []byte, err error) {
 		n = binary.BigEndian.Uint64(b[:])
 	}
 	if n > wsMaxPayload {
-		return 0, nil, errors.New("trama demasiado grande")
+		return 0, nil, errors.New("frame too large")
 	}
 	var mask [4]byte
 	if _, err = io.ReadFull(r, mask[:]); err != nil {

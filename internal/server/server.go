@@ -150,7 +150,7 @@ func (s *Server) Handler() http.Handler {
 		return func(w http.ResponseWriter, r *http.Request) {
 			securityHeaders(w)
 			if r.Method != method {
-				fail(w, 405, "método no permitido")
+				fail(w, 405, "method not allowed")
 				return
 			}
 			if !s.authed(r) {
@@ -254,7 +254,7 @@ func (s *Server) static(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if r.Method != "GET" && r.Method != "HEAD" {
-		fail(w, 405, "método no permitido")
+		fail(w, 405, "method not allowed")
 		return
 	}
 	p := strings.TrimPrefix(path.Clean("/"+r.URL.Path), "/")
@@ -457,7 +457,7 @@ func (s *Server) setLayout(w http.ResponseWriter, r *http.Request) {
 	}
 	l, ok := layouts.Get(b.Layout)
 	if !ok {
-		fail(w, 400, "disposición desconocida")
+		fail(w, 400, "unknown layout")
 		return
 	}
 	_, _, info, _ := s.brd.Status()
@@ -537,7 +537,7 @@ func (s *Server) resolvePack(w http.ResponseWriter, r *http.Request) {
 	}
 	p, ok := packs.Get(b.ID)
 	if !ok {
-		fail(w, 404, "paquete desconocido")
+		fail(w, 404, "unknown pack")
 		return
 	}
 	cfg := s.eng.Config()

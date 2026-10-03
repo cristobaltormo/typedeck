@@ -31,7 +31,7 @@ type session struct{ ws *wsConn }
 func connect(cfg Config) (*session, error) {
 	ws, err := wsDial(hostPort(cfg.Host, cfg.Port), "obswebsocket.json", 3*time.Second)
 	if err != nil {
-		return nil, fmt.Errorf("no se pudo conectar con OBS (%v). Activa el servidor WebSocket en Herramientas, Ajustes del servidor WebSocket", simplify(err))
+		return nil, fmt.Errorf("could not connect to OBS (%v). Turn on the WebSocket server in Tools, WebSocket Server Settings", simplify(err))
 	}
 	s := &session{ws}
 	raw, err := ws.ReadText()
@@ -46,13 +46,13 @@ func connect(cfg Config) (*session, error) {
 	}
 	if err := json.Unmarshal(raw, &hello); err != nil {
 		ws.Close()
-		return nil, errors.New("respuesta de OBS no válida")
+		return nil, errors.New("invalid answer from OBS")
 	}
 	id := map[string]any{"rpcVersion": 1}
 	if a := hello.D.Auth; a != nil {
 		if cfg.Password == "" {
 			ws.Close()
-			return nil, errors.New("OBS pide contraseña: escríbela en Ajustes")
+			return nil, errors.New("OBS asks for a password: enter it in Settings")
 		}
 		sec := sha256.Sum256([]byte(cfg.Password + a.Salt))
 		secB := base64.StdEncoding.EncodeToString(sec[:])
@@ -68,7 +68,7 @@ func connect(cfg Config) (*session, error) {
 		if err != nil {
 			ws.Close()
 			if strings.Contains(err.Error(), "EOF") {
-				return nil, errors.New("OBS rechazó la contraseña")
+				return nil, errors.New("OBS rejected the password")
 			}
 			return nil, err
 		}
@@ -138,7 +138,7 @@ func (e *reqError) Error() string {
 	if e.Comment != "" {
 		return e.Comment
 	}
-	return fmt.Sprintf("OBS no pudo hacerlo (código %d)", e.Code)
+	return fmt.Sprintf("OBS could not do it (code %d)", e.Code)
 }
 
 func onOff(v any, on, off string) string {
@@ -158,7 +158,7 @@ func Run(cfg Config, cmd, target string) (string, error) {
 	case "scene":
 		target = strings.TrimSpace(target)
 		if target == "" {
-			return "", errors.New("falta el nombre de la escena")
+			return "", errors.New("the scene name is missing")
 		}
 		if n, ok := sceneNumber(target); ok {
 			names, _, err := s.scenes()
@@ -166,7 +166,7 @@ func Run(cfg Config, cmd, target string) (string, error) {
 				return "", err
 			}
 			if n < 1 || n > len(names) {
-				return "", fmt.Errorf("OBS solo tiene %d escenas", len(names))
+				return "", fmt.Errorf("OBS only has %d scenes", len(names))
 			}
 			target = names[n-1]
 		}
@@ -176,16 +176,16 @@ func Run(cfg Config, cmd, target string) (string, error) {
 		return s.stepScene(cmd == "scene_next")
 	case "stream":
 		r, err := s.call("ToggleStream", nil)
-		return onOff(r["outputActive"], "en directo", "directo parado"), err
+		return onOff(r["outputActive"], "live", "stream stopped"), err
 	case "stream_start":
 		_, err := s.call("StartStream", nil)
-		return "en directo", ignoreActive(err)
+		return "live", ignoreActive(err)
 	case "stream_stop":
 		_, err := s.call("StopStream", nil)
-		return "directo parado", ignoreActive(err)
+		return "stream stopped", ignoreActive(err)
 	case "record":
 		r, err := s.call("ToggleRecord", nil)
-		return onOff(r["outputActive"], "grabando", "grabación parada"), err
+		return onOff(r["outputActive"], "recording", "recording stopped"), err
 	case "record_pause":
 		_, err := s.call("ToggleRecordPause", nil)
 		return "", err
@@ -196,13 +196,13 @@ func Run(cfg Config, cmd, target string) (string, error) {
 		}
 		target = name
 		r, err := s.call("ToggleInputMute", map[string]any{"inputName": target})
-		return target + ": " + onOff(r["inputMuted"], "silenciado", "con sonido"), err
+		return target + ": " + onOff(r["inputMuted"], "muted", "unmuted"), err
 	case "replay_save":
 		_, err := s.call("SaveReplayBuffer", nil)
-		return "replay guardado", err
+		return "replay saved", err
 	case "virtualcam":
 		r, err := s.call("ToggleVirtualCam", nil)
-		return onOff(r["outputActive"], "cámara virtual activada", "cámara virtual parada"), err
+		return onOff(r["outputActive"], "virtual camera on", "virtual camera off"), err
 	case "studio":
 		r, err := s.call("GetStudioModeEnabled", nil)
 		if err != nil {
@@ -210,12 +210,12 @@ func Run(cfg Config, cmd, target string) (string, error) {
 		}
 		on, _ := r["studioModeEnabled"].(bool)
 		_, err = s.call("SetStudioModeEnabled", map[string]any{"studioModeEnabled": !on})
-		return onOff(!on, "modo estudio activado", "modo estudio desactivado"), err
+		return onOff(!on, "studio mode on", "studio mode off"), err
 	case "studio_transition":
 		_, err := s.call("TriggerStudioModeTransition", nil)
 		return "", err
 	}
-	return "", fmt.Errorf("orden de OBS desconocida: %s", cmd)
+	return "", fmt.Errorf("unknown OBS command: %s", cmd)
 }
 
 func Active(cfg Config, what string) (bool, error) {
@@ -260,7 +260,7 @@ func (s *session) scenes() ([]string, string, error) {
 	list, _ := r["scenes"].([]any)
 	cur, _ := r["currentProgramSceneName"].(string)
 	if len(list) == 0 {
-		return nil, cur, errors.New("OBS no tiene escenas")
+		return nil, cur, errors.New("OBS has no scenes")
 	}
 	names := make([]string, len(list))
 	for i, it := range list {
@@ -277,7 +277,7 @@ func (s *session) inputName(target string) (string, error) {
 	}
 	key := map[string]string{"": "mic1", "@mic": "mic1", "@desktop": "desktop1"}[target]
 	if key == "" {
-		return "", fmt.Errorf("fuente desconocida: %s", target)
+		return "", fmt.Errorf("unknown source: %s", target)
 	}
 	r, err := s.call("GetSpecialInputs", nil)
 	if err != nil {
@@ -286,7 +286,7 @@ func (s *session) inputName(target string) (string, error) {
 	if n, _ := r[key].(string); n != "" {
 		return n, nil
 	}
-	return "", errors.New("OBS no tiene configurada esa fuente de audio")
+	return "", errors.New("OBS has no such audio source configured")
 }
 
 func (s *session) stepScene(next bool) (string, error) {

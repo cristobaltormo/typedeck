@@ -15,20 +15,20 @@ func TestSplitHotkey(t *testing.T) {
 	}
 	for _, bad := range []string{"", "cmd+", "hyper+x"} {
 		if _, _, err := splitHotkey(bad); err == nil {
-			t.Errorf("%q debe fallar", bad)
+			t.Errorf("%q must fail", bad)
 		}
 	}
 }
 
 func TestRunTimeoutAndOutput(t *testing.T) {
 	if CurrentName := Current.Name(); CurrentName == "windows" {
-		t.Skip("usa utilidades de Unix")
+		t.Skip("uses Unix utilities")
 	}
 	out, err := Run(2e9, "", "echo", "hola")
 	if err != nil || out != "hola" {
 		t.Fatalf("%q %v", out, err)
 	}
 	if _, err := Run(100e6, "", "sleep", "2"); err == nil {
-		t.Fatal("debe agotar el tiempo")
+		t.Fatal("it must time out")
 	}
 }

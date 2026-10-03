@@ -51,12 +51,12 @@ func ParseHotkey(spec string, l *Layout) (Stroke, error) {
 	var st Stroke
 	parts := strings.Split(strings.ToLower(strings.TrimSpace(spec)), "+")
 	if len(parts) == 0 || parts[len(parts)-1] == "" {
-		return st, fmt.Errorf("atajo vacío")
+		return st, fmt.Errorf("empty shortcut")
 	}
 	for _, p := range parts[:len(parts)-1] {
 		m, ok := modNames[strings.TrimSpace(p)]
 		if !ok {
-			return st, fmt.Errorf("modificador desconocido: %s", p)
+			return st, fmt.Errorf("unknown modifier: %s", p)
 		}
 		st.Mods |= m
 	}
@@ -76,7 +76,7 @@ func ParseHotkey(spec string, l *Layout) (Stroke, error) {
 			return st, nil
 		}
 	}
-	return st, fmt.Errorf("tecla desconocida: %s", key)
+	return st, fmt.Errorf("unknown key: %s", key)
 }
 
 func KeyUsage(name string) (byte, bool) {

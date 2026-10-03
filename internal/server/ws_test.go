@@ -59,24 +59,24 @@ func TestWebSocketHelloAndEditingPause(t *testing.T) {
 		t.Fatal(err)
 	}
 	if m := s.eng.MaskBytes(); m[0]&0x10 == 0 {
-		t.Fatal("la tecla A debería estar capturada")
+		t.Fatal("key A must be captured")
 	}
 
 	if _, _, st := dialWS(t, addr, "mal"); !strings.Contains(st, "403") {
-		t.Fatalf("token malo aceptado: %s", st)
+		t.Fatalf("a bad token was accepted: %s", st)
 	}
 
 	c, r, st := dialWS(t, addr, s.token)
 	defer c.Close()
 	if !strings.Contains(st, "101") {
-		t.Fatalf("sin upgrade: %s", st)
+		t.Fatalf("no upgrade: %s", st)
 	}
 	var hdr [2]byte
 	_, _ = r.Read(hdr[:])
 	body := make([]byte, hdr[1])
 	_, _ = r.Read(body)
 	if !strings.Contains(string(body), `"t":"hello"`) {
-		t.Fatalf("sin hello: %s", body)
+		t.Fatalf("no hello: %s", body)
 	}
 
 	sendText(c, `{"t":"editing","on":true}`)
@@ -94,7 +94,7 @@ func waitMask(t *testing.T, s *Server, zero bool) {
 		}
 		time.Sleep(20 * time.Millisecond)
 	}
-	t.Fatalf("la máscara no llegó al estado esperado (cero=%v)", zero)
+	t.Fatalf("the mask did not reach the expected state (zero=%v)", zero)
 }
 
 func TestPlainKeysAreBroadcastToTheEditor(t *testing.T) {
@@ -118,6 +118,6 @@ func TestPlainKeysAreBroadcastToTheEditor(t *testing.T) {
 	body := make([]byte, hdr[1])
 	_, _ = r.Read(body)
 	if !strings.Contains(string(body), `"t":"key"`) || !strings.Contains(string(body), `"k":"1E"`) || !strings.Contains(string(body), `"d":true`) {
-		t.Fatalf("mensaje de tecla: %s", body)
+		t.Fatalf("key message: %s", body)
 	}
 }

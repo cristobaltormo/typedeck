@@ -72,7 +72,7 @@ func Identify(vid, pid, mfr, prod string) Identity {
 		if strings.EqualFold(m.VID, vid) && strings.EqualFold(m.PID, pid) &&
 			(m.Mfr == "" || strings.EqualFold(m.Mfr, mfr)) && (m.Prod == "" || strings.EqualFold(m.Prod, prod)) {
 			id.Brand, id.Model, id.Layout = m.Brand, m.Model, m.Layout
-			id.Confidence, id.Source = "verified", "base de modelos verificados"
+			id.Confidence, id.Source = "verified", "verified model database"
 			break
 		}
 	}
@@ -81,10 +81,10 @@ func Identify(vid, pid, mfr, prod string) Identity {
 		id.Brand = mfr
 		id.Model = prod
 		if prod != "" || mfr != "" {
-			id.Confidence, id.Source = "name", "nombre que da el propio teclado"
+			id.Confidence, id.Source = "name", "name reported by the keyboard"
 		}
 		if id.Brand == "" && id.Vendor != "" && !id.VendorIsChip {
-			id.Brand, id.Confidence, id.Source = id.Vendor, "vendor", "fabricante del identificador USB"
+			id.Brand, id.Confidence, id.Source = id.Vendor, "vendor", "vendor of the USB identifier"
 		}
 		if id.Brand == "" && id.VendorIsChip {
 			id.Brand = id.Vendor

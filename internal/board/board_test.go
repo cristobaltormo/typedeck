@@ -93,7 +93,7 @@ func waitFor(t *testing.T, what string, cond func() bool) {
 		}
 		time.Sleep(10 * time.Millisecond)
 	}
-	t.Fatalf("tiempo agotado esperando: %s", what)
+	t.Fatalf("timed out waiting for: %s", what)
 }
 
 func TestHandshakeInfoEventsAndCommands(t *testing.T) {
@@ -112,7 +112,7 @@ func TestHandshakeInfoEventsAndCommands(t *testing.T) {
 	select {
 	case info = <-connected:
 	case <-time.After(3 * time.Second):
-		t.Fatal("no se completó el handshake")
+		t.Fatal("the handshake did not complete")
 	}
 	if info.Firmware != "4" || info.VID != "258A" || info.Prod != "Usb Gaming Keyboard" || info.Mfr != "BY Tech" || info.PowerMA != 500 {
 		t.Fatalf("info: %+v", info)
@@ -129,10 +129,10 @@ func TestHandshakeInfoEventsAndCommands(t *testing.T) {
 	}
 	cmds := strings.Join(fw.commands(), "|")
 	if !strings.Contains(cmds, "MASK 0000000000000000000000000000000000000000000000000000800000000000") && !strings.Contains(cmds, "MASK ") {
-		t.Fatalf("no se mandó la máscara: %s", cmds)
+		t.Fatalf("the mask was not sent: %s", cmds)
 	}
 	if !strings.Contains(cmds, "MASK 0000000000008000") && !strings.Contains(cmds, "80") {
-		t.Fatalf("máscara sin la tecla 5F: %s", cmds)
+		t.Fatalf("mask without key 5F: %s", cmds)
 	}
 
 	fw.say("D 5F 02")
@@ -144,7 +144,7 @@ func TestHandshakeInfoEventsAndCommands(t *testing.T) {
 	e := events
 	mu.Unlock()
 	if e[0] != (Event{Kind: 'D', Usage: 0x5F, Mods: 0x02}) || e[1].Kind != 'U' || e[2] != (Event{Kind: 'W', Usage: 0x04}) || e[3].Kind != 'K' || e[3].Arg != 0 {
-		t.Fatalf("eventos mal leídos: %+v", e)
+		t.Fatalf("events read wrongly: %+v", e)
 	}
 
 	if err := b.Tap(hid.Stroke{Usage: 0x04, Mods: hid.ModGui}); err != nil {
@@ -167,11 +167,11 @@ func TestHandshakeInfoEventsAndCommands(t *testing.T) {
 	got := strings.Join(fw.commands(), "|")
 	for _, want := range []string{"KEY 08 04", "CONS CD", "WATCH 1", "BOOTLOG", "REBOOT", "DARK 1"} {
 		if !strings.Contains(got, want) {
-			t.Errorf("falta %q en %s", want, got)
+			t.Errorf("missing %q in %s", want, got)
 		}
 	}
 	if _, err := b.Command("rm -rf", 0); err == nil {
-		t.Error("comando no permitido aceptado")
+		t.Error("a disallowed command was accepted")
 	}
 }
 
@@ -198,7 +198,7 @@ func TestParseEventRejectsGarbage(t *testing.T) {
 		}
 	}
 	if ev, ok := parseEvent("D 5F"); !ok || ev.Usage != 0x5F || ev.Mods != 0 {
-		t.Errorf("D 5F sin modificadores: %+v %v", ev, ok)
+		t.Errorf("D 5F without modifiers: %+v %v", ev, ok)
 	}
 }
 
@@ -208,12 +208,12 @@ func TestNoBoardKeepsRetrying(t *testing.T) {
 	go func() { b.Run(); close(done) }()
 	time.Sleep(50 * time.Millisecond)
 	if b.Connected() {
-		t.Fatal("no debería estar conectada")
+		t.Fatal("it should not be connected")
 	}
 	b.Close()
 	select {
 	case <-done:
 	case <-time.After(5 * time.Second):
-		t.Fatal("Run no termina tras Close")
+		t.Fatal("Run does not return after Close")
 	}
 }

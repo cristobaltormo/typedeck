@@ -16,7 +16,7 @@ var (
 	pSetCommTimeouts = kernel32.NewProc("SetCommTimeouts")
 	pEscapeCommFunc  = kernel32.NewProc("EscapeCommFunction")
 	pPurgeComm       = kernel32.NewProc("PurgeComm")
-	errPortClosed    = errors.New("puerto cerrado")
+	errPortClosed    = errors.New("port closed")
 )
 
 type dcb struct {

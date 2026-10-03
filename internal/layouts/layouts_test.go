@@ -14,7 +14,7 @@ func TestEveryLayoutIsConsistent(t *testing.T) {
 			}
 			seen[k.Usage] = true
 			if k.X < -0.001 || k.Y < -0.001 || k.X+k.W > l.Width+0.001 || k.Y+k.H > l.Height+0.001 {
-				t.Errorf("%s: la tecla 0x%02X se sale (%v,%v %vx%v de %vx%v)", l.ID, k.Usage, k.X, k.Y, k.W, k.H, l.Width, l.Height)
+				t.Errorf("%s: key 0x%02X is out of bounds (%v,%v %vx%v de %vx%v)", l.ID, k.Usage, k.X, k.Y, k.W, k.H, l.Width, l.Height)
 			}
 		}
 		for i, a := range l.Keys {
@@ -25,7 +25,7 @@ func TestEveryLayoutIsConsistent(t *testing.T) {
 			}
 		}
 		if want, ok := wantKeys[l.ID]; ok && len(l.Keys) != want {
-			t.Errorf("%s: %d teclas, esperaba %d", l.ID, len(l.Keys), want)
+			t.Errorf("%s: %d teclas, expected %d", l.ID, len(l.Keys), want)
 		}
 	}
 }
@@ -38,7 +38,7 @@ func TestPercentAndStandard(t *testing.T) {
 		}
 	}
 	if l, _ := Get("iso-full"); l.ID != "full-iso" {
-		t.Error("el nombre antiguo iso-full debe traducirse")
+		t.Error("the old name iso-full must be translated")
 	}
 	if l, _ := Get("full-iso"); l.Standard != "iso" {
 		t.Error("estandar")
@@ -50,7 +50,7 @@ func TestWidthsAreRealisticForEachFormFactor(t *testing.T) {
 	for id, w := range want {
 		l, _ := Get(id)
 		if l.Width < w-0.01 || l.Width > w+0.01 {
-			t.Errorf("%s: ancho %v, esperaba %v", id, l.Width, w)
+			t.Errorf("%s: ancho %v, expected %v", id, l.Width, w)
 		}
 	}
 }
@@ -60,7 +60,7 @@ func TestMatchRecognisesEachLayout(t *testing.T) {
 		set := l.KeySet()
 		all := Match(set)
 		if all[0].ID != l.ID {
-			t.Errorf("%s con todas sus teclas: gana %s (%.2f) y no %s", l.ID, all[0].ID, all[0].Score, l.ID)
+			t.Errorf("%s with all its keys: %s wins (%.2f) and not %s", l.ID, all[0].ID, all[0].Score, l.ID)
 		}
 		part := map[byte]bool{}
 		i := 0
@@ -71,7 +71,7 @@ func TestMatchRecognisesEachLayout(t *testing.T) {
 			i++
 		}
 		if r := Match(part); len(r) > 0 && r[0].ID != l.ID && r[0].Score-scoreOf(r, l.ID) > 0.05 {
-			t.Errorf("%s con el 86%% de las teclas: gana %s (%.2f frente a %.2f)", l.ID, r[0].ID, r[0].Score, scoreOf(r, l.ID))
+			t.Errorf("%s with 86%% of the keys: %s wins (%.2f against %.2f)", l.ID, r[0].ID, r[0].Score, scoreOf(r, l.ID))
 		}
 	}
 }
@@ -88,14 +88,14 @@ func scoreOf(r []Suggestion, id string) float64 {
 func TestISOvsANSIIsDecidedByTheExtraKeys(t *testing.T) {
 	iso, _ := Get("full-iso")
 	if r := Match(iso.KeySet()); r[0].ID != "full-iso" {
-		t.Fatalf("un teclado ISO completo debe ganar como ISO: %s", r[0].ID)
+		t.Fatalf("a full ISO keyboard must be detected as ISO: %s", r[0].ID)
 	}
 	ansi, _ := Get("tkl-ansi")
 	if r := Match(ansi.KeySet()); r[0].ID != "tkl-ansi" {
-		t.Fatalf("un TKL ANSI debe ganar como ANSI: %s", r[0].ID)
+		t.Fatalf("an ANSI TKL must be detected as ANSI: %s", r[0].ID)
 	}
 	if got := Match(map[byte]bool{}); len(got) != 0 {
-		t.Error("sin teclas no hay sugerencias")
+		t.Error("without keys there are no suggestions")
 	}
 }
 
@@ -107,10 +107,10 @@ func TestAmbiguityAsksForTheDecidingKeys(t *testing.T) {
 	r := Match(seen)
 	amb, hints := Ambiguity(r)
 	if !amb || len(hints) == 0 {
-		t.Fatalf("debía ser ambiguo: %v %v (%s %.3f / %s %.3f)", amb, hints, r[0].ID, r[0].Score, r[1].ID, r[1].Score)
+		t.Fatalf("it should have been ambiguous: %v %v (%s %.3f / %s %.3f)", amb, hints, r[0].ID, r[0].Score, r[1].ID, r[1].Score)
 	}
 	if amb, _ := Ambiguity(Match(iso.KeySet())); amb {
-		t.Error("con todas las teclas no hay ambiguedad")
+		t.Error("with all the keys there is no ambiguity")
 	}
 }
 
@@ -126,7 +126,7 @@ func TestMissingKeysAreReported(t *testing.T) {
 		}
 	}
 	if len(tkl.Missing) != 1 || tkl.Missing[0] != 0x2B {
-		t.Errorf("faltantes: %v", tkl.Missing)
+		t.Errorf("missing: %v", tkl.Missing)
 	}
 }
 
@@ -137,10 +137,10 @@ func TestISOWithBackslashAliasStillWinsAsISO(t *testing.T) {
 	seen[0x31] = true
 	r := Match(seen)
 	if r[0].ID != "full-iso" {
-		t.Fatalf("ISO con alias 0x31: gana %s (%.3f)", r[0].ID, r[0].Score)
+		t.Fatalf("ISO with alias 0x31: %s wins (%.3f)", r[0].ID, r[0].Score)
 	}
 	if len(r[0].Extra) != 0 {
-		t.Errorf("0x31 no debe contar como extra en ISO: %v", r[0].Extra)
+		t.Errorf("0x31 must not count as extra on ISO: %v", r[0].Extra)
 	}
 	ansi, _ := Get("full-ansi")
 	if r := Match(ansi.KeySet()); r[0].ID != "full-ansi" {

@@ -46,7 +46,7 @@ func wsDial(addr, subprotocol string, timeout time.Duration) (*wsConn, error) {
 	sum := sha1.Sum([]byte(key + wsGUID))
 	if resp.StatusCode != http.StatusSwitchingProtocols || resp.Header.Get("Sec-WebSocket-Accept") != base64.StdEncoding.EncodeToString(sum[:]) {
 		c.Close()
-		return nil, fmt.Errorf("el servidor no aceptó el WebSocket (HTTP %d)", resp.StatusCode)
+		return nil, fmt.Errorf("the server did not accept the WebSocket (HTTP %d)", resp.StatusCode)
 	}
 	return &wsConn{c: c, br: br}, nil
 }
@@ -103,7 +103,7 @@ func (w *wsConn) ReadText() ([]byte, error) {
 			n = binary.BigEndian.Uint64(b[:])
 		}
 		if n > 1<<20 {
-			return nil, errors.New("mensaje demasiado grande")
+			return nil, errors.New("message too large")
 		}
 		var mask [4]byte
 		if masked {
@@ -133,7 +133,7 @@ func (w *wsConn) ReadText() ([]byte, error) {
 			}
 		default:
 			if !fin || op != 0x2 {
-				return nil, fmt.Errorf("trama WebSocket inesperada (%d)", op)
+				return nil, fmt.Errorf("unexpected WebSocket frame (%d)", op)
 			}
 		}
 	}

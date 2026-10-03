@@ -16,16 +16,16 @@ def run_typing():
     def sh(cmd): return api("/api/test", {"type": "shell", "cmd": cmd, "show_output": True})
     def front(): return sh(FG)["output"].strip().lower()
     res = []
-    def check(n, c, x=""): res.append(bool(c)); print(("PASS  " if c else "FALLA ") + n + (f"   [{x}]" if x and not c else ""), flush=True)
+    def check(n, c, x=""): res.append(bool(c)); print(("PASS  " if c else "FAIL  ") + n + (f"   [{x}]" if x and not c else ""), flush=True)
     cfg = api("/api/config"); cfg["settings"]["typing_layout"] = "auto"; cfg["settings"]["input"] = "auto"; api("/api/config", cfg)
-    check("la placa esta conectada en COM4", api("/api/status")["connected"])
+    check("the board is connected en COM4", api("/api/status")["connected"])
     print("layout:", api("/api/setup")["host"]["typing_layout"])
     r = api("/api/test", {"type": "app", "app": "notepad", "mode": "open"}); print("abrir notepad:", r)
     for _ in range(20):
         time.sleep(0.7)
         sh('powershell -NoProfile -Command "$w=New-Object -ComObject WScript.Shell; $w.SendKeys(\'%\'); Start-Sleep -Milliseconds 200; $w.AppActivate(\'Bloc de notas\')"')
         if "notepad" in front(): break
-    f = front(); check("el Bloc de notas queda delante (necesario para teclear)", "notepad" in f, f)
+    f = front(); check("Notepad is in front (needed to type)", "notepad" in f, f)
     if "notepad" not in f: raise SystemExit("aborto: no escribo si no esta delante")
     def hk(k): return api("/api/test", {"type": "hotkey", "keys": k})
     def clip():
@@ -39,7 +39,7 @@ def run_typing():
         got = typed(t); check(f"escribir por la placa: {t!r}", got == t, repr(got))
     hk("ctrl+a"); hk("backspace")
     api("/api/test", {"type": "text", "text": "x"}); hk("ctrl+a"); hk("ctrl+x")
-    check("atajo ctrl+x por la placa (cmd=ctrl no aplica: se usa ctrl)", clip().strip() == "x")
+    check("ctrl+x shortcut through the board (cmd=ctrl does not apply: ctrl is used)", clip().strip() == "x")
     hk("ctrl+a"); hk("backspace")
     sh('taskkill /F /IM notepad.exe')
     print(f"\n{sum(res)}/{len(res)}")
@@ -49,7 +49,7 @@ def run_desktop():
     def sh(cmd): return api("/api/test", {"type": "shell", "cmd": cmd, "show_output": True})["output"].strip()
     def front(): return sh(FG).lower()
     res = []
-    def check(n, c, x=""): res.append(bool(c)); print(("PASS  " if c else "FALLA ") + n + (f"   [{x}]" if x and not c else ""), flush=True)
+    def check(n, c, x=""): res.append(bool(c)); print(("PASS  " if c else "FAIL  ") + n + (f"   [{x}]" if x and not c else ""), flush=True)
     def activate_proc(proc):
         sh('powershell -NoProfile -Command "$t=(Get-Process %s -ErrorAction SilentlyContinue | Where-Object MainWindowTitle | Select -First 1).MainWindowTitle; if($t){$w=New-Object -ComObject WScript.Shell; $w.SendKeys(\'%%\'); Start-Sleep -Milliseconds 200; [void]$w.AppActivate($t)}"' % proc)
     def clip(): return sh('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-Clipboard -Raw"').replace("\r\n", "\n").rstrip("\n")
@@ -60,13 +60,13 @@ def run_desktop():
         api("/api/config", cfg); want = len(cfg["layers"]) - 1
         activate_proc("chrome"); time.sleep(1.5)
         names = api("/api/status").get("front")
-        check("se detecta la aplicacion delante (GetForegroundWindow + menu Inicio)", names and any("chrome" in n.lower() for n in names), names)
+        check("the front application is detected (GetForegroundWindow + Start menu)", names and any("chrome" in n.lower() for n in names), names)
         lay = None
         for _ in range(12):
             lay = api("/api/status").get("layer")
             if lay == want: break
             time.sleep(0.5)
-        check("la capa por aplicacion se activa sola con Chrome delante", lay == want, (lay, want))
+        check("the per-application layer activates on its own with Chrome in front", lay == want, (lay, want))
         api("/api/config", orig)
 
         sh("taskkill /F /IM notepad.exe"); time.sleep(1)
@@ -74,25 +74,25 @@ def run_desktop():
         for _ in range(15):
             time.sleep(0.8); activate_proc("Notepad")
             if "notepad" in front(): break
-        check("abrir notepad y dejarlo delante", r["ok"] and "notepad" in front(), (r, front()))
+        check("open notepad and keep it in front", r["ok"] and "notepad" in front(), (r, front()))
         if "notepad" not in front(): raise SystemExit("aborto: no escribo si Notepad no esta delante")
         c2 = api("/api/config"); c2["settings"]["input"] = "software"; api("/api/config", c2)
         hk("ctrl+a"); hk("backspace"); time.sleep(0.3)
         api("/api/test", {"type": "text", "text": "Hola ñ @ € por software"}); time.sleep(0.8)
         hk("ctrl+a"); hk("ctrl+c"); time.sleep(0.5)
-        got = clip(); check("texto por software (portapapeles + Ctrl+V)", got == "Hola ñ @ € por software", repr(got))
+        got = clip(); check("software text (clipboard + Ctrl+V)", got == "Hola ñ @ € por software", repr(got))
         hk("ctrl+a"); hk("backspace")
         api("/api/test", {"type": "text", "text": "abc"}); hk("ctrl+a"); hk("ctrl+c"); time.sleep(0.4)
-        check("atajo por software (ctrl+a, ctrl+c con keybd_event)", clip() == "abc", clip())
+        check("software shortcut (ctrl+a, ctrl+c with keybd_event)", clip() == "abc", clip())
         hk("ctrl+a"); hk("backspace")
         c3 = api("/api/config"); c3["settings"]["input"] = "auto"; api("/api/config", c3)
 
         time.sleep(1)
         r = api("/api/test", {"type": "app", "app": "Notepad", "mode": "toggle"}); time.sleep(1.2)
-        check("alternar: con la app delante la minimiza", r["ok"] and "notepad" not in front(), (r, front()))
+        check("toggle: with the app in front it minimizes it", r["ok"] and "notepad" not in front(), (r, front()))
         r = api("/api/test", {"type": "app", "app": "Bloc de notas", "mode": "quit"}); time.sleep(2)
         left = sh('powershell -NoProfile -Command "(Get-Process Notepad -ErrorAction SilentlyContinue | Where-Object MainWindowTitle | Measure-Object).Count"')
-        check("cerrar la app por el titulo de su ventana (WM_CLOSE)", r["ok"] and left.strip() == "0", (r, left))
+        check("close the app by its window title (WM_CLOSE)", r["ok"] and left.strip() == "0", (r, left))
     finally:
         sh("taskkill /F /IM notepad.exe"); api("/api/config", orig)
     print(f"\n{sum(res)}/{len(res)}")

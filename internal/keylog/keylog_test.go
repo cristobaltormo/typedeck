@@ -23,10 +23,10 @@ func TestRecordsKeyAndDurationOnlyWhenEnabled(t *testing.T) {
 	l.Press(0x04, t0)
 	l.Release(0x04, t0.Add(80*time.Millisecond))
 	if got, n := l.Recent(10); n != 0 || len(got) != 0 {
-		t.Fatalf("apagado no debe guardar nada: %v", got)
+		t.Fatalf("off must store nothing: %v", got)
 	}
 	if _, err := os.Stat(p); err == nil {
-		t.Fatal("apagado no debe crear el archivo")
+		t.Fatal("off must not create the file")
 	}
 
 	l.SetEnabled(true)
@@ -37,7 +37,7 @@ func TestRecordsKeyAndDurationOnlyWhenEnabled(t *testing.T) {
 	l.Release(0xE1, t0.Add(260*time.Millisecond))
 	got, n := l.Recent(10)
 	if n != 2 || got[0].K != "shift" || got[1].K != "A" || got[1].D != 120 || got[1].T != t0.UnixMilli() {
-		t.Fatalf("registro mal: %+v", got)
+		t.Fatalf("wrong log: %+v", got)
 	}
 	if runtime.GOOS != "windows" {
 		if st, _ := os.Stat(p); st.Mode().Perm() != 0o600 {
@@ -55,16 +55,16 @@ func TestClearDeletesEverythingAndTrimKeepsTheNewest(t *testing.T) {
 		l.Release(0x05, now.Add(time.Millisecond))
 	}
 	if _, n := l.Recent(100); n != 5 {
-		t.Fatalf("esperaba 5, hay %d", n)
+		t.Fatalf("expected 5, there are %d", n)
 	}
 	if err := l.Clear(); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := os.Stat(p); err == nil {
-		t.Fatal("el archivo sigue ahí tras borrar todo")
+		t.Fatal("the file is still there after deleting everything")
 	}
 	if _, n := l.Recent(100); n != 0 {
-		t.Fatal("quedan entradas")
+		t.Fatal("entries are left")
 	}
 
 	line := strings.Repeat("x", 99) + "\n"
@@ -74,14 +74,14 @@ func TestClearDeletesEverythingAndTrimKeepsTheNewest(t *testing.T) {
 	l.mu.Unlock()
 	data, _ := os.ReadFile(p)
 	if len(data) >= 100*100+30 || !strings.HasSuffix(string(data), `"d":9}`+"\n") {
-		t.Fatalf("el recorte no conservó lo último (%d bytes)", len(data))
+		t.Fatalf("the trim did not keep the newest (%d bytes)", len(data))
 	}
 }
 
 func TestNames(t *testing.T) {
 	for u, want := range map[byte]string{0x04: "A", 0x1E: "1", 0x27: "0", 0x28: "return", 0xE3: "cmd", 0xFE: "0xFE"} {
 		if got := Name(u); got != want {
-			t.Errorf("%#x: %q, quería %q", u, got, want)
+			t.Errorf("%#x: %q, wanted %q", u, got, want)
 		}
 	}
 }
@@ -103,10 +103,10 @@ func TestSummaryCountsTodayTopKeysAndAverage(t *testing.T) {
 		t.Fatalf("resumen: %+v", sum)
 	}
 	if len(sum.Top) != 2 || sum.Top[0].K != "A" || sum.Top[0].N != 3 {
-		t.Fatalf("teclas más usadas: %+v", sum.Top)
+		t.Fatalf("most used keys: %+v", sum.Top)
 	}
 	if empty := New(filepath.Join(t.TempDir(), "x")).Summary(now); empty.Total != 0 || empty.Top != nil {
-		t.Fatalf("sin archivo debe salir vacío: %+v", empty)
+		t.Fatalf("without a file the summary must be empty: %+v", empty)
 	}
 }
 
@@ -136,7 +136,7 @@ func TestTranscribeRebuildsWhatWasTyped(t *testing.T) {
 	var caps []Entry
 	caps = append(caps, Entry{T: at, U: 0x39, D: 30}, Entry{T: at + 100, U: 0x04, D: 40}, Entry{T: at + 200, U: 0x39, D: 30}, Entry{T: at + 300, U: 0x04, D: 40})
 	if got := Transcribe(caps, us); got != "Aa" {
-		t.Fatalf("bloq mayús: %q", got)
+		t.Fatalf("caps lock: %q", got)
 	}
 
 	combo := []Entry{{T: at, U: 0xE3, D: 300}, {T: at + 50, U: 0x06, D: 40}, {T: at + 500, U: 0x06, D: 40}}

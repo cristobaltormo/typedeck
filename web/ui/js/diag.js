@@ -22,7 +22,7 @@ export function diagView(root) {
       h("dt", {}, t("diag.firmware")), h("dd", {}, s.firmware ? `Typedeck FW ${s.firmware}` : "-"),
       h("dt", {}, t("diag.since")), h("dd", {}, fmtTime(s.connected_since)),
       h("dt", {}, t("diag.keyboard")), h("dd", {}, k?.present ? [k.mfr, k.prod].filter(Boolean).join(" ") + ` (${k.vid}:${k.pid})` : t("diag.kbd_none")),
-      h("dt", {}, t("diag.latency")), h("dd", {}, stats && stats.n !== "0" ? `${stats.media_us} us ${t("diag.avg")}, ${stats.max_us} us ${t("diag.max")} (${stats.n})` : t("diag.no_samples")),
+      h("dt", {}, t("diag.latency")), h("dd", {}, stats && stats.n !== "0" ? `${stats.avg_us} us ${t("diag.avg")}, ${stats.max_us} us ${t("diag.max")} (${stats.n})` : t("diag.no_samples")),
       h("dt", {}, t("diag.capture")), h("dd", {}, stats ? (stats.captura === "1" ? t("diag.capture_on") : t("diag.capture_off")) : t("diag.unknown")),
       h("dt", {}, t("diag.front")), h("dd", {}, (s.front || []).join(", ") || "-"),
       h("dt", {}, t("diag.daemon")), h("dd", {}, `Typedeck ${s.version || ""}, ${t("diag.up")} ${fmtUp(s.uptime || 0)}`));

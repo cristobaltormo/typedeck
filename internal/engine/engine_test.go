@@ -78,14 +78,14 @@ func TestHoldVersusTap(t *testing.T) {
 	e.KeyUp(0x04)
 	settle()
 	if got := r.snapshot(); len(got) != 1 || got[0] != "hud:tap" {
-		t.Fatalf("pulsación corta: %v", got)
+		t.Fatalf("short press: %v", got)
 	}
 	e.KeyDown(0x04, 0)
 	time.Sleep(350 * time.Millisecond)
 	e.KeyUp(0x04)
 	settle()
 	if got := r.snapshot(); len(got) != 2 || got[1] != "hud:hold" {
-		t.Fatalf("pulsación larga: %v", got)
+		t.Fatalf("long press: %v", got)
 	}
 }
 
@@ -138,25 +138,25 @@ func TestLayerCycleKeyAndMask(t *testing.T) {
 	})
 	m := e.MaskBytes()
 	if m[0x53>>3]&(1<<(0x53&7)) == 0 {
-		t.Fatal("la tecla 53 (capa) debe estar capturada")
+		t.Fatal("key 53 (layer) must be captured")
 	}
 	if m[0x08>>3]&(1<<(0x08&7)) != 0 {
-		t.Fatal("la tecla 08 solo existe en la capa 2")
+		t.Fatal("key 08 only exists on layer 2")
 	}
 	e.KeyDown(0x53, 0)
 	settle()
 	if e.Status().Layer != 1 {
-		t.Fatalf("capa: %d", e.Status().Layer)
+		t.Fatalf("layer: %d", e.Status().Layer)
 	}
 	m = e.MaskBytes()
 	if m[0x08>>3]&(1<<(0x08&7)) == 0 {
-		t.Fatal("en la capa 2 la tecla 08 debe capturarse")
+		t.Fatal("on layer 2 key 08 must be captured")
 	}
 	e.KeyUp(0x53)
 	e.KeyDown(0x53, 0)
 	settle()
 	if e.Status().Layer != 0 {
-		t.Fatalf("debía volver a la capa 1: %d", e.Status().Layer)
+		t.Fatalf("it should have gone back to layer 1: %d", e.Status().Layer)
 	}
 }
 
@@ -168,17 +168,17 @@ func TestConfirmNeedsTwoPresses(t *testing.T) {
 	e.KeyUp(0x09)
 	settle()
 	if len(r.snapshot()) != 0 {
-		t.Fatal("la primera pulsación no debe ejecutar")
+		t.Fatal("the first press must not run")
 	}
 	e.KeyDown(0x09, 0)
 	settle()
 	if got := r.snapshot(); len(got) != 1 {
-		t.Fatalf("la segunda debe ejecutar: %v", got)
+		t.Fatalf("the second must run: %v", got)
 	}
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	if len(r.huds) == 0 || r.huds[0] != "Confirm" {
-		t.Fatalf("falta el aviso de confirmación: %v", r.huds)
+		t.Fatalf("the confirmation notice is missing: %v", r.huds)
 	}
 }
 
@@ -190,14 +190,14 @@ func TestMomentaryLayerOnHold(t *testing.T) {
 	e.KeyDown(0x39, 0)
 	time.Sleep(350 * time.Millisecond)
 	if e.Status().Layer != 1 {
-		t.Fatalf("mientras se mantiene debe estar la capa 2: %d", e.Status().Layer)
+		t.Fatalf("layer 2 must be active while held: %d", e.Status().Layer)
 	}
 	e.KeyDown(0x04, 0)
 	e.KeyUp(0x04)
 	e.KeyUp(0x39)
 	settle()
 	if e.Status().Layer != 0 {
-		t.Fatalf("al soltar vuelve a la capa 1: %d", e.Status().Layer)
+		t.Fatalf("layer 1 comes back on release: %d", e.Status().Layer)
 	}
 	if got := r.snapshot(); len(got) != 1 || got[0] != "hud:capa2-a" {
 		t.Fatalf("disparos: %v", got)
@@ -215,10 +215,10 @@ func TestHoldOnlyKeyReinjectsOnShortTap(t *testing.T) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	if len(r.injects) != 1 || r.injects[0] != 0x39 {
-		t.Fatalf("la tecla 39 debía reenviarse: %v", r.injects)
+		t.Fatalf("key 39 should have been forwarded: %v", r.injects)
 	}
 	if len(r.fired) != 0 {
-		t.Fatalf("no debía ejecutar nada: %v", r.fired)
+		t.Fatalf("nothing should have run: %v", r.fired)
 	}
 }
 
@@ -228,7 +228,7 @@ func TestUnmappedKeyIsIgnored(t *testing.T) {
 	e.KeyUp(0x1A)
 	settle()
 	if len(r.snapshot()) != 0 {
-		t.Fatal("una tecla sin acción no debe ejecutar nada")
+		t.Fatal("a key without an action must run nothing")
 	}
 }
 
@@ -244,16 +244,16 @@ func TestEventsLongPollAndStats(t *testing.T) {
 			t.Fatalf("eventos: %+v", evs)
 		}
 	case <-time.After(time.Second):
-		t.Fatal("la conexión larga no despertó")
+		t.Fatal("the long poll did not wake up")
 	}
 	settle()
 	s := e.Stats()
 	if s.Total != 1 || s.Keys["0A"] != 1 {
-		t.Fatalf("estadísticas: %+v", s)
+		t.Fatalf("statistics: %+v", s)
 	}
 	e.ResetStats()
 	if e.Stats().Total != 0 {
-		t.Fatal("no se puso a cero")
+		t.Fatal("it was not reset to zero")
 	}
 }
 
@@ -266,7 +266,7 @@ func TestApplyConfigClampsLayer(t *testing.T) {
 		t.Fatal(err)
 	}
 	if e.Status().Layer != 0 {
-		t.Fatal("la capa activa debía acotarse")
+		t.Fatal("the active layer must be clamped")
 	}
 }
 
@@ -277,13 +277,13 @@ func TestBounceIsIgnored(t *testing.T) {
 	e.KeyDown(0x04, 0)
 	settle()
 	if got := r.snapshot(); len(got) != 1 {
-		t.Fatalf("el rebote no debe ejecutar dos veces: %v", got)
+		t.Fatalf("a bounce must not run twice: %v", got)
 	}
 	time.Sleep(80 * time.Millisecond)
 	e.KeyDown(0x04, 0)
 	settle()
 	if got := r.snapshot(); len(got) != 2 {
-		t.Fatalf("una pulsación posterior sí: %v", got)
+		t.Fatalf("a later press must run: %v", got)
 	}
 }
 
@@ -292,15 +292,15 @@ func TestEditingReleasesTheMaskUntilItEnds(t *testing.T) {
 		c.Layers[0].Keys["04"] = config.KeyDef{Tap: act("a")}
 	})
 	if e.MaskBytes()[0]&0x10 == 0 || e.Editing() {
-		t.Fatal("la tecla A debería estar capturada fuera de la edición")
+		t.Fatal("key A must be captured outside editing")
 	}
 	e.SetEditing(true)
 	if e.MaskBytes() != [32]byte{} || !e.Editing() {
-		t.Fatal("editando no debe capturarse nada")
+		t.Fatal("nothing must be captured while editing")
 	}
 	e.SetEditing(false)
 	if e.MaskBytes()[0]&0x10 == 0 || e.Editing() {
-		t.Fatal("al terminar la captura debe volver")
+		t.Fatal("capture must come back when editing ends")
 	}
 }
 
@@ -315,25 +315,25 @@ func TestKeyboardLostWarnsOnceAndAnnouncesTheReturn(t *testing.T) {
 	e.KeyboardChanged(true)
 	time.Sleep(120 * time.Millisecond)
 	if shown() != 0 {
-		t.Fatalf("un parpadeo no debe avisar: %v", r.huds)
+		t.Fatalf("a blink must not warn: %v", r.huds)
 	}
 
 	e.KeyboardChanged(false)
 	time.Sleep(120 * time.Millisecond)
 	if shown() != 1 {
-		t.Fatalf("falta el aviso de teclado perdido: %v", r.huds)
+		t.Fatalf("the keyboard-lost notice is missing: %v", r.huds)
 	}
 	e.KeyboardChanged(true)
 	time.Sleep(30 * time.Millisecond)
 	if shown() != 2 {
-		t.Fatalf("falta el aviso de teclado recuperado: %v", r.huds)
+		t.Fatalf("the keyboard-back notice is missing: %v", r.huds)
 	}
 
 	e.cfg.Settings.NotifyKeyboard = false
 	e.KeyboardChanged(false)
 	time.Sleep(120 * time.Millisecond)
 	if shown() != 2 {
-		t.Fatalf("con el aviso desactivado no debe salir nada: %v", r.huds)
+		t.Fatalf("with the notice turned off nothing must show: %v", r.huds)
 	}
 }
 
@@ -345,7 +345,7 @@ func TestPlainKeysAreReportedAndRecordedOnlyWhenHistoryIsOn(t *testing.T) {
 	time.Sleep(15 * time.Millisecond)
 	e.HandleBoardEvent(board.Event{Kind: 'R', Usage: 0x04})
 	if len(seen) != 2 || seen[0] != "04v" || seen[1] != "04^" {
-		t.Fatalf("eventos de tecla: %v", seen)
+		t.Fatalf("key events: %v", seen)
 	}
 	got, n := e.KeyLog().Recent(5)
 	if n != 1 || got[0].K != "A" || got[0].D < 10 {

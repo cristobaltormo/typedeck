@@ -39,8 +39,8 @@ export async function run(scene) {
   applySettings();
   Object.assign(state.status, { layer: 0, connected: true, port: "/dev/cu.usbmodemCHIDJB1", firmware: "3", version: "0.3.0", uptime: 4000, front: ["Google Chrome"] });
   state.keyboard = { connected: true, prefs: null, info: { present: true, firmware: "3", vid: "258A", pid: "0016", bcd: "0001", usb: "0200", mfr: "BY Tech", prod: "Usb Gaming Keyboard", serial: "", power_ma: 500, ifaces: 2,
-    reports: [{ id: 0, dir: "input", kind: "keyboard", bits: 64, detail: "interfaz 0: hasta 6 teclas a la vez" }, { id: 1, dir: "input", kind: "system", detail: "interfaz 1: encendido, suspender y despertar" }, { id: 2, dir: "input", kind: "consumer", detail: "interfaz 1: teclas multimedia" },
-      { id: 3, dir: "input", kind: "vendor", detail: "interfaz 1: datos del fabricante" }, { id: 4, dir: "input", kind: "nkro", detail: "interfaz 1: 120 teclas a la vez" }, { id: 7, dir: "input", kind: "mouse", detail: "interfaz 1: ratón integrado" }] } };
+    reports: [{ id: 0, dir: "input", kind: "keyboard", bits: 64, detail: "interface 0: up to 6 keys at once" }, { id: 1, dir: "input", kind: "system", detail: "interface 1: power, sleep and wake" }, { id: 2, dir: "input", kind: "consumer", detail: "interface 1: media keys" },
+      { id: 3, dir: "input", kind: "vendor", detail: "interface 1: vendor data" }, { id: 4, dir: "input", kind: "nkro", detail: "interface 1: 120 keys at once" }, { id: 7, dir: "input", kind: "mouse", detail: "interface 1: built-in mouse" }] } };
   if (scene === "offline") { state.status.connected = false; state.keyboard.info = null; }
   location.hash = "#/" + (new URLSearchParams(location.search).get("view") || "keys");
   await sleep(150);

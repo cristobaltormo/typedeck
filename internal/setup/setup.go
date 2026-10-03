@@ -122,7 +122,7 @@ func Describe(cfg config.Config, brd *board.Board, env actions.Env) Setup {
 	}
 	if !connected {
 		add("error", "no_board")
-		su.Summary = "Sin placa conectada"
+		su.Summary = "No board connected"
 		return su
 	}
 	var bs board.Sys
@@ -135,7 +135,7 @@ func Describe(cfg config.Config, brd *board.Board, env actions.Env) Setup {
 	}
 	if info == nil || !info.Present {
 		add("warn", "no_keyboard")
-		su.Summary = "Placa conectada, sin teclado en el shield"
+		su.Summary = "Board connected, no keyboard on the shield"
 		return su
 	}
 	id := kbdb.Identify(info.VID, info.PID, info.Mfr, info.Prod)
@@ -204,7 +204,7 @@ func Describe(cfg config.Config, brd *board.Board, env actions.Env) Setup {
 	}
 	su.Summary = fmt.Sprintf("%s + %s + %s en %s %s (%s)", boardName(bs), shieldName(bs), strings.TrimSpace(id.Display), osName, su.Host.Version, su.Host.Arch)
 	if su.Board.Sys == nil {
-		su.Summary = fmt.Sprintf("Placa + %s en %s %s", strings.TrimSpace(id.Display), osName, su.Host.Version)
+		su.Summary = fmt.Sprintf("Board + %s on %s %s", strings.TrimSpace(id.Display), osName, su.Host.Version)
 	}
 	return su
 }
@@ -216,7 +216,7 @@ func boardName(s board.Sys) string {
 	case "micro":
 		return fmt.Sprintf("Arduino Micro (ATmega32U4, %d MHz)", s.FCPU/1_000_000)
 	}
-	return "Placa ATmega32U4"
+	return "ATmega32U4 board"
 }
 
 func shieldName(s board.Sys) string {

@@ -128,33 +128,33 @@ func summarise(fields []field) []Report {
 			switch {
 			case f.page == 0x07 && f.flags&1 == 0 && f.size == 1 && f.count == 8 && (f.umin == 0xE0 || contains(f.usages, 0xE0)):
 				r.Kind = "keyboard"
-				detail = append(detail, "modificadores")
+				detail = append(detail, "modifiers")
 			case f.page == 0x07 && f.size == 1 && f.count > 8 && f.umin >= 0:
-				r.Kind, detail = "nkro", append(detail, fmt.Sprintf("%d teclas a la vez", f.count))
+				r.Kind, detail = "nkro", append(detail, fmt.Sprintf("%d keys at once", f.count))
 			case f.page == 0x07 && f.size == 8 && f.count > 1 && f.flags&2 == 0:
-				r.Kind, detail = "keyboard", append(detail, fmt.Sprintf("hasta %d teclas a la vez", f.count))
+				r.Kind, detail = "keyboard", append(detail, fmt.Sprintf("up to %d keys at once", f.count))
 			case f.page == 0x08 && f.dir == "output":
-				detail = append(detail, "LED del teclado")
+				detail = append(detail, "keyboard LEDs")
 			case f.page == 0x0C && r.Kind != "mouse":
-				r.Kind, detail = "consumer", append(detail, "teclas multimedia")
+				r.Kind, detail = "consumer", append(detail, "media keys")
 			case f.page == 0x01 && contains(f.usages, 0x80) || f.page == 0x01 && f.umin == 0x81:
-				r.Kind, detail = "system", append(detail, "encendido, suspender y despertar")
+				r.Kind, detail = "system", append(detail, "power, sleep and wake")
 			case f.page == 0x01 && (contains(f.usages, 0x30) || contains(f.usages, 0x31)):
-				r.Kind, detail = "mouse", append(detail, "movimiento del ratón")
+				r.Kind, detail = "mouse", append(detail, "mouse movement")
 			case f.page == 0x09:
 				if r.Kind == "other" {
 					r.Kind = "mouse"
 				}
-				detail = append(detail, "botones")
+				detail = append(detail, "buttons")
 			case f.page >= 0xFF00:
 				r.Kind = "vendor"
 			}
 		}
 		if r.Kind == "mouse" && r.Dir == "input" && len(detail) > 0 {
-			detail = []string{"ratón integrado"}
+			detail = []string{"built-in mouse"}
 		}
 		if r.Kind == "vendor" {
-			detail = []string{"datos del fabricante"}
+			detail = []string{"vendor data"}
 		}
 		r.Detail = strings.Join(dedupe(detail), ", ")
 		out = append(out, r)

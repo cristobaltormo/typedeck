@@ -22,14 +22,14 @@ func TestReportDescriptorRealKeyboard(t *testing.T) {
 		t.Fatal(err)
 	}
 	if k := kinds(r0)[0]; k != "keyboard" {
-		t.Fatalf("interfaz 0: esperaba keyboard, salio %q (%+v)", k, r0)
+		t.Fatalf("interface 0: expected keyboard, got %q (%+v)", k, r0)
 	}
 	r1, _ := ParseReportDescriptorHex(rdesc1)
 	want := map[int]string{1: "system", 2: "consumer", 3: "vendor", 4: "nkro", 7: "mouse"}
 	got := kinds(r1)
 	for id, k := range want {
 		if got[id] != k {
-			t.Errorf("informe %d: esperaba %s, salio %q", id, k, got[id])
+			t.Errorf("report %d: expected %s, got %q", id, k, got[id])
 		}
 	}
 }
@@ -45,10 +45,10 @@ func TestHotkeyAndLayouts(t *testing.T) {
 		t.Fatalf("f13 -> %+v %v", st, err)
 	}
 	if _, err = ParseHotkey("cmd+nada", es); err == nil {
-		t.Fatal("tecla inexistente debia fallar")
+		t.Fatal("a missing key must fail")
 	}
 	if _, err = ParseHotkey("hyper+a", es); err == nil {
-		t.Fatal("modificador inexistente debia fallar")
+		t.Fatal("a missing modifier must fail")
 	}
 	if s, _ := es.Strokes('ñ'); len(s) != 1 || s[0].Usage != 0x33 {
 		t.Fatalf("ñ -> %+v", s)
@@ -57,35 +57,35 @@ func TestHotkeyAndLayouts(t *testing.T) {
 		t.Fatalf("á -> %+v", s)
 	}
 	if s, _ := es.Strokes('~'); len(s) != 2 || s[1].Usage != 0x2C {
-		t.Fatalf("~ es una tecla muerta + espacio: %+v", s)
+		t.Fatalf("~ is a dead key + space: %+v", s)
 	}
 	if !es.Typeable("Hola, ¿qué tal? @#{}") {
-		t.Fatal("el texto debia poder teclearse")
+		t.Fatal("the text must be typeable")
 	}
 	if LayoutByName("us").Typeable("ñ") {
-		t.Fatal("la ñ no existe en US")
+		t.Fatal("ñ does not exist in US")
 	}
 	if LayoutFromInputSource("com.apple.keylayout.Spanish-ISO") != "es-iso" || LayoutFromInputSource("com.apple.keylayout.US") != "us" {
-		t.Fatal("deteccion de disposicion")
+		t.Fatal("layout detection")
 	}
 	for id, want := range map[string]string{"com.apple.keylayout.British": "qwerty", "com.apple.keylayout.French": "", "com.apple.keylayout.German": "",
 		"com.apple.keylayout.Dvorak": "", "com.apple.keylayout.Colemak": "", "com.apple.keylayout.Spanish": "qwerty", "": ""} {
 		if got := LayoutFromInputSource(id); got != want {
-			t.Errorf("%q -> %q, esperaba %q", id, got, want)
+			t.Errorf("%q -> %q, expected %q", id, got, want)
 		}
 	}
 	if LayoutByName("").SafeForKeys() || !LayoutByName("qwerty").SafeForKeys() || LayoutByName("qwerty").Typeable("a,b") {
-		t.Fatal("none no es seguro; qwerty solo teclea letras y cifras")
+		t.Fatal("none is not safe; qwerty only types letters and digits")
 	}
 	if !LayoutByName("qwerty").Typeable("Hola 123\n") {
-		t.Fatal("qwerty debe poder teclear letras, cifras, espacio y salto")
+		t.Fatal("qwerty must type letters, digits, space and newline")
 	}
 }
 
 func TestSpanishPCLayout(t *testing.T) {
 	l := LayoutByName("es-pc")
 	if l.Name != "es-pc" || LayoutByName("es-iso").Name != "es-iso" {
-		t.Fatal("las dos disposiciones españolas deben ser distintas")
+		t.Fatal("the two Spanish layouts must differ")
 	}
 	cases := map[rune][]Stroke{
 		'@': {{0x1F, ModAltGr}}, '#': {{0x20, ModAltGr}}, '~': {{0x21, ModAltGr}}, '€': {{0x22, ModAltGr}}, '\\': {{0x35, ModAltGr}},
@@ -101,15 +101,15 @@ func TestSpanishPCLayout(t *testing.T) {
 		}
 		for i := range want {
 			if got[i] != want[i] {
-				t.Errorf("%q: %v, esperaba %v", r, got, want)
+				t.Errorf("%q: %v, expected %v", r, got, want)
 			}
 		}
 	}
 	if _, ok := l.Strokes('∞'); ok {
-		t.Error("∞ no existe en Español (PC)")
+		t.Error("∞ does not exist in Spanish (PC)")
 	}
 	if _, ok := LayoutByName("es-iso").Strokes('∞'); !ok {
-		t.Error("∞ si existe en el ISO de macOS")
+		t.Error("∞ exists in the macOS ISO layout")
 	}
 }
 
@@ -120,13 +120,13 @@ func TestSpanishWindowsTildeIsDeadKey(t *testing.T) {
 	}
 	got, _ := w.Strokes('~')
 	if len(got) != 2 || got[0] != (Stroke{0x21, ModAltGr}) || got[1] != (Stroke{0x2C, 0}) {
-		t.Fatalf("~ en Windows: %v", got)
+		t.Fatalf("~ on Windows: %v", got)
 	}
 	got, _ = pc.Strokes('~')
 	if len(got) != 1 {
-		t.Fatalf("~ en Linux debe ser una sola pulsacion: %v", got)
+		t.Fatalf("~ on Linux must be a single press: %v", got)
 	}
 	if a, _ := w.Strokes('@'); len(a) != 1 || a[0].Mods != ModAltGr {
-		t.Fatalf("el resto es igual: %v", a)
+		t.Fatalf("the rest is the same: %v", a)
 	}
 }

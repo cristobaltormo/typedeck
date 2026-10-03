@@ -38,15 +38,15 @@ func main() {
 		case "install", "uninstall":
 			os.Exit(service(os.Args[1]))
 		case "help", "-h", "--help":
-			fmt.Println(`uso: typedeck [orden]
-  (sin orden)  arranca el programa y el editor en http://127.0.0.1:7788
-  doctor       comprueba que todo está en su sitio y dice qué falla
-  install      lo deja arrancando con tu sesión (servicio de usuario)
-  uninstall    quita el arranque con la sesión (la configuración se conserva)
-  version      muestra la versión`)
+			fmt.Println(`usage: typedeck [command]
+  (no command)  start the program and the editor at http://127.0.0.1:7788
+  doctor        check that everything is in place and say what fails
+  install       start it with your session (user service)
+  uninstall     remove the start with the session (the configuration is kept)
+  version       print the version`)
 			return
 		default:
-			fmt.Fprintf(os.Stderr, "orden desconocida: %s (typedeck help)\n", os.Args[1])
+			fmt.Fprintf(os.Stderr, "unknown command: %s (typedeck help)\n", os.Args[1])
 			os.Exit(2)
 		}
 	}
@@ -57,7 +57,7 @@ func main() {
 	brd.Log = log.Printf
 	eng, err := engine.New(paths, brd)
 	if err != nil {
-		log.Fatalf("no se pudo cargar la configuración: %v", err)
+		log.Fatalf("could not load the configuration: %v", err)
 	}
 	brd.OnEvent = eng.HandleBoardEvent
 	brd.Mask = eng.MaskBytes
@@ -73,12 +73,12 @@ func main() {
 	}
 	ln, err := server.Listen()
 	if err != nil {
-		log.Fatalf("no hay ningún puerto libre desde el %d (¿otra copia en marcha?): %v", app.DefaultPort, err)
+		log.Fatalf("no free port from %d on (is another copy running?): %v", app.DefaultPort, err)
 	}
 	actions.EditorURL = server.EditorURL
 	actions.EditorFocus = srv.FocusEditor
 	_ = os.WriteFile(filepath.Join(paths.Dir, "port"), []byte(strconv.Itoa(server.Port)), 0o644)
-	log.Printf("Typedeck %s, editor en %s", version, server.EditorURL())
+	log.Printf("Typedeck %s, editor at %s", version, server.EditorURL())
 
 	go func() {
 		time.Sleep(8 * time.Second)

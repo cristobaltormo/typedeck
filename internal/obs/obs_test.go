@@ -136,16 +136,16 @@ func (f *fakeOBS) serve(t *testing.T, c net.Conn) {
 func TestRunWithoutPassword(t *testing.T) {
 	f := startFake(t, "")
 	cfg := Config{Port: f.port()}
-	if out, err := Run(cfg, "stream", ""); err != nil || out != "en directo" {
+	if out, err := Run(cfg, "stream", ""); err != nil || out != "live" {
 		t.Fatalf("stream: %q %v", out, err)
 	}
 	if out, err := Run(cfg, "scene", "Charla"); err != nil || out != "Charla" || f.scene != "Charla" {
 		t.Fatalf("scene: %q %v %q", out, err, f.scene)
 	}
-	if out, err := Run(cfg, "mute", "Mic"); err != nil || !strings.Contains(out, "silenciado") {
+	if out, err := Run(cfg, "mute", "Mic"); err != nil || !strings.Contains(out, "muted") {
 		t.Fatalf("mute: %q %v", out, err)
 	}
-	if out, err := Run(cfg, "mute", "Mic"); err != nil || !strings.Contains(out, "con sonido") {
+	if out, err := Run(cfg, "mute", "Mic"); err != nil || !strings.Contains(out, "unmuted") {
 		t.Fatalf("unmute: %q %v", out, err)
 	}
 }
@@ -155,7 +155,7 @@ func TestSceneStepWraps(t *testing.T) {
 	cfg := Config{Port: f.port()}
 	for _, want := range []string{"Charla", "Final", "Juego"} {
 		if out, err := Run(cfg, "scene_next", ""); err != nil || out != want {
-			t.Fatalf("next: %q %v, quería %q", out, err, want)
+			t.Fatalf("next: %q %v, wanted %q", out, err, want)
 		}
 	}
 	if out, _ := Run(cfg, "scene_prev", ""); out != "Final" {
@@ -166,13 +166,13 @@ func TestSceneStepWraps(t *testing.T) {
 func TestPassword(t *testing.T) {
 	f := startFake(t, "secreto")
 	if _, err := Run(Config{Port: f.port(), Password: "secreto"}, "record", ""); err != nil {
-		t.Fatalf("con contraseña correcta: %v", err)
+		t.Fatalf("with the right password: %v", err)
 	}
 	if _, err := Run(Config{Port: f.port(), Password: "mala"}, "record", ""); err == nil {
-		t.Fatal("una contraseña mala debe fallar")
+		t.Fatal("a wrong password must fail")
 	}
-	if _, err := Run(Config{Port: f.port()}, "record", ""); err == nil || !strings.Contains(err.Error(), "contraseña") {
-		t.Fatalf("sin contraseña debe pedirla: %v", err)
+	if _, err := Run(Config{Port: f.port()}, "record", ""); err == nil || !strings.Contains(err.Error(), "password") {
+		t.Fatalf("without a password it must ask for it: %v", err)
 	}
 }
 
@@ -183,21 +183,21 @@ func TestProbeAndErrors(t *testing.T) {
 		t.Fatalf("probe: %+v %v", info, err)
 	}
 	if _, err := Run(Config{Port: f.port()}, "scene", ""); err == nil {
-		t.Fatal("scene sin nombre debe fallar")
+		t.Fatal("scene without a name must fail")
 	}
 	if out, err := Run(Config{Port: f.port()}, "scene", "#2"); err != nil || out != "Charla" {
-		t.Fatalf("escena por número: %q %v", out, err)
+		t.Fatalf("scene by number: %q %v", out, err)
 	}
 	if _, err := Run(Config{Port: f.port()}, "scene", "#9"); err == nil {
-		t.Fatal("escena fuera de rango debe fallar")
+		t.Fatal("a scene out of range must fail")
 	}
 	if out, err := Run(Config{Port: f.port()}, "mute", "@desktop"); err != nil || !strings.HasPrefix(out, "Escritorio") {
 		t.Fatalf("mute @desktop: %q %v", out, err)
 	}
 	if out, err := Run(Config{Port: f.port()}, "mute", ""); err != nil || !strings.HasPrefix(out, "Mic/Aux") {
-		t.Fatalf("mute por defecto: %q %v", out, err)
+		t.Fatalf("default mute: %q %v", out, err)
 	}
 	if _, err := Run(Config{Port: 1}, "stream", ""); err == nil || !strings.Contains(err.Error(), "WebSocket") {
-		t.Fatalf("sin OBS debe explicar cómo activarlo: %v", err)
+		t.Fatalf("without OBS it must explain how to turn it on: %v", err)
 	}
 }

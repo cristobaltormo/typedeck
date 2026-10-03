@@ -54,8 +54,8 @@ type Connector interface {
 }
 
 var (
-	ErrNoBoard          = errors.New("no se encuentra la placa")
-	ErrOutdatedFirmware = errors.New("la placa tiene un firmware antiguo")
+	ErrNoBoard          = errors.New("board not found")
+	ErrOutdatedFirmware = errors.New("the board has outdated firmware")
 )
 
 type Board struct {
@@ -144,7 +144,7 @@ func (b *Board) serve(rw io.ReadWriteCloser, port string) {
 	b.mu.Lock()
 	b.rw, b.port, b.since, b.info, b.lastMsk, b.lastErr = rw, port, time.Now(), nil, "", ""
 	b.mu.Unlock()
-	b.Log("conectado a %s", port)
+	b.Log("connected to %s", port)
 	done := make(chan struct{})
 	go b.readLoop(rw, done)
 	go b.handshake()
@@ -167,7 +167,7 @@ loop:
 	b.mu.Lock()
 	b.rw, b.port = nil, ""
 	b.mu.Unlock()
-	b.Log("desconectada")
+	b.Log("disconnected")
 	if b.OnDisconnect != nil {
 		b.OnDisconnect()
 	}
@@ -270,9 +270,9 @@ func (b *Board) Do(cmd string, multi bool, timeout time.Duration) ([]string, err
 			out = append(out, l)
 		case <-deadline:
 			if multi && len(out) > 0 {
-				return out, errors.New("tiempo agotado esperando END")
+				return out, errors.New("timed out waiting for END")
 			}
-			return out, fmt.Errorf("la placa no respondió a %q", strings.Fields(cmd)[0])
+			return out, fmt.Errorf("the board did not answer %q", strings.Fields(cmd)[0])
 		case <-b.stop:
 			return out, ErrNoBoard
 		}
@@ -333,7 +333,7 @@ func parseInfo(lines []string) Info {
 func (b *Board) handshake() {
 	lines, err := b.Do("WHO", false, time.Second)
 	if err != nil || len(lines) == 0 || !strings.HasPrefix(lines[0], "TYPEDECK-FW") {
-		b.Log("la placa no habla el protocolo esperado: %v %v", lines, err)
+		b.Log("the board does not speak the expected protocol: %v %v", lines, err)
 		return
 	}
 	fw := strings.TrimSpace(strings.TrimPrefix(lines[0], "TYPEDECK-FW"))
@@ -376,7 +376,7 @@ func (b *Board) refreshInfo() {
 		in.RawRDesc = append(in.RawRDesc, hexs)
 		if reps, err := hid.ParseReportDescriptorHex(hexs); err == nil {
 			for _, r := range reps {
-				r.Detail = fmt.Sprintf("interfaz %d: %s", i, r.Detail)
+				r.Detail = fmt.Sprintf("interface %d: %s", i, r.Detail)
 				in.Reports = append(in.Reports, r)
 			}
 		}
@@ -461,7 +461,7 @@ func (b *Board) Command(name string, arg int) ([]string, error) {
 	case "leds":
 		return b.Do(fmt.Sprintf("LEDS %d", max(0, min(arg, 7))), false, time.Second)
 	}
-	return nil, errors.New("comando no permitido")
+	return nil, errors.New("command not allowed")
 }
 
 func (b *Board) Connected() bool {
