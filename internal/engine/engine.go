@@ -188,6 +188,21 @@ func (e *Engine) Hardware() actions.Hardware {
 	return e.board
 }
 
+func (e *Engine) Layer() int {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	return e.layer
+}
+
+func (e *Engine) LayerName() string {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	if e.layer < len(e.cfg.Layers) {
+		return e.cfg.Layers[e.layer].Name
+	}
+	return ""
+}
+
 func (e *Engine) accentLocked(layer int) string {
 	if layer >= 0 && layer < len(e.cfg.Layers) && e.cfg.Layers[layer].Color != "" {
 		return e.cfg.Layers[layer].Color

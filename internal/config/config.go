@@ -37,6 +37,9 @@ type Action struct {
 	Ms         int      `json:"ms,omitempty"`
 	Target     string   `json:"target,omitempty"`
 	Steps      []Action `json:"steps,omitempty"`
+	Else       []Action `json:"else,omitempty"`
+	Cond       string   `json:"cond,omitempty"`
+	Not        bool     `json:"not,omitempty"`
 	Confirm    bool     `json:"confirm,omitempty"`
 }
 
@@ -290,7 +293,8 @@ var (
 	mediaCmds  = set("playpause", "next", "prev", "volup", "voldown", "mute")
 	obsCmds    = set("scene", "scene_next", "scene_prev", "stream", "stream_start", "stream_stop", "record", "record_pause", "mute", "replay_save", "virtualcam", "studio", "studio_transition")
 	systemCmds = set("lock", "sleepdisplay", "sleep", "screensaver", "screenshot", "darkmode", "caffeinate")
-	actionSet  = set("app", "url", "shell", "ssh", "http", "hotkey", "text", "sequence", "media", "system", "timer", "layer", "hud", "wait", "open", "obs")
+	condKinds  = set("app", "layer", "time", "os", "obs_stream", "obs_record", "clipboard")
+	actionSet  = set("app", "url", "shell", "ssh", "http", "hotkey", "text", "sequence", "media", "system", "timer", "layer", "hud", "wait", "open", "obs", "if")
 )
 
 func set(xs ...string) map[string]bool {
@@ -396,19 +400,41 @@ func cleanAction(a Action, where string, depth int) (Action, error) {
 		if depth >= 1 {
 			return a, fmt.Errorf("%s: secuencias anidadas no permitidas", where)
 		}
-		if len(a.Steps) > 30 {
-			return a, fmt.Errorf("%s: máximo 30 pasos", where)
+		out.Steps, err = cleanSteps(a.Steps, where+".steps", depth+1)
+	case "if":
+		if depth >= 2 {
+			return a, fmt.Errorf("%s: condiciones anidadas no permitidas", where)
 		}
-		out.Steps = []Action{}
-		for i, s := range a.Steps {
-			c, e := cleanAction(s, fmt.Sprintf("%s.steps[%d]", where, i), depth+1)
-			if e != nil {
-				return a, e
-			}
-			out.Steps = append(out.Steps, c)
+		if !condKinds[a.Cond] {
+			return a, fmt.Errorf("%s: condición inválida", where)
+		}
+		out.Cond, out.Not = a.Cond, a.Not
+		out.Target = field(a.Target, "target", 200)
+		if err == nil {
+			out.Steps, err = cleanSteps(a.Steps, where+".steps", 2)
+		}
+		if err == nil {
+			out.Else, err = cleanSteps(a.Else, where+".else", 2)
 		}
 	}
 	return out, err
+}
+
+const MaxSteps = 100
+
+func cleanSteps(in []Action, where string, depth int) ([]Action, error) {
+	if len(in) > MaxSteps {
+		return nil, fmt.Errorf("%s: máximo %d pasos", where, MaxSteps)
+	}
+	out := make([]Action, 0, len(in))
+	for i, s := range in {
+		c, err := cleanAction(s, fmt.Sprintf("%s[%d]", where, i), depth)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, c)
+	}
+	return out, nil
 }
 
 func cleanKeys(keys map[string]KeyDef, where string) (map[string]KeyDef, error) {

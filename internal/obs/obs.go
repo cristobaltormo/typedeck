@@ -218,6 +218,24 @@ func Run(cfg Config, cmd, target string) (string, error) {
 	return "", fmt.Errorf("orden de OBS desconocida: %s", cmd)
 }
 
+func Active(cfg Config, what string) (bool, error) {
+	s, err := connect(cfg)
+	if err != nil {
+		return false, err
+	}
+	defer s.ws.Close()
+	req := "GetStreamStatus"
+	if what == "record" {
+		req = "GetRecordStatus"
+	}
+	r, err := s.call(req, nil)
+	if err != nil {
+		return false, err
+	}
+	on, _ := r["outputActive"].(bool)
+	return on, nil
+}
+
 func ignoreActive(err error) error {
 	var re *reqError
 	if errors.As(err, &re) && (re.Code == 500 || re.Code == 501) {

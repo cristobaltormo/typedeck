@@ -214,6 +214,8 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--a
 .console .tag { font-family: "Inter", sans-serif; font-size: 12.5px; font-weight: 600; display: flex; align-items: center; gap: 6px; margin-bottom: 3px; border: 0; padding: 0; line-height: 1.4; }
 .console.ok { border-color: color-mix(in srgb, var(--ok) 40%, transparent); } .console.bad { border-color: color-mix(in srgb, var(--bad) 45%, transparent); }
 .console.ok .tag { color: var(--ok); } .console.bad .tag { color: var(--bad); }
+.step .idx { font-size: 11.5px; color: var(--faint); min-width: 16px; text-align: right; font-variant-numeric: tabular-nums; }
+.step.wait { background: transparent; border-style: dashed; }
 .status .who small.live { color: var(--ok); }
 .steps { display: flex; flex-direction: column; gap: 8px; }
 .step { border: 1px solid var(--line-soft); border-radius: 9px; padding: 9px; background: var(--input); display: flex; flex-direction: column; gap: 9px; }

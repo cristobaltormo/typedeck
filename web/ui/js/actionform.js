@@ -6,9 +6,11 @@ import { field, textInput, area, select, toggle } from "./controls.js";
 import { state, edit, newAction } from "./store.js";
 import { TYPE_ICON } from "./keyboard.js";
 
-export const TYPES = ["app", "url", "shell", "ssh", "http", "hotkey", "text", "sequence", "media", "system", "obs", "timer", "layer", "hud"];
+export const TYPES = ["app", "url", "shell", "ssh", "http", "hotkey", "text", "sequence", "if", "media", "system", "obs", "timer", "layer", "hud"];
 const MEDIA = ["playpause", "next", "prev", "volup", "voldown", "mute"];
 const OBS_CMDS = ["scene", "scene_next", "scene_prev", "stream", "stream_start", "stream_stop", "record", "record_pause", "mute", "replay_save", "virtualcam", "studio", "studio_transition"];
+const CONDS = ["app", "layer", "time", "os", "obs_stream", "obs_record", "clipboard"];
+const MAX_STEPS = 100;
 const SYSTEM = ["screenshot", "lock", "screensaver", "sleepdisplay", "sleep", "darkmode", "caffeinate"];
 
 let dl;
@@ -64,26 +66,47 @@ export function actionFields(a, rerender, { gesture = "tap", inSeq = false } = {
     case "hud": list.push(text(t("f.hud_text"), "text", { placeholder: t("f.hud_ph") })); break;
     case "wait": list.push(textInput(t("f.ms"), a.ms, (v) => upd("f:ms", () => { a.ms = Math.max(0, parseInt(v, 10) || 0); }), { type: "number", min: 0, step: 100 })); break;
     case "sequence": list.push(sequenceEditor(a, rerender)); break;
+    case "if": list.push(ifEditor(a, rerender)); break;
   }
   return list;
 }
 
-function sequenceEditor(a, rerender) {
-  a.steps ||= [];
+function stepList(steps, rerender, types) {
   const box = h("div", { class: "steps" });
-  const types = [...TYPES.filter((x) => x !== "sequence"), "wait"];
-  a.steps.forEach((s, i) => {
-    const ctl = (name, fn, disabled) => h("button", { type: "button", class: "btn sm icon", "aria-label": t("seq." + name), title: t("seq." + name), disabled, onclick: fn }, ic(name === "up" ? "arrow-up" : name === "down" ? "arrow-down" : "trash", 15));
-    box.append(h("div", { class: "step" },
+  steps.forEach((s, i) => {
+    const ctl = (name, icon, fn, disabled) => h("button", { type: "button", class: "btn sm icon", "aria-label": t("seq." + name), title: t("seq." + name), disabled, onclick: fn }, ic(icon, 15));
+    box.append(h("div", { class: `step ${s.type === "wait" ? "wait" : ""}` },
       h("div", { class: "row", style: { gap: "6px" } },
-        h("div", { class: "grow" }, select("", s.type, types.map((x) => [x, t("type." + x)]), (v) => { edit("", () => { a.steps[i] = newAction(v); }); rerender(); })),
-        ctl("up", () => { edit("", () => { [a.steps[i - 1], a.steps[i]] = [a.steps[i], a.steps[i - 1]]; }); rerender(); }, i === 0),
-        ctl("down", () => { edit("", () => { [a.steps[i + 1], a.steps[i]] = [a.steps[i], a.steps[i + 1]]; }); rerender(); }, i === a.steps.length - 1),
-        ctl("del", () => { edit("", () => { a.steps.splice(i, 1); }); rerender(); })),
+        h("span", { class: "idx" }, String(i + 1)),
+        h("div", { class: "grow" }, select("", s.type, types.map((x) => [x, t("type." + x)]), (v) => { edit("", () => { steps[i] = newAction(v); }); rerender(); })),
+        ctl("up", "arrow-up", () => { edit("", () => { [steps[i - 1], steps[i]] = [steps[i], steps[i - 1]]; }); rerender(); }, i === 0),
+        ctl("down", "arrow-down", () => { edit("", () => { [steps[i + 1], steps[i]] = [steps[i], steps[i + 1]]; }); rerender(); }, i === steps.length - 1),
+        ctl("dup", "copy", () => { if (steps.length >= MAX_STEPS) return toast(t("seq.max"), "bad"); edit("", () => { steps.splice(i + 1, 0, JSON.parse(JSON.stringify(s))); }); rerender(); }),
+        ctl("del", "trash", () => { edit("", () => { steps.splice(i, 1); }); rerender(); })),
       ...actionFields(s, rerender, { inSeq: true })));
   });
-  const add = select("", "", [["", t("seq.add")], ...types.map((x) => [x, t("type." + x)])], (v) => { if (!v) return; if (a.steps.length >= 30) return toast(t("seq.max"), "bad"); edit("", () => { a.steps.push(newAction(v)); }); rerender(); });
-  return h("div", { class: "stack", style: { gap: "10px" } }, h("p", { class: "help" }, t("seq.help")), box, add);
+  const add = select("", "", [["", t("seq.add")], ...types.map((x) => [x, t("type." + x)])], (v) => { if (!v) return; if (steps.length >= MAX_STEPS) return toast(t("seq.max"), "bad"); edit("", () => { steps.push(newAction(v)); }); rerender(); });
+  return h("div", { class: "stack", style: { gap: "10px" } }, box, add);
+}
+
+function sequenceEditor(a, rerender) {
+  a.steps ||= [];
+  const types = [...TYPES.filter((x) => x !== "sequence"), "wait"];
+  return h("div", { class: "stack", style: { gap: "10px" } }, h("p", { class: "help" }, t("seq.help")), stepList(a.steps, rerender, types));
+}
+
+function ifEditor(a, rerender) {
+  a.steps ||= []; a.else ||= [];
+  const types = TYPES.filter((x) => x !== "sequence" && x !== "if").concat("wait");
+  const list = [];
+  list.push(select(t("cond.when"), a.cond, CONDS.map((c) => [c, t("cond." + c)]), (v) => { edit("", () => { a.cond = v; a.target = v === "os" ? "darwin" : ""; }); rerender(); }));
+  if (a.cond === "os") list.push(select(t("cond.value"), a.target || "darwin", [["darwin", "macOS"], ["windows", "Windows"], ["linux", "Linux"]], (v) => edit("", () => { a.target = v; })));
+  else if (!a.cond.startsWith("obs_")) list.push(textInput(t("cond.value"), a.target, (v) => edit("f:target", () => { a.target = v; }), { placeholder: t("cond.ph." + a.cond), help: t("cond.help." + a.cond) }));
+  else list.push(h("p", { class: "help" }, t("cond.obs_help")));
+  list.push(toggle(t("cond.invert"), !!a.not, (v) => edit("", () => { if (v) a.not = true; else delete a.not; }), t("cond.invert_sub")));
+  list.push(h("div", { class: "group" }, h("h3", {}, t("cond.then")), stepList(a.steps, rerender, types)));
+  list.push(h("div", { class: "group" }, h("h3", {}, t("cond.else")), stepList(a.else, rerender, types)));
+  return h("div", { class: "stack", style: { gap: "12px" } }, ...list);
 }
 
 let obsAsked = false;

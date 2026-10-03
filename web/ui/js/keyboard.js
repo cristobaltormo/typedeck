@@ -6,7 +6,7 @@ import { t } from "./i18n.js";
 export const hex = (u) => u.toString(16).toUpperCase().padStart(2, "0");
 
 export const TYPE_ICON = { app: "grid", url: "globe", shell: "terminal", ssh: "server", http: "cloud", hotkey: "command",
-  text: "type", sequence: "list", media: "play", system: "power", timer: "clock", layer: "layers", hud: "hud", wait: "wait", obs: "camera" };
+  text: "type", sequence: "list", media: "play", system: "power", timer: "clock", layer: "layers", hud: "hud", wait: "wait", obs: "camera", if: "sliders" };
 
 function missingApp(kd) {
   if (!state.appSet.size) return false;

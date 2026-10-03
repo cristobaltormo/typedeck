@@ -34,6 +34,8 @@ type Env interface {
 	ToggleCaffeinate() bool
 	StartTimer(minutes float64, label string)
 	Hardware() Hardware
+	Layer() int
+	LayerName() string
 }
 
 var consumerKeys = map[string]uint16{"playpause": 0xCD, "next": 0xB5, "prev": 0xB6, "mute": 0xE2, "volup": 0xE9, "voldown": 0xEA}
@@ -126,19 +128,86 @@ func dispatch(a config.Action, env Env, capture bool) (string, error) {
 		time.Sleep(time.Duration(a.Ms) * time.Millisecond)
 		return "", nil
 	case "sequence":
-		last := ""
-		for _, s := range a.Steps {
-			r := Execute(s, env, true)
-			if !r.OK {
-				return "", errors.New(r.Output)
-			}
-			if r.Output != "" {
-				last = r.Output
-			}
+		return runSteps(a.Steps, env)
+	case "if":
+		ok, err := condition(a, env)
+		if err != nil {
+			return "", err
 		}
-		return last, nil
+		if ok {
+			return runSteps(a.Steps, env)
+		}
+		return runSteps(a.Else, env)
 	}
 	return "", fmt.Errorf("acción desconocida: %s", a.Type)
+}
+
+func runSteps(steps []config.Action, env Env) (string, error) {
+	last := ""
+	for _, s := range steps {
+		r := Execute(s, env, true)
+		if !r.OK {
+			return "", errors.New(r.Output)
+		}
+		if r.Output != "" {
+			last = r.Output
+		}
+	}
+	return last, nil
+}
+
+func condition(a config.Action, env Env) (bool, error) {
+	v := strings.TrimSpace(Substitute(a.Target, false))
+	var ok bool
+	switch a.Cond {
+	case "app":
+		for _, n := range FrontNames("") {
+			if strings.Contains(strings.ToLower(n), strings.ToLower(v)) {
+				ok = true
+			}
+		}
+	case "layer":
+		cur := env.Layer()
+		n, err := strconv.Atoi(v)
+		ok = (err == nil && n == cur+1) || (err != nil && strings.EqualFold(v, env.LayerName()))
+	case "time":
+		ok = inTimeRange(v, time.Now())
+	case "os":
+		ok = strings.EqualFold(v, platform.Current.Name())
+	case "obs_stream", "obs_record":
+		c := env.Settings().OBS
+		active, err := obs.Active(obs.Config{Host: c.Host, Port: c.Port, Password: c.Password}, strings.TrimPrefix(a.Cond, "obs_"))
+		if err != nil {
+			return false, err
+		}
+		ok = active
+	case "clipboard":
+		ok = v != "" && strings.Contains(strings.ToLower(platform.Current.Clipboard()), strings.ToLower(v))
+	default:
+		return false, fmt.Errorf("condición desconocida: %s", a.Cond)
+	}
+	return ok != a.Not, nil
+}
+
+func inTimeRange(spec string, now time.Time) bool {
+	from, to, found := strings.Cut(spec, "-")
+	if !found {
+		return false
+	}
+	parse := func(s string) (int, bool) {
+		t, err := time.Parse("15:04", strings.TrimSpace(s))
+		return t.Hour()*60 + t.Minute(), err == nil
+	}
+	a, ok1 := parse(from)
+	b, ok2 := parse(to)
+	if !ok1 || !ok2 {
+		return false
+	}
+	cur := now.Hour()*60 + now.Minute()
+	if a <= b {
+		return cur >= a && cur < b
+	}
+	return cur >= a || cur < b
 }
 
 func appAction(a config.Action) error {
@@ -350,6 +419,8 @@ func Describe(a *config.Action) string {
 		return strconv.FormatFloat(a.Minutes, 'f', -1, 64) + " min"
 	case "sequence":
 		return fmt.Sprintf("%d pasos", len(a.Steps))
+	case "if":
+		return strings.TrimSpace(a.Cond + " " + cut(a.Target, 24))
 	}
 	return a.Type
 }

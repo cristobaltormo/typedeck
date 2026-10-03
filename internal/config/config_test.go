@@ -193,3 +193,35 @@ func TestOBSActionAndSettings(t *testing.T) {
 		t.Fatalf("acción válida alterada: %+v", a)
 	}
 }
+
+func TestConditionalAndSequenceLimits(t *testing.T) {
+	wrap := func(a Action) Config {
+		return Config{Layers: []Layer{{Name: "x", Keys: map[string]KeyDef{"04": {Tap: &a}}}}}
+	}
+	ok := Action{Type: "sequence", Steps: []Action{{Type: "if", Cond: "os", Target: "linux", Steps: []Action{{Type: "hud", Text: "a"}}, Else: []Action{{Type: "wait", Ms: 5}}}}}
+	c, err := Validate(wrap(ok))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := c.Layers[0].Keys["04"].Tap.Steps[0]; got.Cond != "os" || len(got.Else) != 1 {
+		t.Fatalf("la condición se perdió: %+v", got)
+	}
+	nested := Action{Type: "if", Cond: "os", Steps: []Action{{Type: "if", Cond: "os", Steps: []Action{{Type: "if", Cond: "os"}}}}}
+	if _, err := Validate(wrap(nested)); err == nil {
+		t.Error("tres condiciones anidadas aceptadas")
+	}
+	if _, err := Validate(wrap(Action{Type: "if", Cond: "nope"})); err == nil {
+		t.Error("condición desconocida aceptada")
+	}
+	long := Action{Type: "sequence"}
+	for i := 0; i < MaxSteps+1; i++ {
+		long.Steps = append(long.Steps, Action{Type: "wait", Ms: 1})
+	}
+	if _, err := Validate(wrap(long)); err == nil {
+		t.Error("secuencia demasiado larga aceptada")
+	}
+	long.Steps = long.Steps[:MaxSteps]
+	if _, err := Validate(wrap(long)); err != nil {
+		t.Errorf("secuencia de %d pasos rechazada: %v", MaxSteps, err)
+	}
+}

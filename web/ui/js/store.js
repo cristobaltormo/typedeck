@@ -106,6 +106,7 @@ export function newAction(type) {
     case "layer": return { ...base, to: "next" };
     case "hud": return { ...base, text: "" };
     case "wait": return { ...base, ms: 500 };
+    case "if": return { ...base, cond: "app", target: "", steps: [], else: [] };
     case "obs": return { ...base, cmd: "record", target: "" };
   }
   return base;
@@ -124,6 +125,7 @@ export function describe(a) {
     case "obs": return a.target ? `${t("obs." + a.cmd)}: ${a.target}` : t("obs." + a.cmd);
     case "timer": return `${a.minutes} min`;
     case "sequence": return `${(a.steps || []).length}`;
+    case "if": return `${a.not ? t("cond.not") + " " : ""}${t("cond." + a.cond)}${a.target ? " " + a.target : ""}`.slice(0, 40);
     default: return a.type;
   }
 }
