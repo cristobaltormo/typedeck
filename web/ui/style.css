@@ -366,8 +366,10 @@ ul.risk code { font-family: var(--mono); font-size: 12px; overflow: hidden; text
 .kb, .kb *, .layerbar, .side, .top, .dock-head, .stage .kbinfo, .previewbox, .chips { user-select: none; -webkit-user-select: none; }
 input, textarea, .console, .selectable, pre, code, .transcript { user-select: text; -webkit-user-select: text; }
 .cap img, .cap svg { -webkit-user-drag: none; }
-.cap[draggable="true"] { cursor: grab; }
-.cap.dragging { opacity: .35; cursor: grabbing; }
+.cap.movable { cursor: grab; touch-action: none; }
+.cap.dragging { opacity: .3; }
+body.dragging-key, body.dragging-key * { cursor: grabbing !important; }
+.cap.ghost { opacity: .92; box-shadow: 0 10px 24px rgb(0 0 0 / .4); transform: scale(1.06); }
 .cap.drop { outline: 2px dashed var(--accent); outline-offset: 2px; z-index: 3; }
 .pack .preview { flex-direction: column; align-items: stretch; gap: 10px; padding: 10px; }
 .previewbox { display: flex; flex-direction: column; gap: 10px; min-width: 0; }

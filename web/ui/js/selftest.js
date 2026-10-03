@@ -42,11 +42,19 @@ export async function run() {
     const sw = $$(".dock .group .swatch:not(.none):not(.custom)")[3]; sw.click(); await sleep(50);
     ok("key color", /^#/.test(state.cfg.layers[0].keys["04"].color || "") && $('.cap[data-u="4"]').classList.contains("colored"));
 
-    const drop = (from, to) => { const dt = new DataTransfer(); dt.setData("text/plain", String(from)); $(`.cap[data-u="${to}"]`).dispatchEvent(new DragEvent("drop", { dataTransfer: dt, bubbles: true, cancelable: true })); };
+    const centre = (u) => { const r = $(`.cap[data-u="${u}"]`).getBoundingClientRect(); return { clientX: r.left + r.width / 2, clientY: r.top + r.height / 2 }; };
+    const pointer = (type, target, pos) => target.dispatchEvent(new PointerEvent(type, { bubbles: true, cancelable: true, button: 0, pointerId: 1, ...pos }));
+    const drop = async (from, to) => {
+      const a = centre(from), b = centre(to), src = $(`.cap[data-u="${from}"]`);
+      pointer("pointerdown", src, a);
+      await sleep(20); pointer("pointermove", window, { clientX: a.clientX + 12, clientY: a.clientY + 4 });
+      await sleep(20); pointer("pointermove", window, b);
+      await sleep(20); pointer("pointerup", window, b);
+    };
     ok("the keyboard cannot be selected as text", getComputedStyle($(".kb")).userSelect === "none");
-    drop(4, 6); await sleep(80);
+    await drop(4, 6); await sleep(80);
     ok("dragging a macro to an empty key moves it", state.cfg.layers[0].keys["06"]?.tap?.app === "Safari" && !state.cfg.layers[0].keys["04"], Object.keys(state.cfg.layers[0].keys).join());
-    drop(6, 4); await sleep(80);
+    await drop(6, 4); await sleep(80);
     ok("dragging it back restores it", state.cfg.layers[0].keys["04"]?.tap?.app === "Safari" && !state.cfg.layers[0].keys["06"]);
     document.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true })); await sleep(50);
     ok("arrows move the selection by geometry", state.selKey !== "04", state.selKey);

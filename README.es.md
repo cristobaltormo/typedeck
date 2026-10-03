@@ -20,6 +20,10 @@ unos 0,13 ms dentro de la placa. Funciona en macOS, Linux y Windows, y sus prueb
 
 ![El editor de Typedeck con un teclado, capas y la acción de la tecla seleccionada](docs/images/editor.png)
 
+Mueve un macro a otra tecla arrastrándolo; con Alt se copia en vez de mover.
+
+![Arrastrando un macro a otra tecla](docs/images/drag.gif)
+
 ## Cómo se ve
 
 El editor se abre en el navegador, en tu propio ordenador. Elige una tecla en el dibujo de tu teclado real y dale una acción.

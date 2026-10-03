@@ -20,6 +20,10 @@ takes about 0.13 ms inside the board. It runs on macOS, Linux and Windows, and i
 
 ![The Typedeck editor with a keyboard, layers and the action of the selected key](docs/images/editor.png)
 
+Move a macro to another key by dragging it; Alt copies instead of moving.
+
+![Dragging a macro to another key](docs/images/drag.gif)
+
 ## What it looks like
 
 The editor opens in your browser, on your own computer. Pick a key on the drawing of your real keyboard and give it an action.

@@ -72,18 +72,43 @@ export function keyboard(layoutId, lang, getKd, opts = {}) {
       onclick: opts.onSelect && !k.mod ? () => opts.onSelect(k.usage) : undefined,
     }, heat !== undefined ? [h("span", { class: "lg tl" }, k.legend.icon ? ic(k.legend.icon, 12) : k.legend.main), h("span", { class: "count" }, opts.count?.(k.usage) || "")] : capContent(k, kd, { u, labels: opts.labels }));
     if (opts.onSelect && !k.mod) el.setAttribute("aria-pressed", String(opts.selected === k.usage));
-    if (opts.onMove && !k.mod) {
-      if (mapped && !inherited) {
-        el.draggable = true;
-        el.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", String(k.usage)); e.dataTransfer.effectAllowed = "copyMove"; el.classList.add("dragging"); });
-        el.addEventListener("dragend", () => { el.classList.remove("dragging"); for (const c of caps.values()) c.el.classList.remove("drop"); });
-      }
-      el.addEventListener("dragover", (e) => { if (e.dataTransfer.types.includes("text/plain")) { e.preventDefault(); e.dataTransfer.dropEffect = e.altKey ? "copy" : "move"; el.classList.add("drop"); } });
-      el.addEventListener("dragleave", () => el.classList.remove("drop"));
-      el.addEventListener("drop", (e) => {
-        e.preventDefault(); el.classList.remove("drop");
-        const from = parseInt(e.dataTransfer.getData("text/plain"), 10);
-        if (!Number.isNaN(from) && from !== k.usage) opts.onMove(from, k.usage, e.altKey);
+    if (opts.onMove && !k.mod && mapped && !inherited) {
+      el.classList.add("movable");
+      el.addEventListener("pointerdown", (e) => {
+        if (e.button !== 0) return;
+        const sx = e.clientX, sy = e.clientY;
+        let ghost = null, over = null;
+        const target = (ev) => { const c = document.elementFromPoint(ev.clientX, ev.clientY)?.closest?.(".cap"); return c && c !== el && wrap.contains(c) && !c.classList.contains("mod") ? c : null; };
+        const move = (ev) => {
+          if (!ghost) {
+            if (Math.hypot(ev.clientX - sx, ev.clientY - sy) < 6) return;
+            ghost = el.cloneNode(true);
+            ghost.classList.add("ghost");
+            Object.assign(ghost.style, { position: "fixed", pointerEvents: "none", width: el.offsetWidth + "px", height: el.offsetHeight + "px", zIndex: 60 });
+            document.body.append(ghost);
+            el.classList.add("dragging");
+            document.body.classList.add("dragging-key");
+          }
+          ghost.style.left = ev.clientX - el.offsetWidth / 2 + "px";
+          ghost.style.top = ev.clientY - el.offsetHeight / 2 + "px";
+          const t = target(ev);
+          if (over !== t) { over?.classList.remove("drop"); t?.classList.add("drop"); over = t; }
+        };
+        const up = (ev) => {
+          window.removeEventListener("pointermove", move);
+          if (!ghost) return;
+          const t = target(ev);
+          over?.classList.remove("drop");
+          ghost.remove();
+          el.classList.remove("dragging");
+          document.body.classList.remove("dragging-key");
+          const swallow = (c) => { c.stopImmediatePropagation(); c.preventDefault(); };
+          window.addEventListener("click", swallow, { capture: true, once: true });
+          setTimeout(() => window.removeEventListener("click", swallow, true), 0);
+          if (t) opts.onMove(k.usage, parseInt(t.dataset.u, 10), ev.altKey);
+        };
+        window.addEventListener("pointermove", move);
+        window.addEventListener("pointerup", up, { once: true });
       });
     }
     caps.set(k.usage, { el, k });
