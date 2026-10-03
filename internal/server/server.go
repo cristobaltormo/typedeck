@@ -26,6 +26,7 @@ import (
 	"github.com/cristobaltormo/typedeck/internal/board"
 	"github.com/cristobaltormo/typedeck/internal/config"
 	"github.com/cristobaltormo/typedeck/internal/engine"
+	"github.com/cristobaltormo/typedeck/internal/hid"
 	"github.com/cristobaltormo/typedeck/internal/kbdb"
 	"github.com/cristobaltormo/typedeck/internal/layouts"
 	"github.com/cristobaltormo/typedeck/internal/obs"
@@ -569,6 +570,10 @@ func (s *Server) history(w http.ResponseWriter, r *http.Request) {
 	if limit <= 0 || limit > 500 {
 		limit = 100
 	}
-	rep := s.eng.KeyLog().Report(limit, 2500, time.Now(), actions.TypingLayout(s.eng))
+	layout := actions.TypingLayout(s.eng)
+	if layout.Name == "none" {
+		layout = hid.LayoutByName("us")
+	}
+	rep := s.eng.KeyLog().Report(limit, 2500, time.Now(), layout)
 	writeJSON(w, 200, map[string]any{"enabled": s.eng.KeyLog().Enabled(), "count": rep.Summary.Total, "entries": rep.Entries, "summary": rep.Summary, "text": rep.Text})
 }

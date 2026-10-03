@@ -291,6 +291,7 @@ func TestHistoryEndpointsReadAndClear(t *testing.T) {
 	s, h := newSrv(t)
 	cfg := config.Default()
 	cfg.Settings.KeyHistory = true
+	cfg.Settings.TypingLayout = "auto"
 	s.eng.ApplyRestored(cfg)
 	now := time.Now()
 	s.eng.KeyLog().Press(0x04, now)
@@ -338,5 +339,21 @@ func TestExamplesAreValidPacks(t *testing.T) {
 		if rec.Code != 200 {
 			t.Errorf("%s: %d %s", f, rec.Code, rec.Body)
 		}
+	}
+}
+
+func TestHistoryTextFallsBackToUSWhenTheSystemLayoutIsUnknown(t *testing.T) {
+	s, h := newSrv(t)
+	cfg := config.Default()
+	cfg.Settings.KeyHistory = true
+	cfg.Settings.TypingLayout = "auto"
+	s.eng.ApplyRestored(cfg)
+	now := time.Now()
+	s.eng.KeyLog().Press(0x04, now)
+	s.eng.KeyLog().Release(0x04, now.Add(40*time.Millisecond))
+	var out struct{ Text string }
+	_ = json.Unmarshal(do(h, "GET", "/api/history", good, s.token, nil).Body.Bytes(), &out)
+	if strings.ToLower(out.Text) != "a" {
+		t.Fatalf("text %q", out.Text)
 	}
 }
