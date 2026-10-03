@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.7.1 - 2026-10-03
 
 ### Fixed
 - Dragging a macro to another key uses pointer events instead of the browser's drag and drop, which did not start on every browser.
