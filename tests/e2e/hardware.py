@@ -64,7 +64,7 @@ for p in packs:
     r = api("/api/packs/resolve", {"id": p["id"], "layout": "full-iso", "lang": "es"})
     if not r["layer"]["keys"] or r["dropped"] > len(p["macros"]) // 2:
         bad.append(p["id"])
-check(f"los {len(packs)} paquetes se colocan sobre tu teclado", not bad, bad)
+check(f"all {len(packs)} packs are laid out on your keyboard", not bad, bad)
 cfg0 = api("/api/config")
 r = api("/api/packs/resolve", {"id": "obs-discord", "layout": "full-iso", "lang": "es"})
 trial = json.loads(json.dumps(cfg0)); trial["layers"].append(r["layer"])
@@ -165,22 +165,24 @@ m = re.search(r"avg_us=(\d+) max_us=(\d+)", s)
 check("firmware internal latency under 2 ms on average", m and int(m.group(1)) < 2000, s)
 print("      latencia interna:", s)
 
-pid = subprocess.run(["pgrep", "-x", "typedeck"], capture_output=True, text=True).stdout.split()[0]
-os.kill(int(pid), signal.SIGSTOP)
-time.sleep(7)
-port = glob.glob("/dev/cu.usbmodem*")[0]
-fd = os.open(port, os.O_RDWR | os.O_NOCTTY)
-a = termios.tcgetattr(fd); a[4] = a[5] = termios.B115200; a[0] = a[1] = a[3] = 0; a[2] = termios.CS8 | termios.CREAD | termios.CLOCAL; termios.tcsetattr(fd, termios.TCSANOW, a)
-os.write(fd, b"STATS\n")
-out = b""; end = time.time() + 1.5
-while time.time() < end:
-    if select.select([fd], [], [], 0.1)[0]:
-        out += os.read(fd, 512)
-os.close(fd)
-os.kill(int(pid), signal.SIGCONT)
-check("without a heartbeat for 5 s the board stops capturing (fail-open)", b"capture=0" in out, out)
-time.sleep(2.5)
-check("when the program returns capture comes back", "capture=1" in raw("STATS")[0])
+REMOTE = bool(os.environ.get("TYPEDECK_REMOTE"))
+pid = None if REMOTE else subprocess.run(["pgrep", "-x", "typedeck"], capture_output=True, text=True).stdout.split()[0]
+os.kill(int(pid), signal.SIGSTOP) if pid else None
+if not REMOTE:
+    time.sleep(7)
+    port = glob.glob("/dev/cu.usbmodem*")[0]
+    fd = os.open(port, os.O_RDWR | os.O_NOCTTY)
+    a = termios.tcgetattr(fd); a[4] = a[5] = termios.B115200; a[0] = a[1] = a[3] = 0; a[2] = termios.CS8 | termios.CREAD | termios.CLOCAL; termios.tcsetattr(fd, termios.TCSANOW, a)
+    os.write(fd, b"STATS\n")
+    out = b""; end = time.time() + 1.5
+    while time.time() < end:
+        if select.select([fd], [], [], 0.1)[0]:
+            out += os.read(fd, 512)
+    os.close(fd)
+    os.kill(int(pid), signal.SIGCONT)
+    check("without a heartbeat for 5 s the board stops capturing (fail-open)", b"capture=0" in out, out)
+    time.sleep(2.5)
+    check("when the program returns capture comes back", "capture=1" in raw("STATS")[0])
 
 def front():
     asn = subprocess.run(["lsappinfo", "front"], capture_output=True, text=True).stdout.strip()
@@ -188,7 +190,7 @@ def front():
     m = re.match(r'\s*"([^"]+)"', out)
     return m.group(1) if m else ""
 
-if "--typing" in sys.argv:
+if "--typing" in sys.argv and not REMOTE:
     # Seguridad: solo se teclea si TextEdit esta delante; si no, se omite todo (nunca se escribe en otra app).
     prefs = ["NSAutomaticQuoteSubstitutionEnabled", "NSAutomaticDashSubstitutionEnabled", "NSAutomaticSpellingCorrectionEnabled",
              "NSAutomaticTextReplacementEnabled", "NSAutomaticCapitalizationEnabled", "NSAutomaticPeriodSubstitutionEnabled", "NSAutomaticTextCompletionEnabled"]

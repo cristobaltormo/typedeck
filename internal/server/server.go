@@ -413,7 +413,7 @@ func (s *Server) status(w http.ResponseWriter, r *http.Request) {
 	out := map[string]any{
 		"connected": connected, "port": port, "layer": st.Layer, "manual_layer": st.ManualLyr, "last": st.Last,
 		"last_ts": st.LastTS, "front": st.Front, "version": Version, "uptime": st.Uptime, "auto_active": st.AutoActive,
-		"last_id": st.LastID, "learning": st.Learning, "firmware": "", "keyboard_present": false, "board_error": s.brd.Error(), "app_name": app.Name, "editing": s.eng.Editing(),
+		"last_id": st.LastID, "learning": st.Learning, "firmware": "", "keyboard_present": false, "board_error": s.brd.Error(), "app_name": app.Name, "editing": s.eng.Editing(), "editors": s.hub.count(),
 	}
 	if connected {
 		out["connected_since"] = float64(since.Unix())

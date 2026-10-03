@@ -77,6 +77,18 @@ function scheduleSave() {
   }, 320);
 }
 
+export async function saveNow() {
+  clearTimeout(saveTimer);
+  state.save = "saving"; notify("save");
+  try {
+    await api("/api/config", { method: "POST", body: state.cfg });
+    state.save = "saved";
+  } catch (e) {
+    state.save = "error"; state.saveError = e.message;
+  }
+  notify("save");
+}
+
 export const settings = () => state.cfg.settings;
 export const layerCount = () => state.cfg.layers.length;
 export const keysOf = (scope = state.scope) => scope === "global" ? (state.cfg.global ||= {}) : (state.cfg.layers[scope].keys ||= {});

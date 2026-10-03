@@ -50,6 +50,7 @@ function connect() {
 
 function schedule() {
   retry = Math.min(retry + 1, 6);
+  if (retry >= 3) api("/api/status").catch((e) => { if (e.message === "token") location.reload(); });
   reconnectTimer = setTimeout(connect, Math.min(1000 * 2 ** (retry - 1), 15000));
 }
 

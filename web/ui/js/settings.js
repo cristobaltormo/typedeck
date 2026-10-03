@@ -3,7 +3,7 @@ import { api } from "./api.js";
 import { t, lang } from "./i18n.js";
 import { toast } from "./toast.js";
 import { toggle, seg, swatches, armed, select, textInput } from "./controls.js";
-import { state, edit, replaceConfig, settings } from "./store.js";
+import { state, edit, replaceConfig, settings, saveNow } from "./store.js";
 
 const section = (title, sub, ...rows) => h("section", { class: "section" }, h("h2", {}, title), sub ? h("p", { class: "sub" }, sub) : null, h("div", {}, rows));
 const setting = (what, control, sub) => h("div", { class: "setting" }, h("div", { class: "what" }, h("b", {}, what), sub ? h("small", {}, sub) : null), h("div", { class: "ctl" }, control));
@@ -42,7 +42,7 @@ export function settingsView(root) {
 
   root.append(h("div", { class: "page" }, h("header", {}, h("h1", {}, t("settings.title")), h("p", {}, t("settings.sub"))),
     section(t("settings.look"), null,
-      setting(t("settings.language"), seg([["es", "Español"], ["en", "English"]], s.language, (v) => { set(["language"], v); location.reload(); })),
+      setting(t("settings.language"), seg([["es", "Español"], ["en", "English"]], s.language, async (v) => { set(["language"], v); await saveNow(); location.reload(); })),
       setting(t("settings.theme"), seg([["auto", t("theme.auto")], ["dark", t("theme.dark")], ["light", t("theme.light")]], s.theme, (v) => set(["theme"], v))),
       setting(t("settings.accent"), swatches(s.accent, (v) => { if (v) set(["accent"], v); }, { allowNone: false })),
       setting(t("settings.density"), seg([["comfortable", t("density.comfortable")], ["compact", t("density.compact")]], s.density, (v) => set(["density"], v)))),

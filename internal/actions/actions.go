@@ -80,8 +80,11 @@ func dispatch(a config.Action, env Env, capture bool) (string, error) {
 		return "", appAction(a)
 	case "url":
 		u := Substitute(a.URL, false)
-		if EditorFocus != nil && isEditorURL(u) && EditorFocus() {
-			return "", nil
+		if EditorFocus != nil && isEditorURL(u) {
+			if EditorFocus() {
+				return "focused", nil
+			}
+			return "opened", platform.Current.OpenURL(u)
 		}
 		return "", platform.Current.OpenURL(u)
 	case "shell":

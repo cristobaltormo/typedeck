@@ -2,8 +2,10 @@
 """Manual tests on a REAL Windows machine with the board plugged in (not run in CI).
 Needs Typedeck running in the user session (typedeck install), the session unlocked, the editor reachable on 127.0.0.1:7788
 (for example ssh -L 7788:127.0.0.1:7788 windows) and tests/e2e/windows_fg.ps1 copied to WIN_FG_SCRIPT.
-Types into Notepad, and only when it is in front. Usage: windows_real.py typing|desktop"""
-import sys, re, json, time, os, urllib.request
+Types into Notepad, and only when it is in front. Usage: windows_real.py typing|desktop|focus|failopen
+focus needs Chrome open on the editor in the user session; failopen stops the program (over ssh, host alias WIN_HOST=windows) and reads the
+board straight from COM4 with tests/e2e/windows_failopen.ps1 copied to WIN_FAILOPEN_SCRIPT."""
+import sys, re, json, time, os, subprocess, urllib.request
 FG_SCRIPT = os.environ.get("WIN_FG_SCRIPT", r"C:\typedeck\fg.ps1")
 B="http://127.0.0.1:7788"
 T=re.search(r'name="token" content="([^"]+)"',urllib.request.urlopen(B+"/").read().decode()).group(1)
@@ -18,15 +20,15 @@ def run_typing():
     res = []
     def check(n, c, x=""): res.append(bool(c)); print(("PASS  " if c else "FAIL  ") + n + (f"   [{x}]" if x and not c else ""), flush=True)
     cfg = api("/api/config"); cfg["settings"]["typing_layout"] = "auto"; cfg["settings"]["input"] = "auto"; api("/api/config", cfg)
-    check("the board is connected en COM4", api("/api/status")["connected"])
+    check("the board is connected on COM4", api("/api/status")["connected"])
     print("layout:", api("/api/setup")["host"]["typing_layout"])
-    r = api("/api/test", {"type": "app", "app": "notepad", "mode": "open"}); print("abrir notepad:", r)
+    r = api("/api/test", {"type": "app", "app": "notepad", "mode": "open"}); print("open notepad:", r)
     for _ in range(20):
         time.sleep(0.7)
         sh('powershell -NoProfile -Command "$w=New-Object -ComObject WScript.Shell; $w.SendKeys(\'%\'); Start-Sleep -Milliseconds 200; $w.AppActivate(\'Bloc de notas\')"')
         if "notepad" in front(): break
     f = front(); check("Notepad is in front (needed to type)", "notepad" in f, f)
-    if "notepad" not in f: raise SystemExit("aborto: no escribo si no esta delante")
+    if "notepad" not in f: raise SystemExit("abort: not typing unless Notepad is in front")
     def hk(k): return api("/api/test", {"type": "hotkey", "keys": k})
     def clip():
         return sh('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-Clipboard -Raw"')["output"]
@@ -36,7 +38,7 @@ def run_typing():
         hk("ctrl+a"); hk("ctrl+c"); time.sleep(0.5)
         return clip().replace("\r\n", "\n").rstrip("\n")
     for t in ["Hola mundo 123", "Hola, ¿qué tal? Ñandú ñ ç", "@#{}[]\\|~ <> - _ ; : . , ' \" !", "á é í ó ú ü Á É", "ABC def GHI", "€ ¬ º ª", "` ^ ´ ¨ ~n ^a", "Línea con ~/tmp y C:\\Users\\x"]:
-        got = typed(t); check(f"escribir por la placa: {t!r}", got == t, repr(got))
+        got = typed(t); check(f"typing through the board: {t!r}", got == t, repr(got))
     hk("ctrl+a"); hk("backspace")
     api("/api/test", {"type": "text", "text": "x"}); hk("ctrl+a"); hk("ctrl+x")
     check("ctrl+x shortcut through the board (cmd=ctrl does not apply: ctrl is used)", clip().strip() == "x")
@@ -75,7 +77,7 @@ def run_desktop():
             time.sleep(0.8); activate_proc("Notepad")
             if "notepad" in front(): break
         check("open notepad and keep it in front", r["ok"] and "notepad" in front(), (r, front()))
-        if "notepad" not in front(): raise SystemExit("aborto: no escribo si Notepad no esta delante")
+        if "notepad" not in front(): raise SystemExit("abort: not typing unless Notepad is in front")
         c2 = api("/api/config"); c2["settings"]["input"] = "software"; api("/api/config", c2)
         hk("ctrl+a"); hk("backspace"); time.sleep(0.3)
         api("/api/test", {"type": "text", "text": "Hola ñ @ € por software"}); time.sleep(0.8)
@@ -97,5 +99,38 @@ def run_desktop():
         sh("taskkill /F /IM notepad.exe"); api("/api/config", orig)
     print(f"\n{sum(res)}/{len(res)}")
 
+def run_focus():
+    sh = lambda c: api("/api/test", {"type": "shell", "cmd": c, "show_output": True})["output"].strip()
+    fg = "powershell -NoProfile -ExecutionPolicy Bypass -File " + FG_SCRIPT
+    res = []
+    def check(n, c, x=""): res.append(bool(c)); print(("PASS  " if c else "FAIL  ") + n + (f"   [{x}]" if x and not c else ""), flush=True)
+    check("an editor tab is connected over the WebSocket", api("/api/status").get("editors", 0) >= 1, api("/api/status").get("editors"))
+    api("/api/test", {"type": "app", "app": "notepad", "mode": "open"})
+    for _ in range(10):
+        time.sleep(0.6)
+        sh('powershell -NoProfile -Command "$w=New-Object -ComObject WScript.Shell; $w.SendKeys(\'%\'); Start-Sleep -Milliseconds 200; $w.AppActivate(\'Bloc de notas\')"')
+        if "notepad" in sh(fg).lower(): break
+    check("Notepad is in front", "notepad" in sh(fg).lower())
+    r = api("/api/test", {"type": "url", "url": "{editor}"})
+    time.sleep(1)
+    check("the key that opens the editor focuses the open tab instead of opening another", r["ok"] and r["output"] == "focused", r)
+    check("the browser is now in front", "chrome" in sh(fg).lower() or "msedge" in sh(fg).lower(), sh(fg))
+    sh("taskkill /F /IM notepad.exe")
+    print(f"\n{sum(res)}/{len(res)}")
+
+def run_failopen():
+    host = os.environ.get("WIN_HOST", "windows")
+    script = os.environ.get("WIN_FAILOPEN_SCRIPT", r"C:\typedeck\failopen.ps1")
+    ssh = lambda c: subprocess.run(["ssh", host, c], capture_output=True, text=True).stdout
+    res = []
+    def check(n, c, x=""): res.append(bool(c)); print(("PASS  " if c else "FAIL  ") + n + (f"   [{x}]" if x and not c else ""), flush=True)
+    ssh("taskkill /F /IM typedeck.exe")
+    time.sleep(8)
+    out = ssh("powershell -NoProfile -ExecutionPolicy Bypass -File " + script)
+    check("without a heartbeat for 5 s the board stops capturing (fail-open)", "capture=0" in out, out)
+    ssh("schtasks /Run /TN Typedeck")
+    time.sleep(6)
+    print(f"\n{sum(res)}/{len(res)}")
+
 if __name__ == "__main__":
-    {"typing": run_typing, "desktop": run_desktop}[sys.argv[1]]()
+    {"typing": run_typing, "desktop": run_desktop, "focus": run_focus, "failopen": run_failopen}[sys.argv[1]]()
