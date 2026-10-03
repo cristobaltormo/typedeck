@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 330" role="img" aria-labelledby="t d">
+  <title id="t">Typedeck architecture</title>
+  <desc id="d">A USB keyboard goes into a USB Host Shield on an Arduino Leonardo, which plugs into the computer. The Leonardo talks over serial to the Typedeck program, which serves the editor in the browser.</desc>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0L10 5L0 10z" fill="#64748b"/>
+    </marker>
+    <style>
+      .box { fill: #f8fafc; stroke: #94a3b8; stroke-width: 1.5; }
+      .hot { fill: #eff6ff; stroke: #2563eb; stroke-width: 1.8; }
+      .t { font: 600 15px Inter, system-ui, sans-serif; fill: #0f172a; text-anchor: middle; }
+      .s { font: 400 12.5px Inter, system-ui, sans-serif; fill: #475569; text-anchor: middle; }
+      .l { font: 400 12px Inter, system-ui, sans-serif; fill: #64748b; text-anchor: middle; }
+      .line { stroke: #64748b; stroke-width: 1.6; fill: none; marker-end: url(#a); }
+    </style>
+  </defs>
+  <rect x="20" y="40" width="180" height="84" rx="12" class="box"/>
+  <text x="110" y="76" class="t">USB keyboard</text>
+  <text x="110" y="98" class="s">the one you already own</text>
+
+  <rect x="260" y="40" width="180" height="84" rx="12" class="box"/>
+  <text x="350" y="76" class="t">USB Host Shield</text>
+  <text x="350" y="98" class="s">MAX3421E</text>
+
+  <rect x="500" y="40" width="200" height="84" rx="12" class="hot"/>
+  <text x="600" y="76" class="t">Arduino Leonardo</text>
+  <text x="600" y="98" class="s">forwards keys, captures macro keys</text>
+
+  <rect x="760" y="40" width="180" height="84" rx="12" class="box"/>
+  <text x="850" y="76" class="t">Your computer</text>
+  <text x="850" y="98" class="s">sees a normal USB keyboard</text>
+
+  <path d="M200 82H256" class="line"/>
+  <path d="M440 82H496" class="line"/>
+  <path d="M700 82H756" class="line"/>
+
+  <rect x="470" y="200" width="260" height="92" rx="12" class="hot"/>
+  <text x="600" y="236" class="t">typedeck (Go)</text>
+  <text x="600" y="258" class="s">gestures, layers, actions, API</text>
+  <text x="600" y="276" class="s">one static binary, about 11 MB</text>
+
+  <rect x="780" y="200" width="160" height="92" rx="12" class="box"/>
+  <text x="860" y="236" class="t">Editor</text>
+  <text x="860" y="258" class="s">in your browser</text>
+  <text x="860" y="276" class="s">127.0.0.1:7788</text>
+
+  <path d="M590 128V196" class="line"/>
+  <path d="M610 196V132" class="line"/>
+  <text x="520" y="168" class="l">macro keys</text>
+  <text x="682" y="168" class="l">commands</text>
+  <path d="M734 246H776" class="line"/>
+  <path d="M776 262H738" class="line"/>
+
+  <rect x="20" y="200" width="400" height="92" rx="12" fill="none" stroke="#cbd5e1" stroke-dasharray="5 5"/>
+  <text x="220" y="236" class="t">Without the program</text>
+  <text x="220" y="258" class="s">the board keeps forwarding every key by itself,</text>
+  <text x="220" y="276" class="s">so typing never depends on Typedeck</text>
+</svg>

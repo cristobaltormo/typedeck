@@ -237,7 +237,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--a
 .setting .ctl { min-width: 0; }
 .rowlist { display: flex; flex-direction: column; }
 .li { display: flex; align-items: center; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--line-soft); font-size: 13.5px; }
-.li time { color: var(--faint); font-variant-numeric: tabular-nums; font-size: 12.5px; width: 64px; flex: none; }
+.li time { color: var(--faint); font-variant-numeric: tabular-nums; font-size: 12.5px; min-width: 64px; white-space: nowrap; flex: none; }
 .li .ms { color: var(--faint); font-size: 12.5px; font-variant-numeric: tabular-nums; }
 .li .res { width: 7px; height: 7px; border-radius: 50%; flex: none; background: var(--ok); } .li .res.bad { background: var(--bad); }
 .kv { display: grid; grid-template-columns: 190px 1fr; gap: 9px 20px; font-size: 13.5px; }

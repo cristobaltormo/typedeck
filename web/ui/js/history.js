@@ -13,7 +13,7 @@ const day = (ms) => new Date(ms).toLocaleDateString(lang(), { weekday: "short", 
 function label(u, fallback) {
   const l = legend(u, legendLang());
   if (l?.icon) return `${t("key.arrow")} ${t("arrow." + l.icon)}`;
-  return l?.main || fallback;
+  return (l?.main || "").trim() || fallback;
 }
 
 const keycap = (u, k) => h("span", { class: "keycap" }, label(u, k));
