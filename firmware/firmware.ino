@@ -7,8 +7,10 @@
 
 #include <avr/wdt.h>
 #include <EEPROM.h>
-#define FW_VERSION "14"
+#define FW_VERSION "15"
 #define HB_TIMEOUT_MS 5000UL
+#define HOLD_MAX_MS 8000UL
+#define HOLD_SLOTS 4
 
 USB Usb;
 USBHub Hub(&Usb);
@@ -17,6 +19,7 @@ uint8_t capMask[32];
 uint8_t prevDown[6]; uint8_t prevN = 0;
 uint8_t physMods = 0, physKeys[6];
 uint8_t injMods = 0, injKeys[6]; uint8_t injN = 0;
+uint8_t holdKeys[HOLD_SLOTS]; unsigned long holdUntil[HOLD_SLOTS];
 unsigned long lastHb = 0;
 bool debugRaw = false, watch = false;
 uint8_t lastRaw[6];
@@ -60,6 +63,12 @@ void sendReport() {
     bool dup = false;
     for (uint8_t j = 0; j < n; j++) if (out[j] == injKeys[i]) dup = true;
     if (!dup) out[n++] = injKeys[i];
+  }
+  for (uint8_t i = 0; i < HOLD_SLOTS && n < 6; i++) {
+    if (!holdKeys[i]) continue;
+    bool dup = false;
+    for (uint8_t j = 0; j < n; j++) if (out[j] == holdKeys[i]) dup = true;
+    if (!dup) out[n++] = holdKeys[i];
   }
   BootKeyboard._keyReport.modifiers = physMods | injMods;
   for (uint8_t i = 0; i < 6; i++) BootKeyboard._keyReport.keycodes[i] = (KeyboardKeycode)out[i];
@@ -285,6 +294,38 @@ void tapKey(uint8_t mods, uint8_t usage, uint16_t holdMs) {
   sendReport(); delay(5);
 }
 
+// HOLD keeps a key down until RELEASE. Each HOLD (re)arms an 8 s deadline, and the key is also let go when the heartbeat stops, so
+// a crashed host cannot leave a key stuck. Separate from injKeys because tapKey clears those.
+static bool holdActive() { for (uint8_t i = 0; i < HOLD_SLOTS; i++) if (holdKeys[i]) return true; return false; }
+
+static bool holdKey(uint8_t usage) {
+  int8_t slot = -1;
+  for (uint8_t i = 0; i < HOLD_SLOTS; i++) {
+    if (holdKeys[i] == usage) { slot = i; break; }
+    if (slot < 0 && !holdKeys[i]) slot = i;
+  }
+  if (slot < 0) return false;
+  holdKeys[slot] = usage; holdUntil[slot] = millis() + HOLD_MAX_MS;
+  sendReport();
+  return true;
+}
+
+static void releaseKey(uint8_t usage) {
+  bool changed = false;
+  for (uint8_t i = 0; i < HOLD_SLOTS; i++) if (holdKeys[i] && (!usage || holdKeys[i] == usage)) { holdKeys[i] = 0; changed = true; }
+  if (changed) sendReport();
+}
+
+static void expireHolds() {
+  if (!holdActive()) return;
+  bool hb = capActive();
+  unsigned long now = millis();
+  bool changed = false;
+  for (uint8_t i = 0; i < HOLD_SLOTS; i++)
+    if (holdKeys[i] && (!hb || (long)(now - holdUntil[i]) >= 0)) { holdKeys[i] = 0; changed = true; }
+  if (changed) sendReport();
+}
+
 void bootloaderReset();
 
 void handle(char *cmd) {
@@ -304,6 +345,18 @@ void handle(char *cmd) {
     uint16_t ms = 0;
     while (*p >= '0' && *p <= '9') ms = ms * 10 + (*p++ - '0');
     tapKey(m, u, ms < 7 ? 7 : ms > 400 ? 400 : ms); Serial.println(F("OK")); return; }
+  if (!strncmp(cmd, "HOLD ", 5)) {
+    p += 5; uint8_t u = parseHex(p);
+    if (u < 4) { Serial.println(F("ERR usage")); return; }
+    if (!capActive()) { Serial.println(F("ERR nohb")); return; }
+    Serial.println(holdKey(u) ? F("OK") : F("ERR full")); return;
+  }
+  if (!strncmp(cmd, "RELEASE", 7)) { p += 7; releaseKey(parseHex(p)); Serial.println(F("OK")); return; }
+  if (!strcmp(cmd, "HELD")) {
+    Serial.print(F("HELD"));
+    for (uint8_t i = 0; i < HOLD_SLOTS; i++) if (holdKeys[i]) { Serial.write(' '); hex2(holdKeys[i]); }
+    Serial.println(); return;
+  }
   if (!strncmp(cmd, "CONS ", 5)) { p += 5; uint16_t u = parseHex(p); Consumer.write((ConsumerKeycode)u); Serial.println(F("OK")); return; }
   if (!strcmp(cmd, "INFO")) { cmdInfo(); return; }
   if (!strncmp(cmd, "RDESC ", 6)) { p += 6; uint8_t i = atoi(p); while (*p && *p != ' ') p++; cmdRdesc(i, atoi(p)); return; }
@@ -386,6 +439,7 @@ void setup() {
 
 void loop() {
   Usb.Task();
+  expireHolds();
 
   bool running = Usb.getUsbTaskState() == USB_STATE_RUNNING;
   if (dark) { DDRB &= ~_BV(0); DDRD &= ~_BV(5); }  // RX (PB0) and TX (PD5) LEDs as inputs: the USB core keeps toggling them

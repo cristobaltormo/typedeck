@@ -1,14 +1,17 @@
-# Serial protocol (firmware 10)
+# Serial protocol (firmware 15)
 
 115200 baud, one command per line (`\n`). The firmware answers with one line, except `INFO` and `RDESC`, which end in `END`.
 Events can arrive at any time.
 
 | Command | Reply | Description |
 |---|---|---|
-| `WHO` | `TYPEDECK-FW 10` | Identification. Typedeck finds the board with it |
+| `WHO` | `TYPEDECK-FW 15` | Identification. Typedeck finds the board with it |
 | `HB` | none | Heartbeat. With none for 5 s the board stops capturing |
 | `MASK <64 hex>` | `OK` | 256 bits: bit n captures HID usage n |
 | `KEY <mods> <usage> [ms]` | `OK` | Tap a key, holding it `ms` milliseconds (decimal, 7 to 400, default 7; macOS ignores a Caps Lock press that short). `mods` in hex: 01 Ctrl, 02 Shift, 04 Alt, 08 GUI, 40 right Alt (Alt Gr) |
+| `HOLD <usage>` | `OK`, `ERR nohb` or `ERR full` | Keeps a key down until `RELEASE`, for presses longer than the 400 ms of `KEY`. Up to 4 keys. Every `HOLD` arms an 8 s deadline (send it again to extend); the key is also released when the heartbeat stops, so a crashed host cannot leave a key stuck. Needs a live heartbeat |
+| `RELEASE [usage]` | `OK` | Lets go of one held key, or of all of them without an argument |
+| `HELD` | `HELD [usage ...]` | The keys currently held |
 | `CONS <usage>` | `OK` | Tap a media key (consumer page) |
 | `INFO` | `vid=... pid=... mfr="..." prod="..." ...` then `END` | Details of the connected keyboard |
 | `RDESC <iface> <len>` | hex dump then `END` | HID report descriptor of an interface |

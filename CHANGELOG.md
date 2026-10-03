@@ -3,6 +3,8 @@
 ## Unreleased
 
 ### Added
+- Firmware 15: `HOLD <usage>` and `RELEASE [usage]` keep a key down for longer than `KEY` allows (8 s deadline, re-armed by each `HOLD`, released when
+  the heartbeat stops), and `HELD` lists what is held. Re-flash with `scripts/flash.sh`; nothing else changes.
 - Every release attaches the compiled firmware (`typedeck-firmware-<number>.hex`, with its checksum and attestation), and
   `docs/HARDWARE.md` explains how to flash it with `arduino-cli` on Windows, Linux and macOS, with no Mac and nothing to compile.
 - The release workflow signs the Windows binaries through SignPath when the repository variable `SIGNPATH_ORGANIZATION_ID` and the secret
