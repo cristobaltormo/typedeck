@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.7.0 - 2026-10-03
 
 ### Added
 - Drag a macro from one key to another in the editor: onto an empty key it moves, onto a key with a macro the two swap, and holding Alt (Option) copies.
