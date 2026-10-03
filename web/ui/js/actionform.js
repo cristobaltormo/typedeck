@@ -5,6 +5,8 @@ import { toast } from "./toast.js";
 import { field, textInput, area, select, toggle } from "./controls.js";
 import { state, edit, newAction } from "./store.js";
 import { TYPE_ICON } from "./keyboard.js";
+import { createRecorder, describeStep } from "./recorder.js";
+import { holdEditing } from "./live.js";
 
 export const TYPES = ["app", "url", "shell", "ssh", "http", "hotkey", "text", "sequence", "if", "media", "system", "obs", "timer", "layer", "hud"];
 const MEDIA = ["playpause", "next", "prev", "volup", "voldown", "mute"];
@@ -92,7 +94,54 @@ function stepList(steps, rerender, types) {
 function sequenceEditor(a, rerender) {
   a.steps ||= [];
   const types = [...TYPES.filter((x) => x !== "sequence"), "wait"];
-  return h("div", { class: "stack", style: { gap: "10px" } }, h("p", { class: "help" }, t("seq.help")), stepList(a.steps, rerender, types));
+  return h("div", { class: "stack", style: { gap: "10px" } }, h("p", { class: "help" }, t("seq.help")), recorderBar(a, rerender), stepList(a.steps, rerender, types));
+}
+
+function recorderBar(a, rerender) {
+  const host = h("div", { class: "recorder" });
+  let rec = null, onKey = null, timings = true;
+
+  function draw() {
+    host.replaceChildren();
+    if (!rec) {
+      host.append(h("button", { type: "button", class: "btn sm", onclick: start }, ic("record", 15), t("rec.start")),
+        h("span", { class: "faint" }, t("rec.hint")));
+      return;
+    }
+    const last = rec.steps.slice(-6);
+    host.append(h("div", { class: "rec-live", role: "status" },
+      h("div", { class: "row", style: { gap: "8px" } }, h("span", { class: "rec-dot" }), h("b", {}, t("rec.running")), h("span", { class: "faint" }, t("rec.count", { n: rec.steps.length }))),
+      h("div", { class: "rec-steps" }, last.length ? last.map((s) => h("span", { class: `tag ${s.type}` }, describeStep(s))) : h("span", { class: "faint" }, t("rec.empty"))),
+      rec.full ? h("p", { class: "help bad" }, t("seq.max")) : null,
+      toggle(t("rec.timings"), timings, (v) => { timings = v; rec.setTimings(v); }, t("rec.timings_sub")),
+      h("div", { class: "row", style: { gap: "8px" } },
+        h("button", { type: "button", class: "btn sm primary", onclick: () => stop(true) }, ic("check", 15), t("rec.save")),
+        h("button", { type: "button", class: "btn sm", onclick: () => stop(false) }, t("common.cancel")))));
+  }
+
+  function start() {
+    rec = createRecorder({ timings, max: Math.max(0, MAX_STEPS - a.steps.length) });
+    holdEditing(true);
+    onKey = (e) => {
+      if (e.target.closest?.(".recorder button, .recorder input, .recorder label")) return;
+      e.preventDefault(); e.stopPropagation();
+      if (rec.key(e)) draw();
+    };
+    window.addEventListener("keydown", onKey, true);
+    draw();
+  }
+
+  function stop(save) {
+    window.removeEventListener("keydown", onKey, true);
+    holdEditing(false);
+    const steps = rec.steps;
+    rec = null;
+    if (save && steps.length) { edit("", () => { a.steps.push(...steps); }); toast(t("rec.saved", { n: steps.length })); rerender(); return; }
+    draw();
+  }
+
+  draw();
+  return host;
 }
 
 function ifEditor(a, rerender) {
