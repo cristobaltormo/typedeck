@@ -655,9 +655,9 @@ func (*linux) Doctor() []Check {
 		{have("xdg-open"), "xdg-open available (links and files)", "xdg-open is missing: install xdg-utils to open links"},
 		{have("notify-send"), "notify-send available (popups)", "notify-send is missing: install libnotify-bin to see the popups"},
 		{front().id != "", "the front application can be read (per-application layers)",
-			"the active window cannot be read: per-application layers need X11 with xprop, Sway or Hyprland (GNOME and KDE on Wayland do not allow it)"},
+			"optional: the active window cannot be read, so per-application layers are unavailable (they need X11 with xprop, Sway or Hyprland; GNOME and KDE on Wayland do not allow it)"},
 		{(!wayland() && have("xdotool")) || have("wtype"), "software keys available (xdotool or wtype)",
-			"without xdotool or wtype, software keys do not work; they are not needed with the board connected"},
+			"optional: without xdotool or wtype, software keys do not work; they are not needed with the board connected"},
 	}
 	acm, _ := filepath.Glob("/dev/ttyACM*")
 	switch {

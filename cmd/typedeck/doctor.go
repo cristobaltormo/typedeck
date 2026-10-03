@@ -22,6 +22,8 @@ func doctor() int {
 	check := func(ok bool, okMsg, badMsg string) {
 		if ok {
 			fmt.Println("  ok      ", okMsg)
+		} else if note, found := strings.CutPrefix(badMsg, "optional: "); found {
+			fmt.Println("  note    ", note)
 		} else {
 			fmt.Println("  FAIL    ", badMsg)
 			bad++
