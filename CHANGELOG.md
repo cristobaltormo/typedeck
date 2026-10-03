@@ -19,7 +19,14 @@
 - An optional typing history, off by default: key, time and duration of each press, kept in `keystrokes.jsonl` in the configuration folder
   (mode 0600, capped at 4 MB, nothing leaves the computer), with its own History page in the menu: a switch, totals, most used keys, the latest presses (live, filterable) and a delete-all button.
 
+- The typing history deletes the oldest entries on its own (1, 7, 30, 90 or 365 days, 30 by default), has its own page with what you type shown live as text, and
+  a new action turns it on or off from a key.
+- Community files for GitHub (security policy, code of conduct, issue and pull request templates, Dependabot, CodeQL), examples, screenshots,
+  a macro guide, an FAQ and performance notes, and CI jobs for the editor self test, the firmware build and the generated files.
+
 ### Changed
+- English is the default language of the program and the editor; a language already chosen is kept. Errors, logs, the doctor and help output,
+  the tests and the diagnostic fields of the serial protocol (firmware 13) are in English too.
 - The macOS service runs at interactive instead of background priority: opening the editor from its key takes about 150 ms instead of
   over 500, and every action that starts a program is faster.
 

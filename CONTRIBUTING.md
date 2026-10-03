@@ -8,9 +8,11 @@ Go 1.24 or newer, and nothing else for the program: it has no dependencies. Ardu
 USB Host Shield Library 2.0 are needed to build the firmware.
 
 ```sh
-make check      # gofmt, go vet for the three systems, race-tested unit tests
+make check      # gofmt, go vet for the three systems, race-tested unit tests, editor module tests
 make e2e-linux  # end to end on Linux with a simulated board
+make selftest   # the editor in a headless Chromium (needs Chromium or Chrome)
 make dist       # six binaries with SHA256 sums
+make screenshots  # regenerate docs/images
 ```
 
 ## Rules
@@ -22,3 +24,10 @@ make dist       # six binaries with SHA256 sums
 - `internal/packs/packs.json` and `docs/COMPATIBILITY.md` are generated; edit their sources and run the scripts.
 - Tests that need hardware are in `tests/e2e/` and are not part of CI; say what you ran in the pull request.
 - Commit messages in English, imperative, with a body when the reason is not obvious.
+
+## Releasing
+
+1. Move the Unreleased section of `CHANGELOG.md` under a new `## X.Y.Z - date` heading.
+2. Commit, then `git tag -s vX.Y.Z -m "Release X.Y.Z"` and push the tag.
+3. The Release workflow tests, builds the six binaries with checksums and a provenance attestation, and publishes them with the
+   section of the changelog as the notes.

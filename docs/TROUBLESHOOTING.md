@@ -35,6 +35,12 @@ running, whether the board and the keyboard are seen.
 Windows 11 with Smart App Control on blocks unsigned programs ("blocked by your organisation's Device Guard policy"). Turn it off
 (Windows Security, App and browser control) or build the program yourself; turning it off cannot be undone without reinstalling.
 
+## The key that opens the editor opens another tab
+
+It focuses the tab that is already open when it can find it: Chromium browsers and Safari on macOS (the first time, macOS asks
+whether Typedeck may control the browser: allow it), Hyprland, Sway and X11 on Linux, and any window titled "Typedeck" on Windows.
+Otherwise it opens the page as before.
+
 ## Per-application layers do nothing
 
 They need to know which window is in front: macOS, Windows, X11 (`xprop` or `xdotool`), Sway and Hyprland. GNOME and KDE on Wayland

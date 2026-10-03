@@ -35,7 +35,8 @@ Typing normally never depends on Typedeck: the board forwards the keyboard on it
 | `internal/packs` | Gallery packs, laid out on the keys the keyboard really has, adapted per OS |
 | `internal/config` | Schema v3, migration from v1 and v2, validation, backups and recovery |
 | `internal/hid` | USB key tables, text layouts (US, Spanish for macOS, Linux and Windows) and a report descriptor parser |
-| `internal/server` | Loopback HTTP server: static editor and JSON API, long-poll events |
+| `internal/server` | Loopback HTTP server: static editor and JSON API, a WebSocket for live events, the editing flag and macro file review |
+| `internal/keylog` | The optional typing history: key, time and duration in a local file, retention, summary and the text rebuilt from the presses |
 
 ## How the layout is decided
 
@@ -61,6 +62,13 @@ Enter instead of `0x32`; that is accounted for.
 
 Tap runs on key down when there is no hold or double; with hold, on release before the threshold; with double, after the double
 tap window. A `layer` action with `momentary` activates the layer while the key is held.
+
+## The live connection
+
+The editor opens a WebSocket (`/api/ws`) that carries events, key presses for the on-screen keyboard and one message back: whether
+a text field of the editor has focus. While it does, the program releases the capture mask, so typing the letter of a key that has a
+macro types it instead of running the macro; the mask comes back when the field loses focus, when the window does, or when the
+connection closes. The board reports every other key (`KEYS 1`) only while an editor is connected or the history is on.
 
 ## Typing through the board
 
