@@ -19,7 +19,7 @@ dist:                 ## build for macOS, Linux and Windows (dist/typedeck-<os>-
 NFPM ?= nfpm
 PKGVERSION = $(patsubst v%,%,$(VERSION))
 
-archives: dist        ## tar.gz and zip archives with the binary, README, LICENSE and NOTICE (dist/typedeck_<version>_<os>_<arch>)
+archives: $(if $(PREBUILT),,dist)        ## tar.gz and zip archives with the binary, README, LICENSE and NOTICE (dist/typedeck_<version>_<os>_<arch>)
 	@for t in darwin/arm64 darwin/amd64 linux/amd64 linux/arm64 windows/amd64 windows/arm64; do \
 	  os=$${t%/*}; arch=$${t#*/}; ext=""; [ $$os = windows ] && ext=".exe"; \
 	  name=typedeck_$(PKGVERSION)_$${os}_$${arch}; dir=dist/$$name; \
@@ -28,13 +28,13 @@ archives: dist        ## tar.gz and zip archives with the binary, README, LICENS
 	  rm -rf $$dir; \
 	done
 
-packages: dist        ## .deb and .rpm for Linux amd64 and arm64 (needs nfpm)
+packages: $(if $(PREBUILT),,dist)        ## .deb and .rpm for Linux amd64 and arm64 (needs nfpm)
 	@for arch in amd64 arm64; do for fmt in deb rpm; do \
 	  sed -e "s/@ARCH@/$$arch/g" -e "s/@VERSION@/$(PKGVERSION)/g" packaging/nfpm.yaml > dist/nfpm-$$arch.yaml; \
 	  $(NFPM) package -p $$fmt -f dist/nfpm-$$arch.yaml -t dist/ || exit 1; \
 	done; done
 
-release-files: archives packages   ## everything a release publishes, with one SHA256SUMS
+release-files: archives packages   ## everything a release publishes, with one SHA256SUMS (PREBUILT=1 keeps the binaries already in dist/)
 	cd dist && rm -f SHA256SUMS && sha256sum typedeck-* typedeck_* > SHA256SUMS
 
 test:                 ## unit tests with the race detector

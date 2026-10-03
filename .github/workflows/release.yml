@@ -33,8 +33,31 @@ jobs:
           fw=$(sed -n 's/^#define FW_VERSION "\(.*\)"/\1/p' firmware/firmware.ino)
           mkdir -p dist
           cp /tmp/typedeck-fw/firmware.ino.hex "dist/typedeck-firmware-$fw.hex"
-      - name: Build the binaries, archives and packages
-        run: make release-files VERSION=${{ github.ref_name }}
+      - name: Build the binaries
+        run: make dist VERSION=${{ github.ref_name }}
+      - name: Upload the Windows binaries to sign
+        id: unsigned
+        if: ${{ vars.SIGNPATH_ORGANIZATION_ID != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-unsigned
+          path: dist/typedeck-windows-*.exe
+      - name: Sign the Windows binaries with SignPath
+        if: ${{ vars.SIGNPATH_ORGANIZATION_ID != '' }}
+        uses: signpath/github-action-submit-signing-request@v1
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: typedeck
+          signing-policy-slug: release-signing
+          github-artifact-id: ${{ steps.unsigned.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: signed
+      - name: Use the signed binaries
+        if: ${{ vars.SIGNPATH_ORGANIZATION_ID != '' }}
+        run: cp signed/typedeck-windows-*.exe dist/
+      - name: Build the archives and packages
+        run: make release-files VERSION=${{ github.ref_name }} PREBUILT=1
       - name: Release notes from the changelog
         run: |
           v="${GITHUB_REF_NAME#v}"
