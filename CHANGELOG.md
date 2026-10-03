@@ -17,7 +17,7 @@
 - Search in the key sheet, and every macro key in the command palette.
 - Every key press is shown in the editor, not only the keys with a macro (firmware 12, `KEYS 0|1`, sent only while an editor is open).
 - An optional typing history, off by default: key, time and duration of each press, kept in `keystrokes.jsonl` in the configuration folder
-  (mode 0600, capped at 4 MB, nothing leaves the computer), with a list of the latest entries and a delete-all button in the settings.
+  (mode 0600, capped at 4 MB, nothing leaves the computer), with its own History page in the menu: a switch, totals, most used keys, the latest presses (live, filterable) and a delete-all button.
 
 ### Changed
 - The macOS service runs at interactive instead of background priority: opening the editor from its key takes about 150 ms instead of

@@ -569,5 +569,5 @@ func (s *Server) history(w http.ResponseWriter, r *http.Request) {
 		limit = 100
 	}
 	entries, total := s.eng.KeyLog().Recent(limit)
-	writeJSON(w, 200, map[string]any{"enabled": s.eng.KeyLog().Enabled(), "count": total, "entries": entries})
+	writeJSON(w, 200, map[string]any{"enabled": s.eng.KeyLog().Enabled(), "count": total, "entries": entries, "summary": s.eng.KeyLog().Summary(time.Now())})
 }

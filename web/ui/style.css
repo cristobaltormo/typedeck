@@ -339,3 +339,22 @@ output { font-variant-numeric: tabular-nums; font-size: 13px; }
 ul.risk { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 5px; }
 ul.risk li { display: flex; gap: 8px; align-items: center; min-width: 0; }
 ul.risk code { font-family: var(--mono); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.hist-switch { display: flex; align-items: center; gap: 16px; padding: 16px 18px; border: 1px solid var(--line-soft); background: var(--surface); border-radius: 12px; }
+.hist-switch b { color: var(--strong); font-weight: 500; font-size: 15px; }
+.hist-switch p { margin: 3px 0 0; font-size: 13px; }
+.privacy { display: flex; gap: 8px; align-items: flex-start; color: var(--faint); font-size: 12.5px; margin: 12px 2px 30px; max-width: 70ch; }
+.privacy .ic { flex: none; margin-top: 1px; }
+.keycap { display: inline-flex; align-items: center; justify-content: center; min-width: 34px; height: 26px; padding: 0 9px; border-radius: 6px; border: 1px solid var(--line); border-bottom-width: 2px; background: var(--raised); color: var(--strong); font-family: var(--mono); font-size: 12.5px; flex: none; white-space: nowrap; }
+.bar { height: 6px; border-radius: 3px; background: var(--hover); overflow: hidden; min-width: 40px; }
+.bar i { display: block; height: 100%; border-radius: 3px; background: var(--accent); }
+.toplist { display: flex; flex-direction: column; gap: 10px; padding-top: 14px; }
+.toprow { display: grid; grid-template-columns: 74px 1fr 56px; gap: 14px; align-items: center; }
+.toprow .n { text-align: right; font-variant-numeric: tabular-nums; }
+.daysep { padding: 14px 0 6px; font-size: 12px; text-transform: capitalize; color: var(--faint); border-bottom: 1px solid var(--line-soft); }
+.livepill { margin-left: 10px; font-size: 11.5px; font-weight: 400; color: var(--ok); }
+.livepill::before { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--ok); margin-right: 5px; vertical-align: 1px; }
+.danger-zone > h2 { color: var(--bad); }
+.li .keycap { width: 120px; }
+.li .bar { margin: 0 6px; }
+@media (max-width: 720px) { .toprow { grid-template-columns: 60px 1fr 44px; } .hist-switch { flex-wrap: wrap; } }

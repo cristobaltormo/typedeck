@@ -10,7 +10,7 @@ export function openPalette() {
   if (document.querySelector(".scrim")) return;
   const cmds = [];
   const add = (label, icon, run, hint = "") => cmds.push({ label, icon, run, hint, key: label.toLowerCase() });
-  for (const id of ["keys", "gallery", "activity", "sheet", "compat", "diag", "settings"]) add(t("pal.go", { name: t("nav." + id) }), "chevron", () => { location.hash = `#/${id}`; });
+  for (const id of ["keys", "gallery", "activity", "history", "sheet", "compat", "diag", "settings"]) add(t("pal.go", { name: t("nav." + id) }), "chevron", () => { location.hash = `#/${id}`; });
   state.cfg.layers.forEach((l, i) => add(t("pal.layer", { name: l.name }), "layers", () => { state.scope = i; state.panel = "key"; location.hash = "#/keys"; notify("cfg", "replace"); }, `${i + 1}`));
   add(t("pal.keyboard"), "keyboard", () => openKeyboardDrawer());
   add(t("tool.undo"), "undo", undo, "Cmd Z"); add(t("tool.redo"), "redo", redo, "Cmd Shift Z");

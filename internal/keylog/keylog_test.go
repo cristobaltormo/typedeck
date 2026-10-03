@@ -83,3 +83,27 @@ func TestNames(t *testing.T) {
 		}
 	}
 }
+
+func TestSummaryCountsTodayTopKeysAndAverage(t *testing.T) {
+	l, _ := newLog(t)
+	l.SetEnabled(true)
+	now := time.Date(2026, 10, 3, 15, 0, 0, 0, time.Local)
+	press := func(u byte, at time.Time, ms int) {
+		l.Press(u, at)
+		l.Release(u, at.Add(time.Duration(ms)*time.Millisecond))
+	}
+	press(0x04, now.Add(-48*time.Hour), 100)
+	press(0x04, now.Add(-time.Hour), 80)
+	press(0x04, now.Add(-30*time.Minute), 120)
+	press(0x05, now.Add(-10*time.Minute), 60)
+	sum := l.Summary(now)
+	if sum.Total != 4 || sum.Today != 3 || sum.AvgMS != 90 {
+		t.Fatalf("resumen: %+v", sum)
+	}
+	if len(sum.Top) != 2 || sum.Top[0].K != "A" || sum.Top[0].N != 3 {
+		t.Fatalf("teclas más usadas: %+v", sum.Top)
+	}
+	if empty := New(filepath.Join(t.TempDir(), "x")).Summary(now); empty.Total != 0 || empty.Top != nil {
+		t.Fatalf("sin archivo debe salir vacío: %+v", empty)
+	}
+}

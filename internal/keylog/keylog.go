@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"sort"
 	"sync"
 	"time"
 
@@ -142,6 +143,67 @@ func (l *Log) Recent(limit int) ([]Entry, int) {
 		out = append(out, all[i])
 	}
 	return out, total
+}
+
+type KeyCount struct {
+	K string `json:"k"`
+	U byte   `json:"u"`
+	N int    `json:"n"`
+}
+
+type Summary struct {
+	Total int        `json:"total"`
+	Today int        `json:"today"`
+	AvgMS int        `json:"avg_ms"`
+	Top   []KeyCount `json:"top"`
+}
+
+func (l *Log) Summary(now time.Time) Summary {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	l.flushLocked()
+	var sum Summary
+	f, err := os.Open(l.path)
+	if err != nil {
+		return sum
+	}
+	defer f.Close()
+	midnight := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location()).UnixMilli()
+	counts := map[byte]*KeyCount{}
+	var totalMS int64
+	sc := bufio.NewScanner(f)
+	for sc.Scan() {
+		var e Entry
+		if json.Unmarshal(sc.Bytes(), &e) != nil {
+			continue
+		}
+		sum.Total++
+		totalMS += int64(e.D)
+		if e.T >= midnight {
+			sum.Today++
+		}
+		if c := counts[e.U]; c != nil {
+			c.N++
+		} else {
+			counts[e.U] = &KeyCount{K: e.K, U: e.U, N: 1}
+		}
+	}
+	if sum.Total > 0 {
+		sum.AvgMS = int(totalMS / int64(sum.Total))
+	}
+	for _, c := range counts {
+		sum.Top = append(sum.Top, *c)
+	}
+	sort.Slice(sum.Top, func(i, j int) bool {
+		if sum.Top[i].N != sum.Top[j].N {
+			return sum.Top[i].N > sum.Top[j].N
+		}
+		return sum.Top[i].U < sum.Top[j].U
+	})
+	if len(sum.Top) > 5 {
+		sum.Top = sum.Top[:5]
+	}
+	return sum
 }
 
 func (l *Log) Clear() error {

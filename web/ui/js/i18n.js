@@ -209,9 +209,14 @@ const ES = {
   "share.as_layers": "Añadir como capas nuevas", "share.as_layers_sub": "No toca lo que ya tienes.", "share.merge": "Mezclar en la capa actual", "share.merge_sub": "Las teclas que coincidan con las de «{name}» se sustituyen.",
   "share.export_layer": "Exportar capa", "share.import_btn": "Importar macros", "share.export_all": "Exportar macros",
   "sheet.search": "Buscar una tecla o macro", "pal.key": "Tecla {key}: {what} ({where})",
-  "hist.title": "Historial de tecleo", "hist.sub": "Estadísticas de tecleo locales: tecla, hora y cuánto duró cada pulsación. Se guardan solo en un archivo de este equipo (keystrokes.jsonl, en la carpeta de configuración) y no salen a la red.",
-  "hist.switch": "Guardar el historial", "hist.switch_sub": "Desactivado por defecto. Mientras está activo, la placa envía cada pulsación al programa.", "hist.state_on": "Activado. {n} pulsaciones guardadas; aquí las últimas.", "hist.state_off": "Desactivado. {n} pulsaciones guardadas de antes.",
-  "hist.when": "Cuándo", "hist.ms": "Duración (ms)", "hist.refresh": "Actualizar", "hist.clear": "Borrar todo", "hist.cleared": "Historial borrado",
+  "nav.history": "Historial",
+  "hist.title": "Historial de tecleo", "hist.sub": "Qué teclas pulsas, cuándo y cuánto tiempo las mantienes. Sirve para ver tus hábitos de tecleo.",
+  "hist.switch": "Guardar mi historial", "hist.on_text": "Activado: se guarda cada pulsación.", "hist.off_text": "Desactivado: no se guarda nada.",
+  "hist.privacy": "Todo se queda en este equipo, en un archivo que solo puedes leer tú. No se envía a ninguna parte y puedes borrarlo cuando quieras.",
+  "hist.empty_on": "Aún no hay pulsaciones. Teclea algo y aparecerá aquí.", "hist.empty_off": "Activa el interruptor de arriba para empezar a guardar tu historial.",
+  "hist.total": "Pulsaciones guardadas", "hist.today": "Hoy", "hist.top_key": "Tecla más usada", "hist.avg": "Duración media",
+  "hist.top": "Tus teclas más usadas", "hist.latest": "Últimas pulsaciones", "hist.live": "En directo", "hist.filter": "Buscar una tecla", "hist.no_match": "Ninguna pulsación coincide.",
+  "hist.delete": "Borrar el historial", "hist.delete_text": "Elimina las {n} pulsaciones guardadas. No se puede deshacer.", "hist.clear": "Borrar todo", "hist.cleared": "Historial borrado",
 };
 
 const EN = {
@@ -425,9 +430,14 @@ const EN = {
   "share.as_layers": "Add as new layers", "share.as_layers_sub": "Leaves what you have untouched.", "share.merge": "Merge into the current layer", "share.merge_sub": "Keys that match those of \u201c{name}\u201d are replaced.",
   "share.export_layer": "Export layer", "share.import_btn": "Import macros", "share.export_all": "Export macros",
   "sheet.search": "Search a key or macro", "pal.key": "Key {key}: {what} ({where})",
-  "hist.title": "Typing history", "hist.sub": "Local typing statistics: key, time and how long each press lasted. They are kept only in a file on this computer (keystrokes.jsonl, in the configuration folder) and never leave it.",
-  "hist.switch": "Keep the history", "hist.switch_sub": "Off by default. While it is on, the board sends every key press to the program.", "hist.state_on": "On. {n} key presses stored; the latest are shown here.", "hist.state_off": "Off. {n} key presses stored from before.",
-  "hist.when": "When", "hist.ms": "Duration (ms)", "hist.refresh": "Refresh", "hist.clear": "Delete everything", "hist.cleared": "History deleted",
+  "nav.history": "History",
+  "hist.title": "Typing history", "hist.sub": "Which keys you press, when, and how long you hold them. Handy to see your typing habits.",
+  "hist.switch": "Keep my history", "hist.on_text": "On: every key press is saved.", "hist.off_text": "Off: nothing is saved.",
+  "hist.privacy": "Everything stays on this computer, in a file only you can read. It is not sent anywhere and you can delete it whenever you like.",
+  "hist.empty_on": "No key presses yet. Type something and it will show up here.", "hist.empty_off": "Turn on the switch above to start keeping your history.",
+  "hist.total": "Key presses saved", "hist.today": "Today", "hist.top_key": "Most used key", "hist.avg": "Average hold",
+  "hist.top": "Your most used keys", "hist.latest": "Latest key presses", "hist.live": "Live", "hist.filter": "Search a key", "hist.no_match": "No key press matches.",
+  "hist.delete": "Delete the history", "hist.delete_text": "Removes the {n} saved key presses. This cannot be undone.", "hist.clear": "Delete everything", "hist.cleared": "History deleted",
 };
 
 const DICTS = { es: ES, en: EN };

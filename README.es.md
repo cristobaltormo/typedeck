@@ -26,7 +26,7 @@ Tu teclado sigue funcionando con normalidad aunque el programa no esté en march
   condición ejecuta unos pasos u otros según la app de delante, la capa, la hora, el sistema, el estado de OBS o el portapapeles; y
   puedes exportar e importar macros en un archivo, revisando antes los comandos que traiga.
 - **Cada tecla se ilumina en el editor** al pulsarla, y hay un historial de tecleo opcional y local (tecla, hora y duración) que se activa
-  en Ajustes, con la lista de lo último y un botón para borrarlo todo.
+  en su propia página Historial, con totales, tus teclas más usadas, lo último que has pulsado y un botón para borrarlo todo.
 - **Seguro por diseño.** Las teclas solo se retiran del teclado mientras el programa está vivo. Si se para, todas vuelven
   a escribir en menos de 5 segundos.
 - **Sin permisos para teclear.** Atajos, texto y teclas multimedia salen como pulsaciones USB reales de la placa, así que

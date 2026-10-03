@@ -5,6 +5,7 @@ import { state, subscribe, notify, applySettings, undo, redo, canUndo, canRedo }
 import { workView } from "./workbench.js";
 import { galleryView } from "./gallery.js";
 import { activityView } from "./activity.js";
+import { historyView } from "./history.js";
 import { sheetView } from "./sheet.js";
 import { diagView } from "./diag.js";
 import { compatView } from "./compat.js";
@@ -13,8 +14,8 @@ import { openPalette } from "./palette.js";
 import { openKeyboardDrawer } from "./kbinfo.js";
 import { startLive, isLive } from "./live.js";
 
-const VIEWS = { keys: workView, gallery: galleryView, activity: activityView, sheet: sheetView, compat: compatView, diag: diagView, settings: settingsView };
-const NAV = [["keys", "keyboard"], ["gallery", "grid"], null, ["activity", "activity"], ["sheet", "list"], ["compat", "layers"], ["diag", "cpu"]];
+const VIEWS = { keys: workView, gallery: galleryView, activity: activityView, history: historyView, sheet: sheetView, compat: compatView, diag: diagView, settings: settingsView };
+const NAV = [["keys", "keyboard"], ["gallery", "grid"], null, ["activity", "activity"], ["history", "history"], ["sheet", "list"], ["compat", "layers"], ["diag", "cpu"]];
 let current = null, viewHost, navEl, rightEl, titleEl, deviceEl;
 
 async function boot() {

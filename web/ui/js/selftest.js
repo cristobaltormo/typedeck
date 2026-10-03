@@ -61,8 +61,6 @@ export async function run() {
     ok("color de acento", getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() === state.cfg.settings.accent);
 
     ok("ajustes de OBS Studio", !!byText("h2", "OBS Studio") && !!byText("button", "Probar conexión"));
-    await sleep(400);
-    ok("ajustes del historial de tecleo con su botón de borrar", !!byText("h2", "Historial de tecleo") && !!byText("button", "Borrar todo"));
     typeInto($('input[type=password]'), "clave"); await sleep(40);
     ok("la contraseña de OBS se guarda en los ajustes", state.cfg.settings.obs?.password === "clave");
 
@@ -108,6 +106,9 @@ export async function run() {
     ok("hoja con un bloque por capa", $$(".sheet-block").length >= state.cfg.layers.length);
     location.hash = "#/activity"; await sleep(140);
     ok("actividad carga", $$(".stat").length === 4);
+    location.hash = "#/history"; await sleep(250);
+    ok("el historial tiene su sección en el menú", !!byText(".navitem", "Historial") && !!byText("h1", "Historial de tecleo"));
+    ok("el historial explica cómo activarlo y qué pasa con los datos", !!$(".hist-switch .switch, .hist-switch input") && /este equipo/.test($(".privacy")?.textContent || "") && !!$(".empty-state"));
     location.hash = "#/diag"; await sleep(140);
     ok("diagnóstico carga", !!byText("h2", "Estado"));
 
