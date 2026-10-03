@@ -1,0 +1,33 @@
+{
+  "typedeck_macros": "1",
+  "name": "Typing history",
+  "layers": [
+    {
+      "name": "History",
+      "color": "#0ea5a4",
+      "icon": "history",
+      "auto_apps": [],
+      "keys": {
+        "3A": {
+          "tap": {
+            "type": "history",
+            "cmd": "toggle"
+          },
+          "label": "History",
+          "icon": "history",
+          "color": "#0ea5a4"
+        }
+      }
+    }
+  ],
+  "global": {
+    "47": {
+      "tap": {
+        "type": "history",
+        "cmd": "toggle"
+      },
+      "label": "History",
+      "icon": "history"
+    }
+  }
+}

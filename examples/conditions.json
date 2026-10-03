@@ -1,0 +1,112 @@
+{
+  "typedeck_macros": "1",
+  "name": "Conditions",
+  "layers": [
+    {
+      "name": "Smart",
+      "color": "#16a34a",
+      "icon": "bolt",
+      "auto_apps": [],
+      "keys": {
+        "3A": {
+          "tap": {
+            "type": "if",
+            "cond": "os",
+            "target": "darwin",
+            "steps": [
+              {
+                "type": "hotkey",
+                "keys": "cmd+space"
+              }
+            ],
+            "else": [
+              {
+                "type": "hotkey",
+                "keys": "win"
+              }
+            ]
+          },
+          "label": "Launcher",
+          "icon": "search"
+        },
+        "3B": {
+          "tap": {
+            "type": "if",
+            "cond": "time",
+            "target": "22:00-07:00",
+            "steps": [
+              {
+                "type": "system",
+                "cmd": "darkmode"
+              },
+              {
+                "type": "hud",
+                "text": "Night mode"
+              }
+            ],
+            "else": [
+              {
+                "type": "hud",
+                "text": "Daytime"
+              }
+            ]
+          },
+          "label": "Night",
+          "icon": "moon"
+        },
+        "3C": {
+          "tap": {
+            "type": "if",
+            "cond": "clipboard",
+            "target": "http",
+            "steps": [
+              {
+                "type": "hotkey",
+                "keys": "ctrl+l"
+              },
+              {
+                "type": "hotkey",
+                "keys": "ctrl+v"
+              },
+              {
+                "type": "hotkey",
+                "keys": "enter"
+              }
+            ],
+            "else": [
+              {
+                "type": "hud",
+                "text": "No link in the clipboard"
+              }
+            ]
+          },
+          "label": "Open link",
+          "icon": "link"
+        },
+        "3D": {
+          "tap": {
+            "type": "if",
+            "cond": "obs_stream",
+            "not": true,
+            "steps": [
+              {
+                "type": "obs",
+                "cmd": "stream_start"
+              }
+            ],
+            "else": [
+              {
+                "type": "obs",
+                "cmd": "stream_stop"
+              }
+            ]
+          },
+          "label": "Go live",
+          "icon": "camera",
+          "color": "#cc4848",
+          "confirm": true
+        }
+      }
+    }
+  ]
+}

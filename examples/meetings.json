@@ -1,0 +1,75 @@
+{
+  "typedeck_macros": "1",
+  "name": "Meetings",
+  "layers": [
+    {
+      "name": "Meetings",
+      "color": "#8b5cf6",
+      "icon": "chat",
+      "auto_apps": [
+        "zoom.us",
+        "Zoom"
+      ],
+      "keys": {
+        "3A": {
+          "tap": {
+            "type": "sequence",
+            "steps": [
+              {
+                "type": "app",
+                "app": "Zoom",
+                "mode": "open"
+              },
+              {
+                "type": "wait",
+                "ms": 600
+              },
+              {
+                "type": "hud",
+                "text": "Meeting mode"
+              }
+            ]
+          },
+          "label": "Join",
+          "icon": "camera",
+          "color": "#2563eb"
+        },
+        "3B": {
+          "tap": {
+            "type": "hotkey",
+            "keys": "cmd+shift+a"
+          },
+          "label": "Mute",
+          "icon": "mic",
+          "color": "#cc4848"
+        },
+        "3C": {
+          "tap": {
+            "type": "hotkey",
+            "keys": "cmd+shift+v"
+          },
+          "label": "Camera",
+          "icon": "camera"
+        },
+        "3D": {
+          "tap": {
+            "type": "media",
+            "cmd": "mute"
+          },
+          "label": "Speakers",
+          "icon": "play"
+        },
+        "3E": {
+          "tap": {
+            "type": "system",
+            "cmd": "lock",
+            "confirm": true
+          },
+          "label": "Lock",
+          "icon": "lock",
+          "color": "#cc4848"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,88 @@
+{
+  "typedeck_macros": "1",
+  "name": "Developer",
+  "layers": [
+    {
+      "name": "Developer",
+      "color": "#2563eb",
+      "icon": "code",
+      "auto_apps": [
+        "Code",
+        "Terminal"
+      ],
+      "keys": {
+        "3A": {
+          "tap": {
+            "type": "app",
+            "app": "Visual Studio Code",
+            "mode": "toggle"
+          },
+          "label": "Editor",
+          "icon": "code",
+          "color": "#2563eb"
+        },
+        "3B": {
+          "tap": {
+            "type": "app",
+            "app": "Terminal",
+            "mode": "toggle"
+          },
+          "label": "Terminal",
+          "icon": "terminal",
+          "color": "#16a34a"
+        },
+        "3C": {
+          "tap": {
+            "type": "url",
+            "url": "https://github.com/pulls"
+          },
+          "label": "Pull requests",
+          "icon": "globe"
+        },
+        "3D": {
+          "tap": {
+            "type": "text",
+            "text": "git status\\n"
+          },
+          "label": "git status",
+          "icon": "type",
+          "double": {
+            "type": "text",
+            "text": "git pull --rebase\\n"
+          }
+        },
+        "3E": {
+          "tap": {
+            "type": "shell",
+            "cmd": "git -C ~ status --short | head -20",
+            "show_output": true
+          },
+          "label": "Git here",
+          "icon": "folder"
+        },
+        "3F": {
+          "tap": {
+            "type": "timer",
+            "minutes": 25,
+            "label": "Focus"
+          },
+          "label": "Pomodoro",
+          "icon": "clock",
+          "color": "#f97316"
+        },
+        "40": {
+          "tap": {
+            "type": "text",
+            "text": "{date}"
+          },
+          "label": "Date",
+          "icon": "calendar",
+          "double": {
+            "type": "text",
+            "text": "{datetime}"
+          }
+        }
+      }
+    }
+  ]
+}

@@ -7,6 +7,8 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -314,5 +316,27 @@ func TestHistoryEndpointsReadAndClear(t *testing.T) {
 	_ = json.Unmarshal(rec.Body.Bytes(), &out)
 	if out.Count != 0 {
 		t.Errorf("after deleting %d remain", out.Count)
+	}
+}
+
+func TestExamplesAreValidPacks(t *testing.T) {
+	files, err := filepath.Glob("../../examples/*.json")
+	if err != nil || len(files) < 3 {
+		t.Fatalf("examples not found: %v %v", files, err)
+	}
+	s, h := newSrv(t)
+	for _, f := range files {
+		raw, err := os.ReadFile(f)
+		if err != nil {
+			t.Fatal(err)
+		}
+		var pack map[string]any
+		if err := json.Unmarshal(raw, &pack); err != nil {
+			t.Fatalf("%s: %v", f, err)
+		}
+		rec := do(h, "POST", "/api/macros/inspect", good, s.token, map[string]any{"pack": pack})
+		if rec.Code != 200 {
+			t.Errorf("%s: %d %s", f, rec.Code, rec.Body)
+		}
 	}
 }
