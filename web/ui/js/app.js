@@ -11,6 +11,7 @@ import { compatView } from "./compat.js";
 import { settingsView } from "./settings.js";
 import { openPalette } from "./palette.js";
 import { openKeyboardDrawer } from "./kbinfo.js";
+import { startLive, isLive } from "./live.js";
 
 const VIEWS = { keys: workView, gallery: galleryView, activity: activityView, sheet: sheetView, compat: compatView, diag: diagView, settings: settingsView };
 const NAV = [["keys", "keyboard"], ["gallery", "grid"], null, ["activity", "activity"], ["sheet", "list"], ["compat", "layers"], ["diag", "cpu"]];
@@ -42,15 +43,15 @@ async function boot() {
   document.addEventListener("keydown", globalKeys);
   subscribe((topic, detail) => {
     if (topic === "palette") openPalette();
-    if (topic === "cfg" || topic === "save" || topic === "status") drawRight();
+    if (topic === "cfg" || topic === "save" || topic === "status" || topic === "live") drawRight();
     current?.api?.on?.(topic, detail);
   });
   route();
   history_();
   const q = location.search;
   if (q.includes("scene=")) { (await import("./scenes.js")).run(new URLSearchParams(q).get("scene")); return; }
-  if (q.includes("selftest")) { (await import("./selftest.js")).run(); return; }
-  if (!q.includes("nolive")) eventsLoop();
+  if (q.includes("selftest")) { startLive(onLive); (await import("./selftest.js")).run(); return; }
+  if (!q.includes("nolive")) { startLive(onLive); eventsLoop(); }
 }
 
 function brand() {
@@ -77,7 +78,7 @@ function drawRight() {
   clear(deviceEl).append(h("button", { type: "button", class: "status", onclick: () => openKeyboardDrawer(), title: t("info.details") },
     h("span", { class: `dot ${s.connected ? (on ? "on" : "") : "bad"}` }),
     h("span", { class: "who" }, h("b", {}, on ? (kb.identity?.display || kb.info?.prod || t("info.unnamed")) : s.connected ? t("board.no_kbd") : t("board.off")),
-      h("small", {}, s.connected ? t("board.on") : t("info.no_board")))));
+      h("small", {}, s.connected ? t("board.on") : t("info.no_board")), state.live ? h("small", { class: "live" }, t("live.on")) : null)));
 }
 
 function route() {
@@ -131,15 +132,32 @@ function handle(ev) {
   notify("event", ev);
 }
 
+function ingest(ev) {
+  if (ev.id <= state.lastId) return;
+  state.lastId = ev.id;
+  handle(ev);
+}
+
+async function onLive(ev, lastId) {
+  if (ev) return ingest(ev);
+  try {
+    const r = await api(`/api/events?since=${state.lastId}`);
+    r.events.forEach(ingest);
+    state.lastId = Math.max(state.lastId, r.last_id, lastId || 0);
+  } catch {  }
+  refreshKeyboard();
+}
+
 let aborter = null;
 async function eventsLoop() {
   while (true) {
+    if (isLive()) { await new Promise((r) => setTimeout(r, 2000)); continue; }
     if (document.hidden) { await new Promise((r) => document.addEventListener("visibilitychange", r, { once: true })); refreshKeyboard(); continue; }
     aborter = new AbortController();
     try {
       const r = await api(`/api/events?since=${state.lastId}&wait=25`, { signal: aborter.signal });
-      state.lastId = r.last_id;
-      r.events.forEach(handle);
+      r.events.forEach(ingest);
+      state.lastId = Math.max(state.lastId, r.last_id);
     } catch (e) {
       if (e.name !== "AbortError") await new Promise((r) => setTimeout(r, 2500));
     }

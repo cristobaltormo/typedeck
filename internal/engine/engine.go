@@ -94,6 +94,7 @@ type Engine struct {
 	learning    bool
 	seen        map[string]int
 	wake        chan struct{}
+	editUntil   time.Time
 
 	board *board.Board
 
@@ -320,6 +321,9 @@ func (e *Engine) MaskBytes() [32]byte {
 
 func (e *Engine) maskLocked() [32]byte {
 	var m [32]byte
+	if time.Now().Before(e.editUntil) {
+		return m
+	}
 	add := func(keys map[string]config.KeyDef) {
 		for id, kd := range keys {
 			if !kd.HasAction() {
@@ -336,6 +340,29 @@ func (e *Engine) maskLocked() [32]byte {
 		add(e.cfg.Layers[e.layer].Keys)
 	}
 	return m
+}
+
+const editHold = 8 * time.Second
+
+func (e *Engine) Editing() bool {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	return time.Now().Before(e.editUntil)
+}
+
+func (e *Engine) SetEditing(on bool) {
+	e.mu.Lock()
+	was := time.Now().Before(e.editUntil)
+	if on {
+		e.editUntil = time.Now().Add(editHold)
+		time.AfterFunc(editHold+50*time.Millisecond, e.syncMaskAsync)
+	} else {
+		e.editUntil = time.Time{}
+	}
+	e.mu.Unlock()
+	if was != on {
+		e.syncMaskAsync()
+	}
 }
 
 func (e *Engine) syncMaskAsync() {

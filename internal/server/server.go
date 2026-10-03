@@ -52,6 +52,7 @@ type Server struct {
 	token  string
 	assets map[string]*asset
 	log    func(string, ...any)
+	hub    hub
 }
 
 func New(eng *engine.Engine, brd *board.Board, paths config.Paths, logf func(string, ...any)) (*Server, error) {
@@ -60,6 +61,7 @@ func New(eng *engine.Engine, brd *board.Board, paths config.Paths, logf func(str
 		return nil, err
 	}
 	s := &Server{eng: eng, brd: brd, paths: paths, token: base64.RawURLEncoding.EncodeToString(tok), assets: map[string]*asset{}, log: logf}
+	go s.pumpEvents()
 	return s, s.loadAssets()
 }
 
@@ -203,6 +205,15 @@ func (s *Server) Handler() http.Handler {
 	})
 	post("/api/board", s.boardCmd)
 	post("/api/learn", s.learnSet)
+	post("/api/editing", func(w http.ResponseWriter, r *http.Request) {
+		var b struct{ On bool }
+		if decode(r, &b) != nil {
+			fail(w, 400, "json")
+			return
+		}
+		s.eng.SetEditing(b.On || s.hub.editing())
+		writeJSON(w, 200, map[string]bool{"ok": true})
+	})
 	if os.Getenv("TYPEDECK_DEV") == "1" {
 		post("/api/dev/raw", func(w http.ResponseWriter, r *http.Request) {
 			var b struct {
@@ -218,6 +229,7 @@ func (s *Server) Handler() http.Handler {
 		})
 	}
 	get("/api/learn", s.learnGet)
+	mux.HandleFunc("GET /api/ws", s.ws)
 	mux.HandleFunc("/", s.static)
 	return mux
 }
@@ -387,7 +399,7 @@ func (s *Server) status(w http.ResponseWriter, r *http.Request) {
 	out := map[string]any{
 		"connected": connected, "port": port, "layer": st.Layer, "manual_layer": st.ManualLyr, "last": st.Last,
 		"last_ts": st.LastTS, "front": st.Front, "version": Version, "uptime": st.Uptime, "auto_active": st.AutoActive,
-		"last_id": st.LastID, "learning": st.Learning, "firmware": "", "keyboard_present": false, "board_error": s.brd.Error(), "app_name": app.Name,
+		"last_id": st.LastID, "learning": st.Learning, "firmware": "", "keyboard_present": false, "board_error": s.brd.Error(), "app_name": app.Name, "editing": s.eng.Editing(),
 	}
 	if connected {
 		out["connected_since"] = float64(since.Unix())
