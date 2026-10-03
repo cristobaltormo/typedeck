@@ -16,6 +16,8 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/cristobaltormo/typedeck/internal/platform"
 )
 
 const (
@@ -282,4 +284,12 @@ func (s *Server) pumpEvents() {
 			s.hub.broadcast(map[string]any{"t": "event", "ev": ev})
 		}
 	}
+}
+
+func (s *Server) FocusEditor() bool {
+	if s.hub.count() == 0 {
+		return false
+	}
+	s.hub.broadcast(map[string]string{"t": "focus"})
+	return platform.Current.FocusEditor(EditorURL())
 }

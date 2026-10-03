@@ -76,7 +76,11 @@ func dispatch(a config.Action, env Env, capture bool) (string, error) {
 	case "app":
 		return "", appAction(a)
 	case "url":
-		return "", platform.Current.OpenURL(Substitute(a.URL, false))
+		u := Substitute(a.URL, false)
+		if EditorFocus != nil && isEditorURL(u) && EditorFocus() {
+			return "", nil
+		}
+		return "", platform.Current.OpenURL(u)
 	case "shell":
 		cmd := Substitute(a.Cmd, true)
 		if strings.TrimSpace(cmd) == "" {
@@ -284,6 +288,12 @@ func httpAction(a config.Action) (string, error) {
 func shellQuote(s string) string { return platform.Current.QuoteArg(s) }
 
 var EditorURL = func() string { return "http://127.0.0.1:7788/" }
+
+var EditorFocus func() bool
+
+func isEditorURL(u string) bool {
+	return strings.TrimRight(u, "/") == strings.TrimRight(EditorURL(), "/")
+}
 
 func Substitute(text string, quote bool) string {
 	if !strings.Contains(text, "{") {

@@ -44,6 +44,69 @@ func (*darwin) OpenURL(u string) error {
 	return err
 }
 
+var chromiumBrowsers = []string{"Google Chrome", "Brave Browser", "Microsoft Edge", "Vivaldi", "Chromium", "Opera"}
+
+func focusScript(script string) (string, error) {
+	return Run(4*time.Second, "", "osascript", "-e", script)
+}
+
+func (*darwin) FocusEditor(url string) bool {
+	running, err := focusScript(`tell application "System Events" to get name of every process whose background only is false`)
+	if err != nil {
+		return false
+	}
+	has := func(n string) bool {
+		for _, r := range strings.Split(running, ", ") {
+			if strings.TrimSpace(r) == n {
+				return true
+			}
+		}
+		return false
+	}
+	for _, b := range chromiumBrowsers {
+		if !has(b) {
+			continue
+		}
+		script := fmt.Sprintf(`tell application %q
+	repeat with w in windows
+		set i to 0
+		repeat with tb in tabs of w
+			set i to i + 1
+			if URL of tb starts with %q then
+				set active tab index of w to i
+				set index of w to 1
+				activate
+				return "ok"
+			end if
+		end repeat
+	end repeat
+end tell
+return ""`, b, url)
+		if out, err := focusScript(script); err == nil && out == "ok" {
+			return true
+		}
+	}
+	if has("Safari") {
+		script := fmt.Sprintf(`tell application "Safari"
+	repeat with w in windows
+		repeat with tb in tabs of w
+			if URL of tb starts with %q then
+				set current tab of w to tb
+				set index of w to 1
+				activate
+				return "ok"
+			end if
+		end repeat
+	end repeat
+end tell
+return ""`, url)
+		if out, err := focusScript(script); err == nil && out == "ok" {
+			return true
+		}
+	}
+	return false
+}
+
 func (*darwin) OpenApp(name string) error {
 	_, err := Run(10*time.Second, "", "open", "-a", name)
 	return err

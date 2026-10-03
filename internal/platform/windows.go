@@ -208,6 +208,38 @@ func closeWindowsTitled(sub string) int {
 	return n
 }
 
+var pSetForegroundWindow = user32.NewProc("SetForegroundWindow")
+
+func (*windows) FocusEditor(string) bool {
+	var found uintptr
+	cb := syscall.NewCallback(func(hwnd, _ uintptr) uintptr {
+		if v, _, _ := pIsWindowVisible.Call(hwnd); v == 0 {
+			return 1
+		}
+		buf := make([]uint16, 256)
+		l, _, _ := pGetWindowTextW.Call(hwnd, uintptr(unsafe.Pointer(&buf[0])), uintptr(len(buf)))
+		if l == 0 || !strings.Contains(syscall.UTF16ToString(buf[:l]), "Typedeck") {
+			return 1
+		}
+		var pid uint32
+		pGetWindowThreadProcessID.Call(hwnd, uintptr(unsafe.Pointer(&pid)))
+		if strings.EqualFold(filepath.Base(processImage(pid)), "typedeck.exe") {
+			return 1
+		}
+		found = hwnd
+		return 0
+	})
+	pEnumWindows.Call(cb, 0)
+	if found == 0 {
+		return false
+	}
+	pShowWindow.Call(found, 9)
+	keyEvent(0x12, false)
+	keyEvent(0x12, true)
+	r, _, _ := pSetForegroundWindow.Call(found)
+	return r != 0
+}
+
 func foreground() (hwnd uintptr, pid uint32) {
 	hwnd, _, _ = pGetForegroundWindow.Call()
 	if hwnd != 0 {

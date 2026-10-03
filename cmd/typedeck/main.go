@@ -76,6 +76,7 @@ func main() {
 		log.Fatalf("no hay ningún puerto libre desde el %d (¿otra copia en marcha?): %v", app.DefaultPort, err)
 	}
 	actions.EditorURL = server.EditorURL
+	actions.EditorFocus = srv.FocusEditor
 	_ = os.WriteFile(filepath.Join(paths.Dir, "port"), []byte(strconv.Itoa(server.Port)), 0o644)
 	log.Printf("Typedeck %s, editor en %s", version, server.EditorURL())
 

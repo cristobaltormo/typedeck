@@ -40,6 +40,7 @@ type Platform interface {
 	Version() string
 
 	OpenURL(url string) error
+	FocusEditor(url string) bool
 	OpenApp(name string) error
 	QuitApp(name string) error
 	HideApp(name string) error
