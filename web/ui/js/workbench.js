@@ -5,7 +5,7 @@ import { toast } from "./toast.js";
 import { keyboard, neighbor, hex, TYPE_ICON } from "./keyboard.js";
 import { layout as getLayout, legendLang } from "./layouts.js";
 import { field, textInput, select, toggle, swatches, iconPicker, armed } from "./controls.js";
-import { actionFields, typeOptions } from "./actionform.js";
+import { actionFields, actionExtras, typeOptions, wantsConfirm } from "./actionform.js";
 import { openKeyboardDrawer, layoutLabel } from "./kbinfo.js";
 import { exportLayer, importPack } from "./share.js";
 import { state, notify, edit, undo, redo, canUndo, canRedo, keysOf, keyDef, ensureKey, pruneKey, newAction, describe, layerCount, layoutId } from "./store.js";
@@ -162,28 +162,24 @@ export function workView(root) {
     const sel = select("", a?.type || "", typeOptions(), (v) => {
       edit("", () => {
         const k = ensureKey(id);
-        if (!v) { delete k[g]; pruneKey(id); } else { const prev = k[g]; k[g] = { ...newAction(v), ...(prev?.confirm ? { confirm: true } : {}) }; }
+        if (!v) { delete k[g]; pruneKey(id); } else { const prev = k[g], next = newAction(v); k[g] = { ...next, ...(prev?.confirm && wantsConfirm(next) ? { confirm: true } : {}) }; }
       });
       state.testResult = null; renderKeyboard(); renderDock();
     });
     pane.append(sel);
     if (a) {
-      pane.append(...actionFields(a, () => renderDock(), { gesture: g }));
-      pane.append(toggle(t("act.confirm"), !!a.confirm, (v) => edit("confirm", () => { if (v) a.confirm = true; else delete a.confirm; }), t("act.confirm_sub")));
-      pane.append(testBox(a));
+      const lonely = state.scope !== "global" && !state.cfg.global[id] ? { name: state.cfg.layers[state.scope].name, apply: () => makeGlobal(id) } : null;
+      pane.append(...actionFields(a, () => renderDock(), { gesture: g, lonely }));
+      pane.append(...actionExtras(a, () => renderDock()));
     }
     return pane;
   }
 
-  function testBox(a) {
-    const out = h("div");
-    const run = h("button", { type: "button", class: "btn primary sm", onclick: async () => {
-      clear(out).append(h("div", { class: "console" }, t("test.running")));
-      let r;
-      try { r = await api("/api/test", { method: "POST", body: a }); } catch (e) { r = { ok: false, output: e.message, ms: 0 }; }
-      clear(out).append(h("div", { class: `console ${r.ok ? "ok" : "bad"}` }, h("div", { class: "tag" }, ic(r.ok ? "check" : "alert", 14), r.ok ? t("test.ok") : t("test.fail"), h("span", { class: "faint" }, ` ${r.ms} ms`)), r.output || t("test.no_output")));
-    } }, ic("play", 14), t("test.run"));
-    return h("div", { class: "stack", style: { gap: "8px" } }, h("div", {}, run), out);
+  function makeGlobal(id) {
+    edit("", (cfg) => { cfg.global[id] = clone(cfg.layers[state.scope].keys[id]); delete cfg.layers[state.scope].keys[id]; });
+    state.scope = "global";
+    renderAll();
+    toast(t("layer.made_global"));
   }
 
   function lookGroup(kd, id) {

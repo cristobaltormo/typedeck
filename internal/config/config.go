@@ -34,6 +34,7 @@ type Action struct {
 	Label      string   `json:"label,omitempty"`
 	To         any      `json:"to,omitempty"`
 	Momentary  bool     `json:"momentary,omitempty"`
+	Toggle     bool     `json:"toggle,omitempty"`
 	Ms         int      `json:"ms,omitempty"`
 	Target     string   `json:"target,omitempty"`
 	Steps      []Action `json:"steps,omitempty"`
@@ -386,6 +387,7 @@ func cleanAction(a Action, where string, depth int) (Action, error) {
 			out.To = "next"
 		}
 		out.Momentary = a.Momentary
+		out.Toggle = a.Toggle && !a.Momentary
 	case "obs":
 		out.Cmd = map[bool]string{true: a.Cmd, false: "record"}[obsCmds[a.Cmd]]
 		out.Target = field(a.Target, "target", 200)

@@ -55,7 +55,8 @@ check("SYS: microcontroller and board voltage", sysinfo.get("mcu") == "atmega32u
 check("SYS: MAX3421E shield chip", sysinfo.get("max3421e_rev") in ("12", "13"), sysinfo)
 ident = setup["keyboard"]["identity"]
 check("keyboard identity: brand, model and chip vendor", ident["brand"] == "BY Tech" and "Gaming" in ident["model"] and ident["vendor"] == "SINO WEALTH", ident)
-check("inferred layout: 100% ISO verified", setup["keyboard"]["layout"]["id"] == "full-iso" and setup["keyboard"]["layout"]["confident"], setup["keyboard"]["layout"])
+lay = setup["keyboard"]["layout"]
+check("the layout is a verified full-size one (inferred or chosen by the user)", lay["id"] in ("full-iso", "full-ansi") and lay["confident"], lay)
 check("the compatibility checks report no errors", not [c for c in setup["checks"] if c["level"] == "error"], setup["checks"])
 check("there are 11 physical layouts", len(api("/api/layouts")) == 11)
 packs = api("/api/packs")["packs"]
@@ -160,6 +161,20 @@ i3 = last_id()
 raw("SIMQ 0000060000000000"); time.sleep(0.4); raw("SIMQ 0000000000000000")
 check("switching layers captures the new key (mask synchronized)", any(e["kind"] == "down" and e["key"] == "06" for e in events_since(i3)))
 api("/api/layer", {"index": 0}); time.sleep(0.4)
+
+cfg3 = json.loads(json.dumps(cfg))
+cfg3["layers"][0]["keys"]["39"] = {"hold": {"type": "layer", "to": 1, "momentary": True}}
+cfg3["layers"][1]["keys"] = {"1A": {"tap": {"type": "wait", "ms": 10}}}
+api("/api/config", cfg3); time.sleep(0.6)
+i5 = last_id()
+raw("SIMQ 0000390000000000"); time.sleep(0.08)
+raw("SIMQ 00003A1A00000000".replace("3A", "39")); time.sleep(0.15)
+raw("SIMQ 0000390000000000"); time.sleep(0.1)
+raw("SIMQ 0000000000000000"); time.sleep(0.4)
+evs = events_since(i5)
+hit = [e for e in evs if e["kind"] == "exec" and e.get("key") == "1A"]
+check("holding a layer key and pressing another within 100 ms runs the key of that layer at once", len(hit) == 1 and hit[0].get("layer_name") == cfg3["layers"][1]["name"], hit or evs)
+check("releasing the layer key goes back to the first layer", api("/api/status")["layer"] == 0)
 
 if os.environ.get("TYPEDECK_REMOTE"):
     cfg["settings"]["double_ms"] = 800

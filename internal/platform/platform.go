@@ -21,6 +21,7 @@ type PopupOptions struct {
 }
 
 type SystemInfo struct {
+	OS           string   `json:"os"`
 	TypingLayout string   `json:"typing_layout"`
 	KeyboardType string   `json:"keyboard_type"`
 	ModRemap     []string `json:"mod_remap"`

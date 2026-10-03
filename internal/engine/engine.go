@@ -76,6 +76,7 @@ type Engine struct {
 	cfg         config.Config
 	layer       int
 	manualLayer int
+	toggleBack  int
 	autoActive  bool
 	events      []Event
 	nextID      int
@@ -430,7 +431,39 @@ func (e *Engine) maskLocked() [32]byte {
 	if e.layer < len(e.cfg.Layers) {
 		add(e.cfg.Layers[e.layer].Keys)
 	}
+	for _, i := range e.heldTargetsLocked() {
+		add(e.cfg.Layers[i].Keys)
+	}
+	for u, st := range e.keys {
+		if st.down && st.known {
+			m[u>>3] |= 1 << (u & 7)
+		}
+	}
 	return m
+}
+
+func isMomentary(a *config.Action) bool {
+	return a != nil && a.Type == "layer" && a.Momentary
+}
+
+func (e *Engine) heldTargetsLocked() []int {
+	var out []int
+	seen := map[int]bool{}
+	visit := func(keys map[string]config.KeyDef) {
+		for _, kd := range keys {
+			if isMomentary(kd.Hold) {
+				if i := e.targetLocked(kd.Hold.To); i != e.layer && !seen[i] {
+					seen[i] = true
+					out = append(out, i)
+				}
+			}
+		}
+	}
+	visit(e.cfg.Global)
+	if e.layer < len(e.cfg.Layers) {
+		visit(e.cfg.Layers[e.layer].Keys)
+	}
+	return out
 }
 
 const editHold = 8 * time.Second
@@ -464,8 +497,7 @@ func (e *Engine) syncMaskAsync() {
 
 func (e *Engine) Goto(target any) { e.gotoLayer(target, true, true) }
 
-func (e *Engine) gotoLayer(target any, manual, announce bool) {
-	e.mu.Lock()
+func (e *Engine) targetLocked(target any) int {
 	n := len(e.cfg.Layers)
 	idx := e.layer
 	switch v := target.(type) {
@@ -480,6 +512,29 @@ func (e *Engine) gotoLayer(target any, manual, announce bool) {
 	case float64:
 		idx = max(0, min(int(v), n-1))
 	}
+	return idx
+}
+
+func (e *Engine) ToggleLayer(target any) {
+	e.mu.Lock()
+	idx := e.targetLocked(target)
+	back := idx
+	if e.layer == idx {
+		back = e.toggleBack
+		if back == idx || back >= len(e.cfg.Layers) {
+			back = 0
+		}
+	} else {
+		e.toggleBack = e.layer
+	}
+	e.mu.Unlock()
+	e.gotoLayer(back, true, true)
+}
+
+func (e *Engine) gotoLayer(target any, manual, announce bool) {
+	e.mu.Lock()
+	n := len(e.cfg.Layers)
+	idx := e.targetLocked(target)
 	e.layer = idx
 	if manual {
 		e.manualLayer = idx
@@ -652,7 +707,20 @@ func (e *Engine) KeyDown(u byte, mods byte) {
 		e.mu.Unlock()
 		return
 	}
+	var early []*keyState
+	for k, other := range e.keys {
+		if k != u && other.down && !other.holdFired && isMomentary(other.kd.Hold) {
+			other.holdFired, other.momentary, other.prevLayer = true, true, e.layer
+			if other.holdTimer != nil {
+				other.holdTimer.Stop()
+			}
+			early = append(early, other)
+		}
+	}
 	e.mu.Unlock()
+	for _, o := range early {
+		e.gotoLayer(o.kd.Hold.To, false, false)
+	}
 	e.mu.Lock()
 	e.lastKey, e.lastTS = id, float64(time.Now().UnixNano())/1e9
 	e.emitLocked(Event{Kind: "down", Key: id})
@@ -669,6 +737,7 @@ func (e *Engine) KeyDown(u byte, mods byte) {
 	if !ok {
 		st.done = true
 		e.mu.Unlock()
+		e.injectFn(hid.Stroke{Usage: u, Mods: mods})
 		return
 	}
 	hasHold, hasDouble := kd.Hold != nil, kd.Double != nil
@@ -706,7 +775,7 @@ func (e *Engine) holdElapsed(u byte) {
 	if kd.Hold != nil && kd.Hold.Type == "layer" && kd.Hold.Momentary {
 		st.momentary, st.prevLayer = true, e.layer
 		e.mu.Unlock()
-		e.gotoLayer(kd.Hold.To, false, true)
+		e.gotoLayer(kd.Hold.To, false, false)
 		return
 	}
 	e.mu.Unlock()
@@ -730,7 +799,7 @@ func (e *Engine) KeyUp(u byte) {
 		prev := st.prevLayer
 		st.momentary = false
 		e.mu.Unlock()
-		e.gotoLayer(prev, false, true)
+		e.gotoLayer(prev, false, false)
 		return
 	}
 	if st.done || st.holdFired {

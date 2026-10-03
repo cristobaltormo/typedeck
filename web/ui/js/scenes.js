@@ -36,7 +36,7 @@ export async function run(scene) {
   if (scene === "empty" || scene === "offline") for (const l of state.cfg.layers) l.keys = {};
   if (scene === "empty") state.cfg.global = {};
   state.cfg.keyboards = { "258A:0016": { layout: scene === "numpad" ? "numpad" : "full-ansi" } };
-  state.system = { typing_layout: "us", mod_remap: [], keys_swapped: false };
+  state.system = { os: "darwin", typing_layout: "us", mod_remap: [], keys_swapped: false };
   state.appList = ["Visual Studio Code", "Termius", "Google Chrome", "Discord", "Spotify", "Zoom"];
   state.appSet = new Set(state.appList.map((n) => n.toLowerCase()));
   applySettings();

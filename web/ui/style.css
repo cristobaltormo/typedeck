@@ -385,3 +385,6 @@ body.dragging-key, body.dragging-key * { cursor: grabbing !important; }
 .dialog.wide { width: min(860px, calc(100vw - 32px)); }
 .mini.big { display: flex; justify-content: center; padding: 14px; border-radius: 12px; background: var(--canvas); background-image: radial-gradient(var(--dots) 1px, transparent 1px); background-size: 14px 14px; overflow: auto; }
 @media (max-width: 1000px) { .pack { grid-template-columns: 1fr; } }
+.pane .notice { margin: 0; }
+.help.state::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--faint); margin-right: 7px; }
+.help.state.on::before { background: var(--ok, #16a34a); }

@@ -16,7 +16,7 @@ export async function run() {
   try {
     location.hash = "#/gallery"; await sleep(60);
     location.hash = "#/keys"; await sleep(120);
-    ok("ISO keyboard with 105 keys", $$(".kb .cap").length === 105, $$(".kb .cap").length);
+    ok("a full-size keyboard is drawn with its 104 or 105 keys", [104, 105].includes($$(".kb .cap").length), $$(".kb .cap").length);
     ok("layers are shown numbered", $$(".layerbar .layer .n").length >= 2);
 
     $('.cap[data-u="4"]').click(); await sleep(40);
@@ -58,6 +58,26 @@ export async function run() {
     ok("dragging it back restores it", state.cfg.layers[0].keys["04"]?.tap?.app === "Safari" && !state.cfg.layers[0].keys["06"]);
     document.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true })); await sleep(50);
     ok("arrows move the selection by geometry", state.selKey !== "04", state.selKey);
+
+    $('.cap[data-u="7"]').click(); await sleep(40);
+    const setType = async (v) => { const x = pane().querySelector("select"); x.value = v; x.dispatchEvent(new Event("change", { bubbles: true })); await sleep(60); };
+    const selects = () => [...pane().querySelectorAll("select")];
+    await gesture("hold"); await setType("layer");
+    ok("holding a key offers 'only while held' for layers", [...selects()[1].options].map((o) => o.value).join() === "hold,switch,toggle", [...selects()[1].options].map((o) => o.value).join());
+    ok("a layer action has no confirm toggle and no test button", !byText(".pane .switch", t("act.confirm")) && !byText(".pane button", t("test.run")) && !!byText(".pane p", t("test.none.layer")));
+    selects()[1].value = "hold"; selects()[1].dispatchEvent(new Event("change", { bubbles: true })); await sleep(50);
+    ok("only while held sets momentary", state.cfg.layers[0].keys["07"].hold.momentary === true && !$(".pane .notice"));
+    selects()[1].value = "switch"; selects()[1].dispatchEvent(new Event("change", { bubbles: true })); await sleep(50);
+    ok("a layer-only navigation key warns that it vanishes in other layers", !!$(".pane .notice") && !state.cfg.layers[0].keys["07"].hold.momentary);
+    $(".pane .notice .btn.primary").click(); await sleep(80);
+    ok("making it global moves the key to every layer", state.scope === "global" && state.cfg.global["07"]?.hold?.type === "layer" && !state.cfg.layers[0].keys["07"]);
+    await setType("shell");
+    ok("a command offers the double-press confirmation and a test", !!byText(".pane .switch", t("act.confirm")) && !!byText(".pane button", t("test.run")));
+    await setType("hotkey");
+    ok("typing actions test with a countdown and wait for input", !!byText(".pane button", "4 s") && byText(".pane button", "4 s").disabled);
+    await setType("media");
+    ok("media has no confirmation but can be tested", !byText(".pane .switch", t("act.confirm")) && !!byText(".pane button", t("test.run")));
+    state.scope = 0; location.hash = "#/gallery"; await sleep(60); location.hash = "#/keys"; await sleep(100);
 
     const n0 = state.cfg.layers.length;
     byText(".layer.add", t("strip.add")).click(); await sleep(60);

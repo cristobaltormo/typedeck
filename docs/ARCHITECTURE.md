@@ -61,7 +61,8 @@ Enter instead of `0x32`; that is accounted for.
 ## Gestures
 
 Tap runs on key down when there is no hold or double; with hold, on release before the threshold; with double, after the double
-tap window. A `layer` action with `momentary` activates the layer while the key is held.
+tap window. A `layer` action with `momentary` activates the layer while the key is held, and also the moment another captured key goes down; for that
+the capture mask includes the keys of the layers a held key can reach, and a captured key with no action in the layer in force is typed back.
 
 ## The live connection
 

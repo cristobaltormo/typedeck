@@ -408,3 +408,65 @@ func TestLearningCapturesEveryKeyAndRunsNothing(t *testing.T) {
 		t.Fatal("the normal mask must come back after learning")
 	}
 }
+
+func TestMomentaryLayerActivatesAtOnceWhenAnotherKeyIsPressed(t *testing.T) {
+	e, r := newTest(t, func(c *config.Config) {
+		c.Settings.HoldMS = 1500
+		c.Layers[0].Keys["39"] = config.KeyDef{Hold: &config.Action{Type: "layer", To: 1, Momentary: true}}
+		c.Layers[1].Keys["1A"] = config.KeyDef{Tap: act("whatsapp")}
+	})
+	if m := e.MaskBytes(); m[0x1A>>3]&(1<<(0x1A&7)) == 0 {
+		t.Fatal("a key of the layer reached by holding must already be captured")
+	}
+	e.KeyDown(0x39, 0)
+	e.KeyDown(0x1A, 0)
+	e.KeyUp(0x1A)
+	settle()
+	if got := r.snapshot(); len(got) != 1 || got[0] != "hud:whatsapp" {
+		t.Fatalf("the key must run in the held layer: %v", got)
+	}
+	if e.Status().Layer != 1 {
+		t.Fatalf("the layer stays while the key is held: %d", e.Status().Layer)
+	}
+	e.KeyUp(0x39)
+	settle()
+	if e.Status().Layer != 0 {
+		t.Fatalf("it comes back on release: %d", e.Status().Layer)
+	}
+	e.KeyDown(0x39, 0)
+	e.KeyUp(0x39)
+	settle()
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if len(r.injects) != 1 || r.injects[0] != 0x39 || len(r.huds) != 0 {
+		t.Fatalf("a short tap still types the key and nothing announces: %v %v", r.injects, r.huds)
+	}
+}
+
+func TestCapturedKeyWithoutActionInTheHeldLayerPassesThrough(t *testing.T) {
+	e, r := newTest(t, func(c *config.Config) {
+		c.Settings.HoldMS = 1500
+		c.Layers[0].Keys["39"] = config.KeyDef{Hold: &config.Action{Type: "layer", To: 1, Momentary: true}}
+		c.Layers[1].Keys["1A"] = config.KeyDef{Tap: act("x")}
+	})
+	e.KeyDown(0x39, 0)
+	e.KeyDown(0x05, 0)
+	settle()
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if len(r.injects) != 1 || r.injects[0] != 0x05 {
+		t.Fatalf("a captured key with no action must be typed: %v", r.injects)
+	}
+}
+
+func TestToggleLayerGoesBackOnSecondUse(t *testing.T) {
+	e, _ := newTest(t, nil)
+	e.ToggleLayer(1)
+	if e.Status().Layer != 1 {
+		t.Fatal("first use goes to the layer")
+	}
+	e.ToggleLayer(1)
+	if e.Status().Layer != 0 {
+		t.Fatal("second use goes back")
+	}
+}

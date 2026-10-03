@@ -30,6 +30,7 @@ type fakeEnv struct{ layer int }
 func (f fakeEnv) Settings() config.Settings    { return config.DefaultSettings() }
 func (fakeEnv) HUD(string, string, bool)       {}
 func (fakeEnv) Goto(any)                       {}
+func (fakeEnv) ToggleLayer(any)                {}
 func (fakeEnv) ToggleCaffeinate() bool         { return false }
 func (fakeEnv) StartTimer(float64, string)     {}
 func (fakeEnv) Hardware() Hardware             { return nil }

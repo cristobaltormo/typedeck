@@ -31,6 +31,7 @@ type Env interface {
 	Settings() config.Settings
 	HUD(title, subtitle string, force bool)
 	Goto(target any)
+	ToggleLayer(target any)
 	ToggleCaffeinate() bool
 	StartTimer(minutes float64, label string)
 	Hardware() Hardware
@@ -123,7 +124,11 @@ func dispatch(a config.Action, env Env, capture bool) (string, error) {
 		env.StartTimer(a.Minutes, a.Label)
 		return fmt.Sprintf("%g min", a.Minutes), nil
 	case "layer":
-		env.Goto(a.To)
+		if a.Toggle {
+			env.ToggleLayer(a.To)
+		} else {
+			env.Goto(a.To)
+		}
 		return "", nil
 	case "history":
 		if env.SetKeyHistory(a.Cmd) {

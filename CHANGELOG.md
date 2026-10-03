@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.8.0 - 2026-10-03
+
+### Fixed
+- Holding a key that turns on a layer (Caps Lock, for example) and pressing another key at once now works: the layer switches the moment the
+  second key goes down instead of after the hold time, and the keys of that layer are already captured, so Caps Lock + W no longer types a W.
+  A key captured in the held layer that has no action there is typed normally.
+- A "next layer" action on a key that only exists on one layer worked once and then vanished with the layer. The editor now warns about it and
+  moves the key to All layers with one click.
+- Holding a layer key no longer pops up the layer notice on every press; only the layer bar and the board show the change.
+
+### Added
+- Layer actions can toggle: one press goes to a chosen layer and the next one returns to where you were.
+- Every action type has its own form: only the options that make sense for it (the double-press confirmation for risky ones, a test button
+  where a test is safe, a countdown for actions that type, the shortcut examples of your operating system, a description of each mode).
+
 ## 0.7.1 - 2026-10-03
 
 ### Fixed
