@@ -180,6 +180,17 @@ recupera solo en menos de un minuto, y [Hardware](docs/HARDWARE.md) explica cóm
 Un informe de error con la salida de `typedeck doctor` es lo más útil que puedes mandar; las pull requests son bienvenidas.
 [CONTRIBUTING.md](CONTRIBUTING.md) tiene la preparación y las reglas, y todo se comprueba con `make check`.
 
+## Política de firma de código
+
+Firma de código gratuita proporcionada por [SignPath.io](https://signpath.io), certificado de [SignPath Foundation](https://signpath.org).
+Hasta que se apruebe el proyecto, las versiones de Windows de [releases](https://github.com/cristobaltormo/typedeck/releases) no están firmadas.
+
+- Solo se firman binarios compilados por el workflow de GitHub Actions de este repositorio a partir de su propio código; cada versión se
+  compila desde una etiqueta y lleva una atestación de procedencia.
+- Roles: autor, revisor y aprobador es [Cristóbal Tormo](https://github.com/cristobaltormo), el mantenedor. Cada petición de firma se
+  aprueba a mano.
+- Privacidad: Typedeck no abre ninguna conexión de red por su cuenta ni envía datos a ningún sitio; el editor solo escucha en `127.0.0.1`.
+
 ## Licencia
 
 El programa, el editor y la documentación son MIT, ver [LICENSE](LICENSE). El firmware de `firmware/` se compila con la librería USB
