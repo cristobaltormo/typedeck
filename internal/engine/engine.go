@@ -95,6 +95,8 @@ type Engine struct {
 	seen        map[string]int
 	wake        chan struct{}
 	editUntil   time.Time
+	kbdTimer    *time.Timer
+	kbdLost     bool
 
 	board *board.Board
 
@@ -195,9 +197,11 @@ func (e *Engine) accentLocked(layer int) string {
 
 var strings_es = map[string]map[string]string{
 	"es": {"layer_of": "Capa %d de %d", "confirm": "Confirmar", "press_again": "Pulsa otra vez: %s", "error": "Error",
-		"caff_on": "Mac despierto", "caff_off": "Mac puede dormir", "timer_start": "Temporizador", "timer_end": "Tiempo cumplido"},
+		"caff_on": "Mac despierto", "caff_off": "Mac puede dormir", "timer_start": "Temporizador", "timer_end": "Tiempo cumplido",
+		"kbd_lost": "Teclado no detectado", "kbd_lost_sub": "Desenchufa el teclado del shield y vuelve a enchufarlo", "kbd_back": "Teclado conectado"},
 	"en": {"layer_of": "Layer %d of %d", "confirm": "Confirm", "press_again": "Press again: %s", "error": "Error",
-		"caff_on": "Mac awake", "caff_off": "Mac can sleep", "timer_start": "Timer", "timer_end": "Time is up"},
+		"caff_on": "Mac awake", "caff_off": "Mac can sleep", "timer_start": "Timer", "timer_end": "Time is up",
+		"kbd_lost": "Keyboard not detected", "kbd_lost_sub": "Unplug the keyboard from the shield and plug it back in", "kbd_back": "Keyboard connected"},
 }
 
 func (e *Engine) tr(key string, args ...any) string {
@@ -516,6 +520,36 @@ func (e *Engine) HandleBoardEvent(ev board.Event) {
 	case 'K':
 		c := ev.Arg == 1
 		e.emit(Event{Kind: "keyboard", Connected: &c})
+		e.KeyboardChanged(c)
+	}
+}
+
+var kbdLostAfter = 10 * time.Second
+
+func (e *Engine) KeyboardChanged(present bool) {
+	e.mu.Lock()
+	if e.kbdTimer != nil {
+		e.kbdTimer.Stop()
+		e.kbdTimer = nil
+	}
+	notify := e.cfg.Settings.NotifyKeyboard
+	back := present && e.kbdLost
+	if present {
+		e.kbdLost = false
+	} else {
+		e.kbdTimer = time.AfterFunc(kbdLostAfter, func() {
+			e.mu.Lock()
+			e.kbdLost = true
+			on := e.cfg.Settings.NotifyKeyboard
+			e.mu.Unlock()
+			if on {
+				e.hudFn(e.tr("kbd_lost"), e.tr("kbd_lost_sub"), 5, true)
+			}
+		})
+	}
+	e.mu.Unlock()
+	if back && notify {
+		e.hudFn(e.tr("kbd_back"), "", 2, true)
 	}
 }
 
@@ -854,6 +888,10 @@ func (e *Engine) OnBoardConnected(port string) {
 func (e *Engine) OnBoardDisconnected() {
 	c := false
 	e.mu.Lock()
+	if e.kbdTimer != nil {
+		e.kbdTimer.Stop()
+		e.kbdTimer = nil
+	}
 	for _, st := range e.keys {
 		if st.holdTimer != nil {
 			st.holdTimer.Stop()

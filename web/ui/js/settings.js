@@ -58,6 +58,7 @@ export function settingsView(root) {
       sw(t("hud.on_action"), s.hud.on_action, ["hud", "on_action"], t("hud.on_action_sub")),
       sw(t("hud.on_auto"), s.hud.on_auto, ["hud", "on_auto"], t("hud.on_auto_sub")),
       sw(t("hud.sound"), s.hud.sound, ["hud", "sound"]),
+      sw(t("settings.notify_kbd"), s.notify_keyboard !== false, ["notify_keyboard"], t("settings.notify_kbd_sub")),
       setting(t("hud.position"), seg([["top", t("pos.top")], ["center", t("pos.center")], ["bottom", t("pos.bottom")]], s.hud.position, (v) => set(["hud", "position"], v))),
       setting(t("hud.seconds"), slider(s.hud.seconds, 0.6, 5, 0.2, "s", (v) => set(["hud", "seconds"], v))),
       setting(t("hud.test"), h("button", { type: "button", class: "btn", onclick: () => api("/api/hud", { method: "POST", body: { title: "Typedeck", subtitle: t("diag.hud_sub") } }) }, ic("hud", 16), t("hud.test")))),

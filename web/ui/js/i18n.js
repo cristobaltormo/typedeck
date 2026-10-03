@@ -193,6 +193,7 @@ const ES = {
   "check.media_forwarded": "Las teclas multimedia se reenvían al ordenador.", "check.extras_not_forwarded": "El ratón integrado, las teclas de sistema y el modo sin límite de teclas del teclado no se reenvían todavía.", "check.six_key_limit": "Se pueden pulsar hasta 6 teclas a la vez.",
   "check.layout_unconfirmed": "No sé aún el formato real de tu teclado: usa “Detectar mis teclas”.", "check.generic_keyboard": "El teclado no tiene un nombre de modelo propio: el formato se confirma con el asistente de teclas.",
   "check.typing_layout_unknown": "La disposición del teclado del sistema no es de las verificadas: el texto y los atajos se envían por software (en macOS pide el permiso de Accesibilidad).", "check.mod_remap": "Tu Mac remapea modificadores para este teclado ({map}); Typedeck lo compensa.", "check.ansi_iso_swapped": "macOS registra el teclado como ANSI con disposición ISO: Typedeck compensa las teclas < y º.",
+  "settings.notify_kbd": "Avisar si se pierde el teclado", "settings.notify_kbd_sub": "Un cartel cuando la placa no ve el teclado durante 10 segundos, y otro al recuperarlo.",
   "live.on": "En tiempo real", "live.off": "Sin conexión en directo",
 };
 
@@ -391,6 +392,7 @@ const EN = {
   "check.media_forwarded": "Media keys are forwarded to the computer.", "check.extras_not_forwarded": "The built-in mouse, system keys and unlimited-rollover mode are not forwarded yet.", "check.six_key_limit": "Up to 6 keys can be pressed at once.",
   "check.layout_unconfirmed": "I do not know your keyboard's real format yet: use “Detect my keys”.", "check.generic_keyboard": "The keyboard has no model name of its own: confirm its format with the key assistant.",
   "check.typing_layout_unknown": "The system keyboard layout is not one of the verified ones: text and shortcuts are sent by software (on macOS this needs the Accessibility permission).", "check.mod_remap": "Your Mac remaps modifiers for this keyboard ({map}); Typedeck compensates.", "check.ansi_iso_swapped": "macOS registers the keyboard as ANSI with an ISO layout: Typedeck compensates the < and º keys.",
+  "settings.notify_kbd": "Warn when the keyboard is lost", "settings.notify_kbd_sub": "A popup when the board cannot see the keyboard for 10 seconds, and another when it comes back.",
   "live.on": "Live", "live.off": "No live connection",
 };
 

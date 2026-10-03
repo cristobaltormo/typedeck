@@ -285,3 +285,53 @@ func TestBounceIsIgnored(t *testing.T) {
 		t.Fatalf("una pulsación posterior sí: %v", got)
 	}
 }
+
+func TestEditingReleasesTheMaskUntilItEnds(t *testing.T) {
+	e, _ := newTest(t, func(c *config.Config) {
+		c.Layers[0].Keys["04"] = config.KeyDef{Tap: act("a")}
+	})
+	if e.MaskBytes()[0]&0x10 == 0 || e.Editing() {
+		t.Fatal("la tecla A debería estar capturada fuera de la edición")
+	}
+	e.SetEditing(true)
+	if e.MaskBytes() != [32]byte{} || !e.Editing() {
+		t.Fatal("editando no debe capturarse nada")
+	}
+	e.SetEditing(false)
+	if e.MaskBytes()[0]&0x10 == 0 || e.Editing() {
+		t.Fatal("al terminar la captura debe volver")
+	}
+}
+
+func TestKeyboardLostWarnsOnceAndAnnouncesTheReturn(t *testing.T) {
+	old := kbdLostAfter
+	kbdLostAfter = 40 * time.Millisecond
+	defer func() { kbdLostAfter = old }()
+	e, r := newTest(t, nil)
+	shown := func() int { r.mu.Lock(); defer r.mu.Unlock(); return len(r.huds) }
+
+	e.KeyboardChanged(false)
+	e.KeyboardChanged(true)
+	time.Sleep(120 * time.Millisecond)
+	if shown() != 0 {
+		t.Fatalf("un parpadeo no debe avisar: %v", r.huds)
+	}
+
+	e.KeyboardChanged(false)
+	time.Sleep(120 * time.Millisecond)
+	if shown() != 1 {
+		t.Fatalf("falta el aviso de teclado perdido: %v", r.huds)
+	}
+	e.KeyboardChanged(true)
+	time.Sleep(30 * time.Millisecond)
+	if shown() != 2 {
+		t.Fatalf("falta el aviso de teclado recuperado: %v", r.huds)
+	}
+
+	e.cfg.Settings.NotifyKeyboard = false
+	e.KeyboardChanged(false)
+	time.Sleep(120 * time.Millisecond)
+	if shown() != 2 {
+		t.Fatalf("con el aviso desactivado no debe salir nada: %v", r.huds)
+	}
+}

@@ -61,7 +61,10 @@ func main() {
 	}
 	brd.OnEvent = eng.HandleBoardEvent
 	brd.Mask = eng.MaskBytes
-	brd.OnConnected = func(i *board.Info) { eng.OnBoardConnected(i.Firmware) }
+	brd.OnConnected = func(i *board.Info) {
+		eng.OnBoardConnected(i.Firmware)
+		eng.KeyboardChanged(i.Present)
+	}
 	brd.OnDisconnect = eng.OnBoardDisconnected
 
 	srv, err := server.New(eng, brd, paths, log.Printf)
