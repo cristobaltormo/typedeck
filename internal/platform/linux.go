@@ -693,7 +693,7 @@ func (*linux) InstallService(exe string) (string, error) {
 		return "", errors.New("systemd is needed; without it, start typedeck from your desktop session startup")
 	}
 	unit := fmt.Sprintf(`[Unit]
-Description=Typedeck: macros para tu teclado
+Description=Typedeck: macros for your keyboard
 After=graphical-session.target
 
 [Service]

@@ -26,6 +26,10 @@ var (
 	entriesAt time.Time
 )
 
+var sandboxedAppDirs = func(home string) []string {
+	return []string{"/var/lib/flatpak/exports/share", filepath.Join(home, ".local/share/flatpak/exports/share"), "/var/lib/snapd/desktop"}
+}
+
 func dataDirs() []string {
 	home, _ := os.UserHomeDir()
 	dirs := []string{filepath.Join(home, ".local/share")}
@@ -37,7 +41,7 @@ func dataDirs() []string {
 		xdg = "/usr/local/share:/usr/share"
 	}
 	dirs = append(dirs, strings.Split(xdg, ":")...)
-	dirs = append(dirs, "/var/lib/flatpak/exports/share", filepath.Join(home, ".local/share/flatpak/exports/share"), "/var/lib/snapd/desktop")
+	dirs = append(dirs, sandboxedAppDirs(home)...)
 	return dirs
 }
 

@@ -47,7 +47,7 @@ func (c *SerialConnector) Open() (io.ReadWriteCloser, string, error) {
 		c.mu.Lock()
 		at, bad := c.rejected[path]
 		c.mu.Unlock()
-		if bad && time.Since(at) < 30*time.Second {
+		if bad && time.Since(at) < 5*time.Second {
 			continue
 		}
 		f, err := openPort(path)

@@ -24,6 +24,9 @@ func TestDesktopEntries(t *testing.T) {
 	dir := t.TempDir()
 	t.Setenv("XDG_DATA_HOME", dir)
 	t.Setenv("XDG_DATA_DIRS", dir)
+	old := sandboxedAppDirs
+	sandboxedAppDirs = func(string) []string { return nil }
+	defer func() { sandboxedAppDirs = old }()
 	writeDesktop(t, dir, "code", "[Desktop Entry]\nType=Application\nName=Visual Studio Code\nName[es]=Código\nExec=/usr/share/code/code --unity-launch %F\nStartupWMClass=Code\n")
 	writeDesktop(t, dir, "hidden", "[Desktop Entry]\nType=Application\nName=Oculta\nExec=oculta\nNoDisplay=true\n")
 	writeDesktop(t, dir, "org.mozilla.firefox", "[Desktop Entry]\nType=Application\nName=Firefox\nExec=env MOZ_X=1 firefox %u\n[Desktop Action new-window]\nName=Nueva ventana\nExec=firefox --new-window\n")
