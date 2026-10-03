@@ -2,12 +2,12 @@
 # Runs every test that needs a real Windows machine with the board plugged in: the unit tests compiled for Windows, the hardware
 # tests, typing through the board, the desktop features, the editor tab focus, fail-open, the editor self test in Chrome and the
 # service install and uninstall. The host is an ssh alias, WIN_HOST (default "windows"); Typedeck is installed there as a scheduled
-# task named Typedeck, in WIN_DIR (default C:\Users\crist\typedeck), and Chrome is in its default place.
+# task named Typedeck, in WIN_DIR (set WIN_DIR, for example C:\Users\me\typedeck), and Chrome is in its default place.
 # Usage: scripts/e2e-windows.sh
 set -uo pipefail
 cd "$(dirname "$0")/.."
 WIN_HOST="${WIN_HOST:-windows}"
-WIN_DIR="${WIN_DIR:-C:\\Users\\crist\\typedeck}"
+WIN_DIR="${WIN_DIR:?set WIN_DIR, for example C:\\Users\\me\\typedeck}"
 WIN_TMP='C:\typedeck'
 CHROME='C:\Program Files\Google\Chrome\Application\chrome.exe'
 PORT=7788

@@ -2,13 +2,13 @@
 # Runs every test that needs a real Linux machine with a graphical session and the board plugged in: the unit tests compiled for
 # Linux, the hardware tests, typing through the board into a window of our own, the desktop features, the editor tab focus,
 # fail-open, the editor self test in the machine's Chrome and the user service. It uses ssh (LINUX_HOST, default
-# cristobal@192.168.1.92, key LINUX_KEY) and passwordless access to sudo through LINUX_SUDO_FILE, a file holding the password.
+# user@host, key LINUX_KEY, default ~/.ssh/id_ed25519) and passwordless access to sudo through LINUX_SUDO_FILE, a file holding the password.
 # The machine needs the session variables in /tmp/tdenv.sh (XDG_RUNTIME_DIR, WAYLAND_DISPLAY or DISPLAY, DBUS_SESSION_BUS_ADDRESS).
 # Usage: scripts/e2e-linux-real.sh
 set -uo pipefail
 cd "$(dirname "$0")/.."
-HOST="${LINUX_HOST:-cristobal@192.168.1.92}"
-KEY="${LINUX_KEY:-$HOME/.ssh/dispositivos/portable_cristobal}"
+HOST="${LINUX_HOST:?set LINUX_HOST, for example user@laptop}"
+KEY="${LINUX_KEY:-$HOME/.ssh/id_ed25519}"
 SUDO_FILE="${LINUX_SUDO_FILE:-}"
 PORT=7788
 FAIL=0

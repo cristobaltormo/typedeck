@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.6.1 - 2026-10-03
 
 ### Fixed
 - Linux packages: the udev rule is installed as `70-typedeck.rules`. As `99-` it sorted after `73-seat-late.rules`, so the logged-in user never
