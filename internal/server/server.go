@@ -205,6 +205,7 @@ func (s *Server) Handler() http.Handler {
 	})
 	post("/api/board", s.boardCmd)
 	post("/api/learn", s.learnSet)
+	post("/api/macros/inspect", s.inspectPack)
 	post("/api/editing", func(w http.ResponseWriter, r *http.Request) {
 		var b struct{ On bool }
 		if decode(r, &b) != nil {

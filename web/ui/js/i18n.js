@@ -204,6 +204,10 @@ const ES = {
   "cond.obs_help": "Necesita el servidor WebSocket de OBS activado (en Ajustes).",
   "settings.notify_kbd": "Avisar si se pierde el teclado", "settings.notify_kbd_sub": "Un cartel cuando la placa no ve el teclado durante 10 segundos, y otro al recuperarlo.",
   "live.on": "En tiempo real", "live.off": "Sin conexión en directo",
+  "share.title": "Importar macros", "share.invalid": "Ese archivo no es un paquete de macros válido.", "share.done": "{n} teclas añadidas", "share.import": "Importar",
+  "share.summary": "Paquete «{name}»: {layers} capas y {keys} teclas con macros.", "share.risky": "Este paquete ejecuta {n} comandos o peticiones. Revísalos: se lanzarán desde tu equipo cuando pulses esas teclas.",
+  "share.as_layers": "Añadir como capas nuevas", "share.as_layers_sub": "No toca lo que ya tienes.", "share.merge": "Mezclar en la capa actual", "share.merge_sub": "Las teclas que coincidan con las de «{name}» se sustituyen.",
+  "share.export_layer": "Exportar capa", "share.import_btn": "Importar macros", "share.export_all": "Exportar macros",
 };
 
 const EN = {
@@ -412,6 +416,10 @@ const EN = {
   "cond.obs_help": "Needs the OBS WebSocket server enabled (see Settings).",
   "settings.notify_kbd": "Warn when the keyboard is lost", "settings.notify_kbd_sub": "A popup when the board cannot see the keyboard for 10 seconds, and another when it comes back.",
   "live.on": "Live", "live.off": "No live connection",
+  "share.title": "Import macros", "share.invalid": "That file is not a valid macro pack.", "share.done": "{n} keys added", "share.import": "Import",
+  "share.summary": "Pack \u201c{name}\u201d: {layers} layers and {keys} keys with macros.", "share.risky": "This pack runs {n} commands or requests. Review them: they will run on your computer when you press those keys.",
+  "share.as_layers": "Add as new layers", "share.as_layers_sub": "Leaves what you have untouched.", "share.merge": "Merge into the current layer", "share.merge_sub": "Keys that match those of \u201c{name}\u201d are replaced.",
+  "share.export_layer": "Export layer", "share.import_btn": "Import macros", "share.export_all": "Export macros",
 };
 
 const DICTS = { es: ES, en: EN };

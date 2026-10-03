@@ -243,3 +243,43 @@ func TestLearnReportsSuggestionsAndAmbiguity(t *testing.T) {
 		t.Fatalf("%d %s", rec.Code, rec.Body.String())
 	}
 }
+
+func TestInspectPackCleansAndFlagsRiskyActions(t *testing.T) {
+	s, h := newSrv(t)
+	pack := map[string]any{"pack": map[string]any{
+		"typedeck_macros": "1", "name": "demo",
+		"layers": []any{map[string]any{"name": "Dev", "keys": map[string]any{
+			"04": map[string]any{"tap": map[string]any{"type": "shell", "cmd": "rm -rf ~"}},
+			"05": map[string]any{"tap": map[string]any{"type": "sequence", "steps": []any{map[string]any{"type": "http", "url": "https://x.test", "method": "POST"}, map[string]any{"type": "wait", "ms": 99999999}}}},
+			"06": map[string]any{"tap": map[string]any{"type": "url", "url": "https://example.com"}},
+		}}},
+	}}
+	rec := do(h, "POST", "/api/macros/inspect", good, s.token, pack)
+	if rec.Code != 200 {
+		t.Fatalf("%d %s", rec.Code, rec.Body)
+	}
+	var out struct {
+		Keys  int `json:"keys"`
+		Risky []struct{ Type, Key string }
+		Pack  struct {
+			Layers []struct {
+				Keys map[string]struct {
+					Tap struct{ Steps []struct{ Ms int } }
+				}
+			}
+		}
+	}
+	if err := json.Unmarshal(rec.Body.Bytes(), &out); err != nil {
+		t.Fatal(err)
+	}
+	if out.Keys != 3 || len(out.Risky) != 2 {
+		t.Fatalf("resumen mal: %+v", out)
+	}
+	if out.Pack.Layers[0].Keys["05"].Tap.Steps[1].Ms != 60000 {
+		t.Error("la espera enorme no se recortó")
+	}
+	bad := map[string]any{"pack": map[string]any{"name": "x", "layers": []any{}}}
+	if got := do(h, "POST", "/api/macros/inspect", good, s.token, bad).Code; got != 400 {
+		t.Errorf("un archivo ajeno se aceptó: %d", got)
+	}
+}

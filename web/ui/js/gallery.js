@@ -5,6 +5,7 @@ import { keyboard, hex } from "./keyboard.js";
 import { legendLang } from "./layouts.js";
 import { toast } from "./toast.js";
 import { state, edit, layerCount, layoutId } from "./store.js";
+import { importPack, exportEverything } from "./share.js";
 
 const pick = (v) => (v && typeof v === "object" ? v[lang()] || v.es : v);
 const clone = (o) => JSON.parse(JSON.stringify(o));
@@ -71,7 +72,9 @@ export function galleryView(root) {
   }
 
   search.addEventListener("input", () => { query = search.value; drawList(); });
-  root.append(h("div", { class: "page", style: { maxWidth: "1100px" } }, h("header", {}, h("h1", {}, t("gallery.title")), h("p", {}, t("gallery.sub"))),
+  root.append(h("div", { class: "page", style: { maxWidth: "1100px" } }, h("header", { class: "row wrap" }, h("div", { class: "grow" }, h("h1", {}, t("gallery.title")), h("p", {}, t("gallery.sub"))),
+      h("button", { type: "button", class: "btn", onclick: importPack }, ic("upload", 16), t("share.import_btn")),
+      h("button", { type: "button", class: "btn", onclick: exportEverything }, ic("download", 16), t("share.export_all"))),
     h("div", { class: "gallery-tools" }, h("div", { class: "searchbox" }, ic("search", 16), search), chips), list));
   drawChips(); drawList();
   return {};

@@ -7,6 +7,7 @@ import { layout as getLayout, legendLang } from "./layouts.js";
 import { field, textInput, select, toggle, swatches, iconPicker, armed } from "./controls.js";
 import { actionFields, typeOptions } from "./actionform.js";
 import { openKeyboardDrawer, layoutLabel } from "./kbinfo.js";
+import { exportLayer, importPack } from "./share.js";
 import { state, notify, edit, undo, redo, canUndo, canRedo, keysOf, keyDef, ensureKey, pruneKey, newAction, describe, layerCount, layoutId } from "./store.js";
 
 const GESTURES = ["tap", "hold", "double"];
@@ -202,6 +203,8 @@ export function workView(root) {
           h("button", { type: "button", class: "btn sm", disabled: i === 0, onclick: () => move(-1) }, ic("arrow-left", 15), t("layer.left")),
           h("button", { type: "button", class: "btn sm", disabled: i === layerCount() - 1, onclick: () => move(1) }, ic("arrow-right", 15), t("layer.right")),
           h("button", { type: "button", class: "btn sm", disabled: layerCount() >= 9, onclick: () => { edit("", (c) => { const cp = clone(l); cp.name = t("layer.copy_of", { name: l.name }); c.layers.splice(i + 1, 0, cp); }); state.scope = i + 1; renderAll(); } }, ic("copy", 15), t("layer.duplicate")),
+          h("button", { type: "button", class: "btn sm", onclick: () => exportLayer(i) }, ic("download", 15), t("share.export_layer")),
+          h("button", { type: "button", class: "btn sm", onclick: importPack }, ic("upload", 15), t("share.import_btn")),
           layerCount() > 1 && armed("layer.delete", () => { edit("", (c) => { c.layers.splice(i, 1); }); state.scope = Math.max(0, i - 1); state.panel = "key"; renderAll(); }, { small: true, icon: "trash" }))));
     return h("div", {}, head, cols);
   }

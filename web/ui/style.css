@@ -326,3 +326,16 @@ output { font-variant-numeric: tabular-nums; font-size: 13px; }
   body { background: #fff; overflow: visible; } .side, .top, .no-print, .toasts { display: none !important; } #app { display: block; height: auto; } .content { display: block; } .view { overflow: visible; animation: none; }
   .page { max-width: none; padding: 0; } .cap { box-shadow: 0 1px 0 #888; }
 }
+
+.dialog { width: min(520px, calc(100vw - 32px)); background: var(--raised); border: 1px solid var(--line); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 24px 60px rgb(0 0 0 / .35); max-height: 76vh; overflow: auto; }
+.dialog h2 { margin: 0; font-size: 16px; }
+.choices { display: flex; flex-direction: column; gap: 8px; }
+.choice { display: flex; gap: 10px; align-items: flex-start; border: 1px solid var(--line-soft); border-radius: 9px; padding: 10px 12px; cursor: pointer; }
+.choice:has(input:checked) { border-color: var(--accent-line); background: var(--accent-soft); }
+.choice input { margin-top: 3px; }
+.choice b { display: block; font-weight: 500; color: var(--strong); }
+.choice small { color: var(--faint); font-size: 12.5px; }
+.notice.warn { border-color: color-mix(in srgb, var(--warn) 50%, transparent); }
+ul.risk { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 5px; }
+ul.risk li { display: flex; gap: 8px; align-items: center; min-width: 0; }
+ul.risk code { font-family: var(--mono); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
