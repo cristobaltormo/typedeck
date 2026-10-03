@@ -134,7 +134,7 @@ var layoutESPC = func() *Layout {
 	nums := []struct {
 		u          byte
 		shift, alt rune
-	}{{0x1E, '!', '|'}, {0x1F, '"', '@'}, {0x20, '·', '#'}, {0x21, '$', '~'}, {0x22, '%', '€'},
+	}{{0x1E, '!', '|'}, {0x1F, '"', '@'}, {0x20, '·', '#'}, {0x21, '$', '~'}, {0x22, '%', '½'},
 		{0x23, '&', '¬'}, {0x24, '/', 0}, {0x25, '(', 0}, {0x26, ')', 0}, {0x27, '=', 0}}
 	for _, n := range nums {
 		l.add(n.shift, n.u, ModShift)
@@ -142,6 +142,7 @@ var layoutESPC = func() *Layout {
 			l.add(n.alt, n.u, altgr)
 		}
 	}
+	l.add('€', 0x08, altgr)
 	l.add('º', 0x35, 0)
 	l.add('ª', 0x35, ModShift)
 	l.add('\\', 0x35, altgr)

@@ -90,8 +90,8 @@ try:
     say("D 06 00"); say("U 06")
     wait(lambda: len(sent("KEY ")) >= n + 10)
     typed = sent("KEY ")[n:]
-    # the sample text is Añ@~€\{ -> A=shift+04, ñ=00 33, @=40 1F (AltGr+2), ~=40 21, €=40 22, \=40 35, {=40 34
-    want = ["KEY 02 04", "KEY 00 33", "KEY 40 1F", "KEY 40 21", "KEY 40 22", "KEY 40 35", "KEY 40 34"]
+    # the sample text is Añ@~€\{ -> A=shift+04, ñ=00 33, @=40 1F (AltGr+2), ~=40 21, €=40 08, \=40 35, {=40 34
+    want = ["KEY 02 04", "KEY 00 33", "KEY 40 1F", "KEY 40 21", "KEY 40 08", "KEY 40 35", "KEY 40 34"]
     check("text is typed with the Spanish (PC) layout: Alt Gr for @ ~ € \\ {", typed[:7] == want, typed[:8])
 
     say("D 07 00"); say("U 07")

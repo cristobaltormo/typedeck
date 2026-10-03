@@ -88,7 +88,7 @@ func TestSpanishPCLayout(t *testing.T) {
 		t.Fatal("the two Spanish layouts must differ")
 	}
 	cases := map[rune][]Stroke{
-		'@': {{0x1F, ModAltGr}}, '#': {{0x20, ModAltGr}}, '~': {{0x21, ModAltGr}}, '€': {{0x22, ModAltGr}}, '\\': {{0x35, ModAltGr}},
+		'@': {{0x1F, ModAltGr}}, '#': {{0x20, ModAltGr}}, '~': {{0x21, ModAltGr}}, '€': {{0x08, ModAltGr}}, '½': {{0x22, ModAltGr}}, '\\': {{0x35, ModAltGr}},
 		'|': {{0x1E, ModAltGr}}, '[': {{0x2F, ModAltGr}}, ']': {{0x30, ModAltGr}}, '{': {{0x34, ModAltGr}}, '}': {{0x32, ModAltGr}},
 		'ñ': {{0x33, 0}}, 'Ñ': {{0x33, ModShift}}, 'ç': {{0x32, 0}}, '<': {{0x64, 0}}, '>': {{0x64, ModShift}},
 		'á': {{0x34, 0}, {0x04, 0}}, '^': {{0x2F, ModShift}, {0x2C, 0}}, '`': {{0x2F, 0}, {0x2C, 0}}, '/': {{0x24, ModShift}}, '=': {{0x27, ModShift}},
