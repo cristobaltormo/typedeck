@@ -18,12 +18,13 @@ Events can arrive at any time.
 | `WATCH 0\|1` | `OK` | Emit `W <usage>` for every key pressed |
 | `VBUS 0\|1` | `OK` | Diagnostic only: drives the shield's VBUS switch. It does not cut the keyboard's power on the reference shield |
 | `BOOTLOG` | `cold=N recoveries=N slow=N first_seen_ds=N this_boot=cold\|recovery` | Persistent boot statistics (EEPROM): cold starts, restarts caused by a missing keyboard, boots where the keyboard took over 5 s, deciseconds until the keyboard was first seen |
+| `KEYS 0\|1` | `OK` | 1 reports every key that is not captured as `P <usage>` (down) and `R <usage>` (up), modifiers included as usages E0 to E7. Captured keys keep using `D` and `U` |
 | `REBOOT` | `OK` | Restarts the board through the bootloader; the serial port disappears for about 20 s |
 | `DARK 0\|1` | `OK` | 1 (default) keeps the TX/RX LEDs off; 0 hands them back to the USB core |
 | `SIMQ <16 hex>` | `OK` | Simulated keyboard report, logic only (for tests) |
 | `DBG 0\|1`, `LEDS <n>`, `LAYER <n>`, `L 0\|1` | `OK` | Debugging and the on-board LED |
 
-Events: `D <usage> <mods>` (captured key down), `U <usage>` (up), `W <usage>` (observed), `K 1` and `K 0` (keyboard attached to or
+Events: `D <usage> <mods>` (captured key down), `U <usage>` (up), `W <usage>` (observed), `P <usage>` and `R <usage>` (any other key down and up, after `KEYS 1`), `K 1` and `K 0` (keyboard attached to or
 removed from the shield), `RESET sin teclado` (the board is about to restart to recover the keyboard).
 
 The firmware forwards two keyboard reports: the boot report (interface 1) and the consumer report (report 2 of interface 2).

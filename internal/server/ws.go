@@ -154,10 +154,12 @@ func (s *Server) ws(w http.ResponseWriter, r *http.Request) {
 		_ = conn.Close()
 		return
 	}
+	s.eng.SetEditorOpen(true)
 	go s.wsWrite(c)
 	s.wsRead(c, rw.Reader)
 	c.close()
 	s.hub.remove(c)
+	s.eng.SetEditorOpen(s.hub.count() > 0)
 	if c.editing.Load() {
 		s.eng.SetEditing(s.hub.editing())
 	}

@@ -7,7 +7,7 @@
 
 #include <avr/wdt.h>
 #include <EEPROM.h>
-#define FW_VERSION "11"
+#define FW_VERSION "12"
 #define HB_TIMEOUT_MS 5000UL
 
 USB Usb;
@@ -35,6 +35,8 @@ uint8_t softResets __attribute__((section(".noinit")));
 unsigned long lastRunningMs = 0;
 bool kbdPresent = false;
 bool dark = true;
+bool allKeys = false;
+uint8_t prevPlain[6]; uint8_t prevPlainN = 0, prevAllMods = 0;
 bool seenSinceBoot = false;
 #define EE_COLD 1
 #define EE_RECOV 2
@@ -62,6 +64,31 @@ void sendReport() {
   BootKeyboard._keyReport.modifiers = physMods | injMods;
   for (uint8_t i = 0; i < 6; i++) BootKeyboard._keyReport.keycodes[i] = (KeyboardKeycode)out[i];
   BootKeyboard.send();
+}
+
+static void pr(char kind, uint8_t usage) { Serial.write(kind); Serial.write(' '); hex2(usage); Serial.write('\n'); }
+
+static void reportPlainKeys(const uint8_t *buf, bool cap) {
+  uint8_t chg = buf[0] ^ prevAllMods;
+  for (uint8_t b = 0; b < 8; b++) if (chg & (1 << b)) pr((buf[0] & (1 << b)) ? 'P' : 'R', 0xE0 + b);
+  prevAllMods = buf[0];
+  uint8_t cur[6], n = 0;
+  for (uint8_t i = 0; i < 6; i++) {
+    uint8_t k = buf[2 + i];
+    if (k > 3 && !(cap && isCaptured(k))) cur[n++] = k;
+  }
+  for (uint8_t i = 0; i < n; i++) {
+    bool had = false;
+    for (uint8_t j = 0; j < prevPlainN; j++) if (prevPlain[j] == cur[i]) had = true;
+    if (!had) pr('P', cur[i]);
+  }
+  for (uint8_t j = 0; j < prevPlainN; j++) {
+    bool still = false;
+    for (uint8_t i = 0; i < n; i++) if (cur[i] == prevPlain[j]) still = true;
+    if (!still) pr('R', prevPlain[j]);
+  }
+  for (uint8_t i = 0; i < n; i++) prevPlain[i] = cur[i];
+  prevPlainN = n;
 }
 
 void processReport(const uint8_t *buf, bool quiet) {
@@ -98,6 +125,7 @@ void processReport(const uint8_t *buf, bool quiet) {
     for (uint8_t i = 0; i < nowN; i++) prevDown[i] = nowDown[i];
     prevN = nowN;
   } else prevN = 0;
+  if (allKeys) reportPlainKeys(buf, cap);
   if (!quiet) sendReport();
   unsigned long dt = micros() - t0;
   statN++; statSum += dt; if (dt > statMax) statMax = dt;
@@ -291,6 +319,7 @@ void handle(char *cmd) {
   }
   if (!strncmp(cmd, "VBUS ", 5)) { Usb.vbusPower(atoi(cmd + 5) ? vbus_on : vbus_off); Serial.println(F("OK")); return; }
   if (!strcmp(cmd, "REBOOT")) { Serial.println(F("OK")); Serial.flush(); delay(50); bootloaderReset(); }
+  if (!strncmp(cmd, "KEYS ", 5)) { allKeys = atoi(cmd + 5) != 0; prevPlainN = 0; prevAllMods = 0; Serial.println(F("OK")); return; }
   if (!strncmp(cmd, "DARK ", 5)) { dark = atoi(cmd + 5) != 0; Serial.println(F("OK")); return; }
   if (!strcmp(cmd, "BOOTLOG")) {
     Serial.print(F("cold=")); Serial.print(EEPROM.read(EE_COLD));

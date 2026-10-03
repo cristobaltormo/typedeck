@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/cristobaltormo/typedeck/internal/board"
 	"github.com/cristobaltormo/typedeck/internal/config"
 )
 
@@ -94,4 +95,29 @@ func waitMask(t *testing.T, s *Server, zero bool) {
 		time.Sleep(20 * time.Millisecond)
 	}
 	t.Fatalf("la máscara no llegó al estado esperado (cero=%v)", zero)
+}
+
+func TestPlainKeysAreBroadcastToTheEditor(t *testing.T) {
+	s, h := newSrv(t)
+	ts := httptest.NewServer(h)
+	defer ts.Close()
+	addr := strings.TrimPrefix(ts.URL, "http://")
+	old := Port
+	Port, _ = strconv.Atoi(addr[strings.LastIndex(addr, ":")+1:])
+	defer func() { Port = old }()
+
+	c, r, _ := dialWS(t, addr, s.token)
+	defer c.Close()
+	var hdr [2]byte
+	_, _ = r.Read(hdr[:])
+	_, _ = r.Read(make([]byte, hdr[1]))
+
+	s.eng.HandleBoardEvent(board.Event{Kind: 'P', Usage: 0x1E})
+	_ = c.SetReadDeadline(time.Now().Add(2 * time.Second))
+	_, _ = r.Read(hdr[:])
+	body := make([]byte, hdr[1])
+	_, _ = r.Read(body)
+	if !strings.Contains(string(body), `"t":"key"`) || !strings.Contains(string(body), `"k":"1E"`) || !strings.Contains(string(body), `"d":true`) {
+		t.Fatalf("mensaje de tecla: %s", body)
+	}
 }

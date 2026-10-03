@@ -97,6 +97,8 @@ type Engine struct {
 	editUntil   time.Time
 	kbdTimer    *time.Timer
 	kbdLost     bool
+	editorOpen  bool
+	OnPlainKey  func(usage byte, down bool)
 
 	board *board.Board
 
@@ -330,6 +332,33 @@ func (e *Engine) applyConfig(c config.Config) {
 	default:
 	}
 	e.syncMaskAsync()
+	e.syncKeysAsync()
+}
+
+func (e *Engine) SetEditorOpen(open bool) {
+	e.mu.Lock()
+	changed := e.editorOpen != open
+	e.editorOpen = open
+	e.mu.Unlock()
+	if changed {
+		e.syncKeysAsync()
+	}
+}
+
+func (e *Engine) syncKeysAsync() {
+	if e.board == nil {
+		return
+	}
+	e.mu.Lock()
+	want := e.editorOpen
+	e.mu.Unlock()
+	go func() { _ = e.board.Keys(want) }()
+}
+
+func (e *Engine) plainKey(u byte, down bool) {
+	if e.OnPlainKey != nil {
+		e.OnPlainKey(u, down)
+	}
 }
 
 func (e *Engine) MaskBytes() [32]byte {
@@ -525,6 +554,8 @@ func (e *Engine) HandleBoardEvent(ev board.Event) {
 		e.KeyDown(ev.Usage, ev.Mods)
 	case 'U':
 		e.KeyUp(ev.Usage)
+	case 'P', 'R':
+		e.plainKey(ev.Usage, ev.Kind == 'P')
 	case 'W':
 		e.mu.Lock()
 		if e.learning {
@@ -898,6 +929,7 @@ func (e *Engine) Seen() map[string]int {
 func (e *Engine) OnBoardConnected(port string) {
 	c := true
 	e.emit(Event{Kind: "board", Connected: &c, Port: port})
+	e.syncKeysAsync()
 }
 
 func (e *Engine) OnBoardDisconnected() {

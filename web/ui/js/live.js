@@ -1,7 +1,7 @@
 import { api, token } from "./api.js";
 import { state, notify } from "./store.js";
 
-let ws = null, retry = 0, onEvent = () => {}, editing = false, recording = 0, keepAlive = null, reconnectTimer = null;
+let ws = null, retry = 0, onEvent = () => {}, onKey = () => {}, editing = false, recording = 0, keepAlive = null, reconnectTimer = null;
 
 export const isLive = () => !!ws && ws.readyState === WebSocket.OPEN;
 
@@ -40,6 +40,7 @@ function connect() {
   ws.onmessage = (m) => {
     let d; try { d = JSON.parse(m.data); } catch { return; }
     if (d.t === "event") onEvent(d.ev);
+    else if (d.t === "key") onKey(d.k, d.d);
     else if (d.t === "hello") onEvent(null, d.last_id);
     else if (d.t === "focus") { window.focus(); flashTitle(); }
   };
@@ -61,8 +62,9 @@ function flashTitle() {
   const id = setInterval(() => { document.title = n++ % 2 ? base : `> ${base}`; if (n > 6 || document.hasFocus()) { clearInterval(id); document.title = base; flashing = false; } }, 500);
 }
 
-export function startLive(handler) {
+export function startLive(handler, keyHandler) {
   onEvent = handler;
+  if (keyHandler) onKey = keyHandler;
   document.addEventListener("focusin", refresh);
   document.addEventListener("focusout", () => setTimeout(refresh, 0));
   window.addEventListener("blur", refresh);

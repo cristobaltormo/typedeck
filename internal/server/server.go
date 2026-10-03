@@ -61,6 +61,9 @@ func New(eng *engine.Engine, brd *board.Board, paths config.Paths, logf func(str
 		return nil, err
 	}
 	s := &Server{eng: eng, brd: brd, paths: paths, token: base64.RawURLEncoding.EncodeToString(tok), assets: map[string]*asset{}, log: logf}
+	eng.OnPlainKey = func(u byte, down bool) {
+		s.hub.broadcast(map[string]any{"t": "key", "k": fmt.Sprintf("%02X", u), "d": down})
+	}
 	go s.pumpEvents()
 	return s, s.loadAssets()
 }

@@ -222,7 +222,7 @@ func parseEvent(line string) (Event, bool) {
 		return Event{}, false
 	}
 	switch f[0][0] {
-	case 'D', 'U', 'W':
+	case 'D', 'U', 'W', 'P', 'R':
 		u, err := strconv.ParseUint(f[1], 16, 8)
 		if err != nil || len(f[1]) > 2 {
 			return Event{}, false
@@ -417,6 +417,15 @@ func (b *Board) Tap(s hid.Stroke) error {
 
 func (b *Board) Consumer(usage uint16) error {
 	_, err := b.Do(fmt.Sprintf("CONS %X", usage), false, time.Second)
+	return err
+}
+
+func (b *Board) Keys(on bool) error {
+	n := 0
+	if on {
+		n = 1
+	}
+	_, err := b.Do(fmt.Sprintf("KEYS %d", n), false, time.Second)
 	return err
 }
 

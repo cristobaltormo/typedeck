@@ -51,7 +51,7 @@ async function boot() {
   const q = location.search;
   if (q.includes("scene=")) { (await import("./scenes.js")).run(new URLSearchParams(q).get("scene")); return; }
   if (q.includes("selftest")) { startLive(onLive); (await import("./selftest.js")).run(); return; }
-  if (!q.includes("nolive")) { startLive(onLive); eventsLoop(); }
+  if (!q.includes("nolive")) { startLive(onLive, onPlainKey); eventsLoop(); }
 }
 
 function brand() {
@@ -130,6 +130,11 @@ function handle(ev) {
     case "watch": notify("watch", { key: ev.key }); break;
   }
   notify("event", ev);
+}
+
+function onPlainKey(key, down) {
+  if (down) state.down.add(key); else state.down.delete(key);
+  notify("key", { key, down });
 }
 
 function ingest(ev) {
