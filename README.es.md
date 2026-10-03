@@ -22,6 +22,9 @@ Tu teclado sigue funcionando con normalidad aunque el programa no esté en march
   página de compatibilidad dice qué se ha probado dónde.
 - **OBS Studio sin atajos.** Cambiar de escena, empezar el directo, grabar, silenciar el micro o guardar el replay por el
   servidor WebSocket del propio OBS: no hay teclas que asignar y funciona igual en todos los sistemas.
+- **Macros grabadas, con condiciones y compartibles.** Graba una secuencia tecleándola y edita después los pasos y las esperas; una
+  condición ejecuta unos pasos u otros según la app de delante, la capa, la hora, el sistema, el estado de OBS o el portapapeles; y
+  puedes exportar e importar macros en un archivo, revisando antes los comandos que traiga.
 - **Seguro por diseño.** Las teclas solo se retiran del teclado mientras el programa está vivo. Si se para, todas vuelven
   a escribir en menos de 5 segundos.
 - **Sin permisos para teclear.** Atajos, texto y teclas multimedia salen como pulsaciones USB reales de la placa, así que

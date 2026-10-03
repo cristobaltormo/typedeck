@@ -6,8 +6,15 @@ Typedeck can run commands, so the editor is locked down:
 - Every API request needs an `X-Token` header, a random key generated on each start and only delivered in the start page. A
   web page from another origin cannot read it (same-origin policy) or send the header without permission.
 - The `Host` header is checked: a request under another name (DNS rebinding) is rejected with 403.
+- The live connection (`/api/ws`) applies the same rules: exact `Host`, `Origin` when the browser sends one, and the token as the
+  WebSocket subprotocol, never in the URL. At most 8 clients, frames capped at 8 KB, and it only carries events and the editing flag.
+  Key capture is released while the editor reports a text field in focus, and again as soon as that connection closes or goes
+  quiet for 8 seconds.
 - Restrictive content policy (`default-src 'self'`), nothing loaded from outside, `X-Frame-Options: DENY`.
-- The whole configuration is validated before it is saved: closed set of action types, bounded lengths, no nested sequences.
+- The whole configuration is validated before it is saved: closed set of action types, bounded lengths, sequences of at most 100
+  steps and conditions nested no deeper than one level inside a sequence.
+- A macro file is validated like the configuration before it is offered for import, and the import dialog lists every shell command,
+  SSH command and web request in it. Nothing from a file runs until its key is pressed.
 - `{clipboard}` is quoted when used inside commands, per OS (single quotes on macOS and Linux, double quotes with `"`, `%` and `^`
   removed on Windows), so clipboard contents cannot inject anything.
 - Backup restore only accepts names like `config-YYYYMMDD-HHMMSS.json`.

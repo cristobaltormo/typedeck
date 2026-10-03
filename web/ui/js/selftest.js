@@ -1,4 +1,5 @@
 import { state } from "./store.js";
+import { api } from "./api.js";
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const $ = (s) => document.querySelector(s);
@@ -69,7 +70,39 @@ export async function run() {
     byText(".pack .btn.primary", "Añadir").click(); await sleep(80);
     ok("añadir paquete crea una capa", state.cfg.layers.length === layers0 + 1);
 
+    location.hash = "#/keys"; await sleep(100);
+    state.scope = 0; state.selKey = "05"; state.panel = "key"; location.hash = "#/gallery"; await sleep(60); location.hash = "#/keys"; await sleep(120);
+    const typeSel = pane().querySelector("select"); typeSel.value = "sequence"; typeSel.dispatchEvent(new Event("change", { bubbles: true })); await sleep(80);
+    ok("elegir secuencia muestra el grabador", !!byText(".recorder button", "Grabar"));
+    byText(".recorder button", "Grabar").click(); await sleep(60);
+    ok("grabando", !!$(".rec-live"));
+    const press = (key, code, extra = {}) => window.dispatchEvent(new KeyboardEvent("keydown", { key, code, bubbles: true, cancelable: true, ...extra }));
+    press("h", "KeyH"); press("i", "KeyI"); press("t", "KeyT", { ctrlKey: true }); await sleep(40);
+    ok("el grabador recoge texto y atajos", $$(".rec-steps .tag").map((x) => x.textContent).join("|") === "hi|ctrl+t", $$(".rec-steps .tag").map((x) => x.textContent).join("|"));
+    byText(".rec-live button", "Guardar pasos").click(); await sleep(80);
+    const steps = state.cfg.layers[0].keys["05"].tap.steps;
+    ok("los pasos grabados quedan en la secuencia", steps.length >= 2 && steps[0].type === "text" && steps.at(-1).keys === "ctrl+t", JSON.stringify(steps));
+    const add = $$("select").find((x) => x.options[0]?.textContent === "Añadir paso");
+    add.value = "if"; add.dispatchEvent(new Event("change", { bubbles: true })); await sleep(80);
+    const cond = state.cfg.layers[0].keys["05"].tap.steps.at(-1);
+    ok("añadir una condición a la secuencia", cond?.type === "if" && cond.cond === "app", JSON.stringify(cond));
+    ok("la condición muestra Entonces y Si no", !!byText("h3", "Entonces") && !!byText("h3", "Si no"));
+
+    const field = $('.pane input[type=text], .pane textarea');
+    document.hasFocus = () => true;
+    const editing = async (want) => { for (let i = 0; i < 60; i++) { if ((await api("/api/status")).editing === want) return true; await sleep(30); } return false; };
+    field.focus();
+    ok("con un campo enfocado el programa pausa la captura", await editing(true));
+    field.blur();
+    ok("al salir del campo la captura se reanuda", await editing(false));
+
     location.hash = "#/sheet"; await sleep(120);
+    typeInto($('header input[type=search]'), "secuencia"); await sleep(60);
+    ok("la hoja encuentra la secuencia", $$(".macro-table tbody tr:not([hidden])").length >= 1);
+    typeInto($('header input[type=search]'), "zzzz"); await sleep(60);
+    ok("la hoja oculta lo que no coincide", $$(".macro-table tbody tr:not([hidden])").length === 0 && $$(".sheet-block:not([hidden])").length === 0);
+    typeInto($('header input[type=search]'), ""); await sleep(40);
+
     ok("hoja con un bloque por capa", $$(".sheet-block").length >= state.cfg.layers.length);
     location.hash = "#/activity"; await sleep(140);
     ok("actividad carga", $$(".stat").length === 4);

@@ -66,12 +66,17 @@ Set `TYPEDECK_PORT=/dev/ttyACM1` (or `COM5`) if the board is on an unusual port.
 
 - Tap, hold and double tap on every key, each with its own action. Hold can switch a layer only while it is held.
 - Up to 9 layers, each with a color and an optional list of apps that activate it automatically.
-- 14 action types: app (open, toggle, quit), link, shell command, SSH (result shown on screen), web request, shortcut, text (with
-  `{date}`, `{time}`, `{clipboard}`), sequence, media, system, OBS Studio, timer, layer, popup.
+- 15 action types: app (open, toggle, quit), link, shell command, SSH (result shown on screen), web request, shortcut, text (with
+  `{date}`, `{time}`, `{clipboard}`), sequence, condition, media, system, OBS Studio, timer, layer, popup.
+- Record a sequence by typing it, then edit, reorder and time the steps. A condition runs one list of steps or another depending on
+  the front app, the active layer, the time of day, the system, whether OBS is live or recording, or what the clipboard holds.
+- Share macros as files: export a layer or everything, and review any commands or web requests in a file before importing it.
+- The editor follows the board live over a WebSocket, releases key capture while you type in a field of the editor, and pops up
+  a notice when the keyboard stops being seen.
 - A gallery of 38 packs in 11 categories, laid out on the keys your keyboard really has: OBS Studio, Discord, OBS and Discord,
   Zoom, Meet, Teams, Slack, Photoshop, Figma, Premiere, VS Code, Git, smart home, study and more. Some are macOS-only and are not
   offered elsewhere; on Windows and Linux Cmd becomes Ctrl.
-- A compatibility page with your real setup and automatic checks, activity log and per-key usage, printable key sheet,
+- A compatibility page with your real setup and automatic checks, activity log and per-key usage, printable and searchable key sheet,
   diagnostics, command palette, undo and redo, automatic backups, import and export, English and Spanish.
 
 ## Documentation

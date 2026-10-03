@@ -6,6 +6,16 @@
 - Firmware 11: `BOOTLOG` (persistent boot statistics), `REBOOT` and `DARK`; TX/RX LEDs off by default.
 - A restart-board button in the "keyboard not seen" notice and in the diagnostics page, and a clearer message about what to do.
 
+- The editor releases key capture while a text field has focus, so typing the letter of a key that has a macro no longer runs it.
+- A WebSocket between the editor and the program: events arrive live (the long poll stays as a fallback).
+- A popup when the board has not seen the keyboard for 10 seconds, and another when it returns (can be turned off in settings).
+- The key that opens the editor focuses the tab that is already open instead of opening another one (Chromium browsers and Safari on
+  macOS, Hyprland, Sway and X11 on Linux, any window titled Typedeck on Windows).
+- Condition actions (front app, layer, time, system, OBS live or recording, clipboard) with an otherwise branch; sequences of up to 100 steps.
+- A recorder that turns typed text and shortcuts into sequence steps, with the pauses as editable wait steps, and a duplicate-step button.
+- Export a layer or all macros to a file, and import one with a review that lists its commands and web requests.
+- Search in the key sheet, and every macro key in the command palette.
+
 ### Removed
 - The firmware's automatic keyboard power cycles: the shield's VBUS switch does not cut the keyboard, so they did nothing.
 
