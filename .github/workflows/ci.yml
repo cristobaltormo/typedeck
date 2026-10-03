@@ -97,6 +97,8 @@ jobs:
         with:
           go-version-file: go.mod
       - name: Install nfpm
+        env:
+          GOTOOLCHAIN: auto
         run: go install github.com/goreleaser/nfpm/v2/cmd/nfpm@v2.47.0
       - name: Build the six targets, the archives and the packages
         run: make release-files VERSION=v0.0.0-ci

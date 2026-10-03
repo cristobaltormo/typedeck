@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -595,7 +596,15 @@ func (*linux) Popup(PopupOptions) bool { return false }
 
 func (*linux) ShellCommand(cmd string) (string, []string) { return "/bin/sh", []string{"-c", cmd} }
 
-const browserClass = "(firefox|chromium|chrome|brave|vivaldi|opera|librewolf|epiphany)"
+var browserClassRe = regexp.MustCompile(`(?i)firefox|navigator|chromium|chrome|brave|vivaldi|opera|librewolf|epiphany`)
+
+func windowIsBrowser(id string) bool {
+	if !have("xprop") {
+		return true
+	}
+	class, err := Run(2*time.Second, "", "xprop", "-id", id, "WM_CLASS")
+	return err == nil && browserClassRe.MatchString(class)
+}
 
 func (*linux) FocusEditor(string) bool {
 	switch {
@@ -606,8 +615,17 @@ func (*linux) FocusEditor(string) bool {
 		out, err := Run(2*time.Second, "", "swaymsg", `[title="Typedeck" app_id="(?i)(firefox|chromium|chrome|brave|vivaldi|opera|librewolf|epiphany)"] focus`)
 		return err == nil && strings.Contains(out, `"success": true`)
 	case !wayland() && have("xdotool"):
-		_, err := Run(3*time.Second, "", "xdotool", "search", "--all", "--onlyvisible", "--class", browserClass, "--name", "Typedeck", "windowactivate")
-		return err == nil
+		ids, err := Run(3*time.Second, "", "xdotool", "search", "--onlyvisible", "--name", "Typedeck")
+		if err != nil {
+			return false
+		}
+		for _, id := range strings.Fields(ids) {
+			if windowIsBrowser(id) {
+				_, err = Run(3*time.Second, "", "xdotool", "windowactivate", id)
+				return err == nil
+			}
+		}
+		return false
 	case !wayland() && have("wmctrl"):
 		_, err := Run(3*time.Second, "", "wmctrl", "-a", "Typedeck")
 		return err == nil

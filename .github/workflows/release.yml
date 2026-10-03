@@ -20,6 +20,8 @@ jobs:
       - name: Tests
         run: go test ./...
       - name: Install nfpm
+        env:
+          GOTOOLCHAIN: auto
         run: go install github.com/goreleaser/nfpm/v2/cmd/nfpm@v2.47.0
       - name: Build the binaries, archives and packages
         run: make release-files VERSION=${{ github.ref_name }}
