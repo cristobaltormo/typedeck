@@ -70,8 +70,10 @@ func (f *fakeFirmware) run() {
 		case strings.HasPrefix(l, "RDESC"):
 			f.say("05 0C 09 01 A1 01 85 02 19 00 2A FF 02 15 00 26 FF 7F 95 01 75 10 81 00 C0")
 			f.say("END")
-		case strings.HasPrefix(l, "MASK "), strings.HasPrefix(l, "KEY "), strings.HasPrefix(l, "CONS "), strings.HasPrefix(l, "WATCH "):
+		case strings.HasPrefix(l, "MASK "), strings.HasPrefix(l, "KEY "), strings.HasPrefix(l, "CONS "), strings.HasPrefix(l, "WATCH "), strings.HasPrefix(l, "DARK "), l == "REBOOT":
 			f.say("OK")
+		case l == "BOOTLOG":
+			f.say("cold=1 recoveries=0 slow=0 first_seen_ds=12 this_boot=cold")
 		case l == "HB":
 		}
 	}
@@ -154,8 +156,16 @@ func TestHandshakeInfoEventsAndCommands(t *testing.T) {
 	if err := b.Watch(true); err != nil {
 		t.Fatal(err)
 	}
+	for _, c := range []struct {
+		name string
+		arg  int
+	}{{"bootlog", 0}, {"reboot", 0}, {"dark", 7}} {
+		if _, err := b.Command(c.name, c.arg); err != nil {
+			t.Fatal(c.name, err)
+		}
+	}
 	got := strings.Join(fw.commands(), "|")
-	for _, want := range []string{"KEY 08 04", "CONS CD", "WATCH 1"} {
+	for _, want := range []string{"KEY 08 04", "CONS CD", "WATCH 1", "BOOTLOG", "REBOOT", "DARK 1"} {
 		if !strings.Contains(got, want) {
 			t.Errorf("falta %q en %s", want, got)
 		}

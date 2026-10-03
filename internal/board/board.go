@@ -439,6 +439,12 @@ func (b *Board) Command(name string, arg int) ([]string, error) {
 		return b.Do("STATS", false, time.Second)
 	case "bus":
 		return b.Do("BUS", false, time.Second)
+	case "bootlog":
+		return b.Do("BOOTLOG", false, time.Second)
+	case "reboot":
+		return b.Do("REBOOT", false, time.Second)
+	case "dark":
+		return b.Do(fmt.Sprintf("DARK %d", max(0, min(arg, 1))), false, time.Second)
 	case "vbus":
 		return b.Do(fmt.Sprintf("VBUS %d", max(0, min(arg, 1))), false, time.Second)
 	case "layer":

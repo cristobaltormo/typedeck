@@ -77,7 +77,8 @@ export function workView(root) {
           step(kbOk, kbOk ? t("setup.kbd_ok") : t("setup.kbd"), kbOk ? h("button", { type: "button", class: "txtbtn", onclick: () => openKeyboardDrawer() }, t("info.details")) : null),
           step(false, t("setup.pack"), h("button", { type: "button", class: "btn sm primary", onclick: () => { location.hash = "#/gallery"; } }, t("setup.pack_cta"))))));
     } else if (!boardOk || !kbOk) {
-      bannerHost.append(h("div", { class: "banner" }, ic("alert", 18), h("p", {}, t(!boardOk ? "setup.warn_board" : "setup.warn_kbd"))));
+      bannerHost.append(h("div", { class: "banner" }, ic("alert", 18), h("p", {}, t(!boardOk ? "setup.warn_board" : "setup.warn_kbd")),
+        boardOk ? h("button", { type: "button", class: "btn sm", onclick: async () => { try { await api("/api/board", { method: "POST", body: { cmd: "reboot" } }); toast(t("setup.rebooting")); } catch (e) { toast(e.message, "bad"); } } }, t("setup.reboot")) : null));
     }
   }
 

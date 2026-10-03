@@ -62,7 +62,7 @@ export function diagView(root) {
     h("section", { class: "section" }, h("h2", {}, t("diag.mac")), h("p", { class: "sub" }, t("diag.mac_sub")), h("div", { style: { paddingTop: "14px" } }, sys)),
     h("section", { class: "section" }, h("h2", {}, t("diag.tests")),
       h("div", { class: "stack", style: { paddingTop: "14px", gap: "12px" } },
-        h("div", { class: "row wrap" }, btn("Ping", () => cmd("ping"), "pulse"), btn(t("diag.stats"), () => cmd("stats"), "activity"), btn(t("diag.leds"), () => cmd("leds", 7), "bolt"),
+        h("div", { class: "row wrap" }, btn("Ping", () => cmd("ping"), "pulse"), btn(t("diag.stats"), () => cmd("stats"), "activity"), btn(t("diag.bootlog"), () => cmd("bootlog"), "clock"), btn(t("diag.reboot"), () => cmd("reboot"), "power"), btn(t("diag.leds"), () => cmd("leds", 7), "bolt"),
           btn(t("diag.layer_blink"), () => cmd("layer", state.status.layer), "layers"), btn(t("diag.hud_test"), () => api("/api/hud", { method: "POST", body: { title: "Typedeck", subtitle: t("diag.hud_sub") } }), "hud")), out)),
     h("section", { class: "section" }, h("h2", {}, t("diag.raw")), raw),
     h("section", { class: "section" }, h("h2", {}, t("diag.help")), h("div", { class: "stack", style: { paddingTop: "12px", gap: "8px" } }, ["diag.h1", "diag.h2", "diag.h3"].map((k) => h("p", { class: "dim" }, t(k)))))));
