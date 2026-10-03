@@ -50,30 +50,19 @@ func focusScript(script string) (string, error) {
 	return Run(4*time.Second, "", "osascript", "-e", script)
 }
 
-func (*darwin) FocusEditor(url string) bool {
-	running, err := focusScript(`tell application "System Events" to get name of every process whose background only is false`)
-	if err != nil {
-		return false
-	}
-	has := func(n string) bool {
-		for _, r := range strings.Split(running, ", ") {
-			if strings.TrimSpace(r) == n {
-				return true
-			}
-		}
-		return false
-	}
-	for _, b := range chromiumBrowsers {
-		if !has(b) {
-			continue
-		}
-		script := fmt.Sprintf(`tell application %q
-	repeat with w in windows
-		set i to 0
-		repeat with tb in tabs of w
-			set i to i + 1
-			if URL of tb starts with %q then
-				set active tab index of w to i
+func browserRunning(name string) bool {
+	return exec.Command("pgrep", "-x", name).Run() == nil
+}
+
+func chromiumFocus(app, url string) string {
+	return fmt.Sprintf(`tell application %q
+	set allURLs to URL of every tab of every window
+	repeat with wi from 1 to count of allURLs
+		set urls to item wi of allURLs
+		repeat with ti from 1 to count of urls
+			if (item ti of urls) starts with %q then
+				set w to window wi
+				set active tab index of w to ti
 				set index of w to 1
 				activate
 				return "ok"
@@ -81,17 +70,18 @@ func (*darwin) FocusEditor(url string) bool {
 		end repeat
 	end repeat
 end tell
-return ""`, b, url)
-		if out, err := focusScript(script); err == nil && out == "ok" {
-			return true
-		}
-	}
-	if has("Safari") {
-		script := fmt.Sprintf(`tell application "Safari"
-	repeat with w in windows
-		repeat with tb in tabs of w
-			if URL of tb starts with %q then
-				set current tab of w to tb
+return ""`, app, url)
+}
+
+func safariFocus(url string) string {
+	return fmt.Sprintf(`tell application "Safari"
+	set allURLs to URL of every tab of every window
+	repeat with wi from 1 to count of allURLs
+		set urls to item wi of allURLs
+		repeat with ti from 1 to count of urls
+			if (item ti of urls) starts with %q then
+				set w to window wi
+				set current tab of w to tab ti of w
 				set index of w to 1
 				activate
 				return "ok"
@@ -100,7 +90,18 @@ return ""`, b, url)
 	end repeat
 end tell
 return ""`, url)
-		if out, err := focusScript(script); err == nil && out == "ok" {
+}
+
+func (*darwin) FocusEditor(url string) bool {
+	for _, b := range chromiumBrowsers {
+		if browserRunning(b) {
+			if out, err := focusScript(chromiumFocus(b, url)); err == nil && out == "ok" {
+				return true
+			}
+		}
+	}
+	if browserRunning("Safari") {
+		if out, err := focusScript(safariFocus(url)); err == nil && out == "ok" {
 			return true
 		}
 	}

@@ -43,7 +43,7 @@ cat > "$HOME/Library/LaunchAgents/cc.cristobal.typedeck.plist" <<PLIST
 <key>ProgramArguments</key><array><string>$D/typedeck</string></array>
 <key>RunAtLoad</key><true/>
 <key>KeepAlive</key><true/>
-<key>ProcessType</key><string>Background</string>
+<key>ProcessType</key><string>Interactive</string>
 <key>EnvironmentVariables</key><dict><key>PATH</key><string>/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string></dict>
 <key>StandardOutPath</key><string>$HOME/Library/Logs/typedeck.log</string>
 <key>StandardErrorPath</key><string>$HOME/Library/Logs/typedeck.log</string>
