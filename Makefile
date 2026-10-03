@@ -1,4 +1,4 @@
-.PHONY: build dist test vet fmt check e2e e2e-linux install flash firmware clean
+.PHONY: build dist test vet fmt check e2e e2e-linux selftest web-test screenshots install flash firmware clean
 
 VERSION ?= $(shell git describe --tags --always 2>/dev/null || echo dev)
 LDFLAGS = -s -w -X main.version=$(VERSION)
@@ -27,7 +27,7 @@ vet:                  ## static analysis for the three systems
 fmt:
 	gofmt -l -w cmd internal web
 
-check: fmt vet test   ## what must pass before every commit
+check: fmt vet test web-test   ## what must pass before every commit
 
 firmware:             ## build the board firmware
 	arduino-cli compile --fqbn arduino:avr:leonardo --output-dir /tmp/typedeck-fw firmware
@@ -43,6 +43,15 @@ e2e:                  ## tests against the real board on a Mac (--typing types i
 
 e2e-linux: build      ## end-to-end test on Linux with a simulated board (no hardware needed)
 	python3 tests/e2e/fakeboard_linux.py dist/typedeck
+
+selftest:             ## editor self test in a headless Chromium
+	scripts/selftest.sh
+
+web-test:             ## unit tests of the editor modules (Node 20 or newer)
+	node --test tests/web
+
+screenshots:          ## regenerate docs/images
+	scripts/screenshots.sh
 
 clean:
 	rm -rf dist

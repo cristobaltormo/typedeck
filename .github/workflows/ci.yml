@@ -1,7 +1,11 @@
 name: CI
+
 on:
   push:
   pull_request:
+
+permissions:
+  contents: read
 
 jobs:
   test:
@@ -15,16 +19,64 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
-      - name: Formatting
-        if: runner.os == 'Linux'
-        run: test -z "$(gofmt -l cmd internal web)"
       - name: Static analysis
         run: go vet ./...
       - name: Tests
-        run: go test -race ./...
+        run: go test -race -count=1 ./...
+
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Formatting
+        run: test -z "$(gofmt -l cmd internal web)"
+      - name: Static analysis for the other systems
+        run: |
+          GOOS=windows go vet ./...
+          GOOS=darwin go vet ./...
+      - name: Editor module tests
+        run: node --test tests/web
+      - name: Generated files are up to date
+        run: |
+          python3 scripts/gen-packs.py
+          python3 scripts/gen-compat-doc.py
+          git diff --exit-code internal/packs/packs.json docs/COMPATIBILITY.md
+
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
       - name: End to end with a simulated board
-        if: runner.os == 'Linux'
         run: make e2e-linux
+
+  editor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Editor self test in headless Chrome
+        run: make selftest
+
+  firmware:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: arduino/setup-arduino-cli@v2
+      - name: Build the firmware
+        run: |
+          arduino-cli core update-index
+          arduino-cli core install arduino:avr
+          arduino-cli lib install "USB Host Shield Library 2.0@1.7.0" "HID-Project@2.8.4"
+          arduino-cli compile --fqbn arduino:avr:leonardo --output-dir /tmp/typedeck-fw firmware
+
   cross:
     runs-on: ubuntu-latest
     steps:

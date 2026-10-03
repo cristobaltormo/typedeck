@@ -1,10 +1,13 @@
 name: Release
+
 on:
   push:
     tags: ["v*"]
 
 permissions:
   contents: write
+  id-token: write
+  attestations: write
 
 jobs:
   release:
@@ -18,7 +21,15 @@ jobs:
         run: go test ./...
       - name: Build
         run: make dist VERSION=${{ github.ref_name }}
+      - name: Release notes from the changelog
+        run: |
+          v="${GITHUB_REF_NAME#v}"
+          awk -v v="$v" '$0 ~ "^## "v" " {on=1; next} /^## / {on=0} on' CHANGELOG.md > notes.md
+          test -s notes.md || echo "See CHANGELOG.md." > notes.md
+      - uses: actions/attest-build-provenance@v1
+        with:
+          subject-path: dist/typedeck-*
       - name: Publish
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "${{ github.ref_name }}" dist/typedeck-* dist/SHA256SUMS --generate-notes --title "${{ github.ref_name }}"
+        run: gh release create "${{ github.ref_name }}" dist/typedeck-* dist/SHA256SUMS --notes-file notes.md --title "${{ github.ref_name }}"
