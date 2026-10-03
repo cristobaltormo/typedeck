@@ -67,6 +67,7 @@ def run_typing():
     b.check("the box received the control key with the letter", b.wait_key("X|ctrl=True"), b.keys()[-3:])
     b.close()
     print(f"\n{sum(b.res)}/{len(b.res)}")
+    if not all(b.res): raise SystemExit(1)
 
 def run_desktop():
     b = Box(); sh = b.sh; front = b.front; hk = b.hk
@@ -108,6 +109,7 @@ def run_desktop():
     finally:
         b.close(); api("/api/config", orig)
     print(f"\n{sum(b.res)}/{len(b.res)}")
+    if not all(b.res): raise SystemExit(1)
 
 def run_focus():
     sh = lambda c: api("/api/test", {"type": "shell", "cmd": c, "show_output": True})["output"].strip()
@@ -123,6 +125,7 @@ def run_focus():
     check("the browser is now in front", "chrome" in sh(fg).lower() or "msedge" in sh(fg).lower(), sh(fg))
     box.close()
     print(f"\n{sum(res)}/{len(res)}")
+    if not all(res): raise SystemExit(1)
 
 def run_failopen():
     host = os.environ.get("WIN_HOST", "windows")
@@ -137,6 +140,7 @@ def run_failopen():
     ssh("schtasks /Run /TN Typedeck")
     time.sleep(6)
     print(f"\n{sum(res)}/{len(res)}")
+    if not all(res): raise SystemExit(1)
 
 if __name__ == "__main__":
     {"typing": run_typing, "desktop": run_desktop, "focus": run_focus, "failopen": run_failopen}[sys.argv[1]]()
