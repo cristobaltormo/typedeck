@@ -208,6 +208,7 @@ const ES = {
   "share.summary": "Paquete «{name}»: {layers} capas y {keys} teclas con macros.", "share.risky": "Este paquete ejecuta {n} comandos o peticiones. Revísalos: se lanzarán desde tu equipo cuando pulses esas teclas.",
   "share.as_layers": "Añadir como capas nuevas", "share.as_layers_sub": "No toca lo que ya tienes.", "share.merge": "Mezclar en la capa actual", "share.merge_sub": "Las teclas que coincidan con las de «{name}» se sustituyen.",
   "share.export_layer": "Exportar capa", "share.import_btn": "Importar macros", "share.export_all": "Exportar macros",
+  "sheet.search": "Buscar una tecla o macro", "pal.key": "Tecla {key}: {what} ({where})",
 };
 
 const EN = {
@@ -420,6 +421,7 @@ const EN = {
   "share.summary": "Pack \u201c{name}\u201d: {layers} layers and {keys} keys with macros.", "share.risky": "This pack runs {n} commands or requests. Review them: they will run on your computer when you press those keys.",
   "share.as_layers": "Add as new layers", "share.as_layers_sub": "Leaves what you have untouched.", "share.merge": "Merge into the current layer", "share.merge_sub": "Keys that match those of \u201c{name}\u201d are replaced.",
   "share.export_layer": "Export layer", "share.import_btn": "Import macros", "share.export_all": "Export macros",
+  "sheet.search": "Search a key or macro", "pal.key": "Key {key}: {what} ({where})",
 };
 
 const DICTS = { es: ES, en: EN };

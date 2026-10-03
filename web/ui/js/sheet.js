@@ -1,4 +1,5 @@
 import { h, ic } from "./dom.js";
+import { norm } from "./text.js";
 import { t, lang } from "./i18n.js";
 import { legendLang } from "./layouts.js";
 import { keyboard, hex } from "./keyboard.js";
@@ -12,7 +13,7 @@ function rows(keys, L) {
     const name = k ? (k.legend.icon ? t("key.arrow") : k.legend.main) : id;
     for (const g of ["tap", "hold", "double"]) {
       const a = kd[g];
-      if (a) out.push(h("tr", {}, h("td", { class: "k" }, name), h("td", { class: "dim" }, t("gesture." + g)), h("td", {}, kd.label || describe(a)), h("td", { class: "faint" }, t("type." + a.type))));
+      if (a) out.push(h("tr", { dataset: { q: [name, t("gesture." + g), kd.label, describe(a), t("type." + a.type)].join(" ").toLowerCase() } }, h("td", { class: "k" }, name), h("td", { class: "dim" }, t("gesture." + g)), h("td", {}, kd.label || describe(a)), h("td", { class: "faint" }, t("type." + a.type))));
     }
   }
   return out;
@@ -30,8 +31,18 @@ export function sheetView(root) {
   };
   state.cfg.layers.forEach((l, i) => add(`${i + 1}. ${l.name}`, l.keys, l.color, l.icon, false));
   if (Object.keys(state.cfg.global).length) add(t("strip.global"), state.cfg.global, state.cfg.settings.accent, "globe", true);
+  const search = h("input", { type: "search", class: "no-print", placeholder: t("sheet.search"), "aria-label": t("sheet.search"), spellcheck: false });
+  search.addEventListener("input", () => {
+    const q = norm(search.value.trim());
+    for (const block of document.querySelectorAll(".sheet-block")) {
+      let shown = 0;
+      for (const tr of block.querySelectorAll("tbody tr")) { const hit = !q || norm(tr.dataset.q).includes(q); tr.hidden = !hit; if (hit) shown++; }
+      block.hidden = !!q && shown === 0;
+    }
+  });
   root.append(h("div", { class: "page", style: { maxWidth: "1180px" } },
     h("header", { class: "row wrap" }, h("div", { class: "grow" }, h("h1", {}, t("sheet.title")), h("p", {}, t("sheet.sub"))),
+      h("div", { class: "searchbox no-print" }, ic("search", 16), search),
       h("button", { type: "button", class: "btn no-print", onclick: () => window.print() }, ic("printer", 16), t("sheet.print"))), blocks));
   return {};
 }
