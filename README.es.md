@@ -1,77 +1,159 @@
 # Typedeck
 
-Convierte cualquier teclado USB en un teclado de macros. Una pequeña placa Arduino Leonardo con un USB Host Shield se
-coloca entre tu teclado y el ordenador, lo reenvía todo y te deja dar a **cualquier tecla** sus propias acciones:
-pulsar, mantener, doble pulsación, capas, lanzadores de apps, comandos, SSH, textos, teclas multimedia, temporizadores...
-Tu teclado sigue funcionando con normalidad aunque el programa no esté en marcha.
+[English](README.md) | Español
 
-[Read in English](README.md)
+[![CI](https://github.com/cristobaltormo/typedeck/actions/workflows/ci.yml/badge.svg)](https://github.com/cristobaltormo/typedeck/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/cristobaltormo/typedeck?sort=semver)](https://github.com/cristobaltormo/typedeck/releases)
+[![Licencia](https://img.shields.io/badge/licencia-MIT-blue)](LICENSE)
+[![Go](https://img.shields.io/github/go-mod/go-version/cristobaltormo/typedeck)](go.mod)
+[![Sistemas](https://img.shields.io/badge/macOS%20%7C%20Linux%20%7C%20Windows-soportados-lightgrey)](docs/COMPATIBILITY.md)
 
-## En qué se diferencia
+Convierte el teclado USB que ya tienes en un teclado de macros. Una Arduino Leonardo pequeña con un USB Host Shield se coloca entre
+el teclado y el ordenador, deja pasar todas las teclas sin tocarlas y permite que cualquiera ejecute sus propias acciones: pulsar,
+mantener o doble pulsación, capas, lanzadores de aplicaciones, comandos, SSH, textos, teclas multimedia, OBS Studio y más.
 
-- **Todo tu teclado, no un pad aparte.** Detecta el teclado que enchufas (marca, modelo, datos USB, qué envía) y lo
-  dibuja en el editor con su formato real: 100, 80, 75, 65 o 60 %, ISO o ANSI. Un asistente de teclas deduce la
-  disposición cuando el teclado no la dice.
-- **Galería con 38 paquetes en 11 categorías**, colocados sobre las teclas que de verdad tiene tu teclado: OBS Studio,
-  Discord, OBS + Discord, Zoom, Meet, Teams, Slack, Photoshop, Figma, Premiere, Final Cut, VS Code, Xcode, Git, casa
-  conectada, estudio y más.
-- **Rápido y ligero.** El reenvío de teclas ocurre en la placa (unos 0,13 ms). El programa del ordenador es un binario de
-  Go con unos 11 MB y sin CPU en reposo; el editor carga en unos 100 KB.
-- **macOS, Linux y Windows.** Un binario por sistema, del mismo código. La placa es un teclado USB normal y funciona en
-  cualquier sitio; el programa adapta lo que depende del sistema (aplicaciones, carteles, arranque con la sesión). La
-  página de compatibilidad dice qué se ha probado dónde.
-- **OBS Studio sin atajos.** Cambiar de escena, empezar el directo, grabar, silenciar el micro o guardar el replay por el
-  servidor WebSocket del propio OBS: no hay teclas que asignar y funciona igual en todos los sistemas.
-- **Macros grabadas, con condiciones y compartibles.** Graba una secuencia tecleándola y edita después los pasos y las esperas; una
-  condición ejecuta unos pasos u otros según la app de delante, la capa, la hora, el sistema, el estado de OBS o el portapapeles; y
-  puedes exportar e importar macros en un archivo, revisando antes los comandos que traiga.
-- **Cada tecla se ilumina en el editor** al pulsarla, y hay un historial de tecleo opcional y local (tecla, hora y duración) que se activa
-  en su propia página Historial, con totales, tus teclas más usadas, lo último que has pulsado y un botón para borrarlo todo.
-- **Seguro por diseño.** Las teclas solo se retiran del teclado mientras el programa está vivo. Si se para, todas vuelven
-  a escribir en menos de 5 segundos.
-- **Sin permisos para teclear.** Atajos, texto y teclas multimedia salen como pulsaciones USB reales de la placa, así que
-  no hace falta el permiso de Accesibilidad de macOS (ni xdotool en Linux). Se compensan los modificadores remapeados y
-  las peculiaridades de teclas ISO/ANSI de un Mac, y el texto en español usa la disposición correcta de cada sistema
-  (Alt Gr en Windows y Linux).
+Escribir nunca depende del programa. Si no está en marcha, o se cierra por un fallo, la placa sigue reenviando el teclado por su
+cuenta y cada tecla escribe su carácter de siempre.
+
+Typedeck es un único binario de Go sin dependencias. En reposo gasta unos 11 MB de RAM y nada de CPU, y reenviar una tecla tarda
+unos 0,13 ms dentro de la placa. Funciona en macOS, Linux y Windows, y sus pruebas corren en los tres en cada subida.
+
+![El editor de Typedeck con un teclado, capas y la acción de la tecla seleccionada](docs/images/editor.png)
+
+## Cómo se ve
+
+El editor se abre en el navegador, en tu propio ordenador. Elige una tecla en el dibujo de tu teclado real y dale una acción.
+
+| | |
+|---|---|
+| ![Una secuencia de pasos con grabador](docs/images/sequence.png) **Secuencias** con grabador, condiciones y pausas editables | ![La galería de paquetes](docs/images/gallery.png) **Una galería** de paquetes colocados en las teclas que tu teclado tiene |
+| ![Lo que escribes, reconstruido en directo](docs/images/history.png) **Historial de tecleo**, opcional y local, con lo que escribes en directo | ![Tema claro](docs/images/editor-light.png) **Claro y oscuro**, en inglés y español |
+
+## Cómo funciona
+
+![Teclado, shield, Leonardo, ordenador y el programa Typedeck](docs/images/architecture.svg)
+
+La placa recoge el teclado del shield, reenvía sus informes al ordenador como un teclado USB normal y retira solo las teclas que
+tienen macro, enviándolas al programa por una línea serie. El programa decide qué hace cada gesto. Un latido cada segundo mantiene la
+captura; sin él, la placa deja de capturar a los 5 segundos. Más en [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) (en inglés).
 
 ## Qué necesitas
 
 | Pieza | Notas |
 |---|---|
 | Arduino Leonardo (ATmega32U4) | probado con una Keystudio KS0248 |
-| USB Host Shield 2.0 (MAX3421E) **con conector ICSP** | probado con un Yanmis |
-| Un teclado USB | hasta 500 mA |
-| macOS 12 o posterior, Linux (X11 o Wayland) o Windows 10/11 | la [compatibilidad](docs/COMPATIBILITY.md) dice qué está probado dónde |
+| USB Host Shield 2.0 (MAX3421E) **con conector ICSP** | probado con uno de Yanmis |
+| Un teclado USB con cable | hasta 500 mA |
+| macOS 12 o posterior, Linux (X11 o Wayland) o Windows 10 y 11 | en [compatibilidad](docs/COMPATIBILITY.md) está qué se ha probado dónde |
 
-## Primeros pasos
+Apila el shield sobre la Leonardo, enchufa el teclado al shield y la Leonardo al ordenador. Si hay un KVM o un hub por medio, lee
+antes [docs/HARDWARE.md](docs/HARDWARE.md).
 
-Se flashea la placa una vez (necesita `arduino-cli` y `avrdude`) y se ejecuta el programa en el ordenador donde está
-enchufada:
+## Instalar
+
+Descarga el binario de tu equipo desde la [página de versiones](https://github.com/cristobaltormo/typedeck/releases):
 
 ```sh
-make flash                  # compila y sube el firmware
-make dist                   # binarios para macOS, Linux y Windows en dist/
-dist/typedeck-linux-amd64 install     # arranca con tu sesión (y también: typedeck uninstall)
+curl -L -o typedeck https://github.com/cristobaltormo/typedeck/releases/latest/download/typedeck-linux-amd64
+chmod +x typedeck
 ```
 
-Después se abre <http://127.0.0.1:7788>. `typedeck doctor` comprueba que todo está en su sitio.
+En Windows, en PowerShell:
+
+```powershell
+Invoke-WebRequest https://github.com/cristobaltormo/typedeck/releases/latest/download/typedeck-windows-amd64.exe -OutFile typedeck.exe
+```
+
+Hay versiones para Linux (amd64, arm64), macOS (Intel y Apple silicon) y Windows (amd64 y arm64), cada una con su suma en
+`SHA256SUMS`. Para compilarlo tú necesitas Go 1.24 o posterior:
+
+```sh
+go install github.com/cristobaltormo/typedeck/cmd/typedeck@latest
+```
+
+Flashea la placa una vez. Hace falta [`arduino-cli`](https://arduino.github.io/arduino-cli/) y las dos librerías del firmware
+([firmware/README.md](firmware/README.md)):
+
+```sh
+arduino-cli core install arduino:avr
+arduino-cli lib install "USB Host Shield Library 2.0" "HID-Project"
+make flash
+```
+
+## Ponerlo en marcha
+
+```sh
+typedeck doctor     # comprueba la configuración, las herramientas del sistema, el puerto, la placa y el teclado
+typedeck            # arranca el programa; el editor está en http://127.0.0.1:7788
+typedeck install    # arranca con tu sesión (typedeck uninstall lo quita)
+```
 
 - **macOS:** `make install` compila e instala un servicio de sesión y el cartel, y deja `Typedeck.app` en `~/Applications`.
-- **Linux:** copia `packaging/linux/99-typedeck.rules` a `/etc/udev/rules.d/` para que tu usuario abra la placa sin estar en
-  el grupo `dialout`. Instala `xdg-utils` y `libnotify-bin`; `xdotool` (X11) o `wtype` (Wayland) solo importan si la placa
-  no está conectada. Registro: `journalctl --user -u typedeck`.
-- **Windows:** `typedeck.exe install` crea una tarea programada que lo arranca al iniciar sesión. El registro está en
-  `%LOCALAPPDATA%\typedeck`. Windows 11 con el *Control inteligente de aplicaciones* activado bloquea los programas sin
-  firmar; hasta que las versiones estén firmadas, hay que desactivarlo (Seguridad de Windows, Control de aplicaciones y
-  navegador) o compilar el programa tú mismo.
+- **Linux:** copia `packaging/linux/99-typedeck.rules` a `/etc/udev/rules.d/` para que tu usuario abra la placa sin estar en el grupo
+  `dialout`. Instala `xdg-utils` y `libnotify-bin`; `xdotool` (X11) o `wtype` (Wayland) solo importan si la placa no está conectada.
+  Registro: `journalctl --user -u typedeck`.
+- **Windows:** `typedeck.exe install` crea una tarea programada que lo arranca al iniciar sesión. Windows 11 con el *Control
+  inteligente de aplicaciones* activado bloquea los programas sin firmar; desactívalo (Seguridad de Windows, Control de aplicaciones
+  y navegador) o compila el programa tú mismo.
 
-Con `TYPEDECK_PORT=/dev/ttyACM1` (o `COM5`) se indica el puerto si la placa está en uno poco habitual.
+Con `TYPEDECK_PORT=/dev/ttyACM1` (o `COM5`) indicas el puerto si la placa está en uno poco habitual. La primera pantalla del editor
+te guía por el teclado que ha encontrado y su disposición.
+
+## Qué puede hacer
+
+- **Gestos y capas.** Pulsar, mantener y doble pulsación en cada tecla, cada uno con su acción. Hasta nueve capas con color, que se
+  cambian con una tecla, de forma momentánea mientras se mantiene una tecla o solas cuando una aplicación pasa al frente.
+- **Quince tipos de acción.** Aplicación (abrir, alternar, cerrar), enlace, comando, SSH, petición web, atajo, texto, secuencia,
+  condición, multimedia, sistema, historial de tecleo, OBS Studio, temporizador, capa y cartel. La lista completa está en
+  [docs/MACROS.md](docs/MACROS.md).
+- **Graba y luego edita.** Teclea una secuencia y Typedeck la convierte en pasos, con tus pausas como pasos de espera que puedes
+  ajustar, reordenar y duplicar.
+- **Condiciones.** Ejecuta una lista de pasos u otra según la aplicación de delante, la capa activa, la hora, el sistema, si OBS
+  está en directo o grabando, o lo que haya en el portapapeles.
+- **Comparte macros en archivos.** Exporta una capa o todo; al importar se enseñan los comandos y peticiones web del archivo antes
+  de añadir nada. En [examples/](examples) hay paquetes para empezar.
+- **Una galería de 38 paquetes** para OBS Studio, Discord, Zoom, Meet, Teams, Slack, Photoshop, Figma, Premiere, VS Code, Git,
+  domótica, estudio y más, colocados en las teclas que tu teclado tiene.
+- **Todo tu teclado, no un pad aparte.** Detecta el teclado (marca, modelo, datos USB) y lo dibuja con su formato real, del 100 al
+  60 por ciento, ISO o ANSI. Un asistente de teclas deduce la disposición cuando el teclado no la dice.
+- **Sin permisos para teclear.** Atajos, texto y teclas multimedia salen como pulsaciones USB reales de la placa: sin permiso de
+  Accesibilidad en macOS y sin `xdotool` en Linux. Se compensan los modificadores remapeados y las rarezas ISO/ANSI de un Mac, y el
+  texto en español usa la disposición correcta y Alt Gr en cada sistema.
+- **OBS Studio sin atajos.** Escenas, empezar el directo, grabar, silenciar el micro o guardar el replay por el propio servidor
+  WebSocket de OBS.
+- **Editor en directo.** Cada tecla se ilumina en el dibujo al pulsarla, un cartel avisa cuando la placa deja de ver el teclado y
+  la tecla que abre el editor lleva a la pestaña que ya está abierta.
+- **Historial de tecleo, opcional.** Desactivado por defecto. Una página con lo que escribes como texto, totales, tus teclas más
+  usadas y las últimas pulsaciones, guardado en un archivo local, con lo más antiguo borrándose solo y un interruptor que puedes
+  poner en una tecla. No sale de tu ordenador.
+- **Y todo lo demás.** Página de compatibilidad con comprobaciones automáticas, registro de actividad y uso por tecla, hoja de teclas
+  con buscador e imprimible, diagnóstico, paleta de comandos, deshacer y rehacer, copias automáticas.
+
+## Seguro por diseño
+
+- Las teclas solo se retiran del teclado mientras el programa está vivo. Si se para, todas vuelven a escribir en 5 segundos.
+- El editor escucha solo en `127.0.0.1`, cada petición necesita una clave generada en cada arranque, y un archivo de macros que
+  importes se valida y se te enseña antes de añadirlo. [docs/SECURITY.md](docs/SECURITY.md) tiene el modelo y [SECURITY.md](SECURITY.md)
+  cómo avisar de un problema.
+- Typedeck no hace ninguna conexión de red por su cuenta, no tiene telemetría y no carga nada de internet.
+- Sin el historial de tecleo opcional, el programa solo ve las teclas que tienen macro.
+
+## Rendimiento
+
+| Qué | Resultado |
+|---|---|
+| Reenviar un informe del teclado dentro de la placa | unos 0,13 ms |
+| Memoria del programa en reposo | unos 11 MB, 0 % de CPU |
+| Primera carga del editor | unos 100 KB, sin framework |
+
+Los detalles y cómo medir tu equipo están en [docs/PERFORMANCE.md](docs/PERFORMANCE.md).
 
 ## Documentación
 
-La documentación técnica está en inglés: [compatibilidad](docs/COMPATIBILITY.md) (qué está probado y qué debería funcionar),
-[arquitectura](docs/ARCHITECTURE.md), [protocolo serie](docs/PROTOCOL.md), [hardware y alimentación](docs/HARDWARE.md),
-[seguridad](docs/SECURITY.md) y [problemas frecuentes](docs/TROUBLESHOOTING.md).
+La documentación técnica está en inglés: [macros](docs/MACROS.md), [preguntas frecuentes](docs/FAQ.md),
+[compatibilidad](docs/COMPATIBILITY.md), [arquitectura](docs/ARCHITECTURE.md), [protocolo serie](docs/PROTOCOL.md),
+[hardware y alimentación](docs/HARDWARE.md), [seguridad](docs/SECURITY.md), [rendimiento](docs/PERFORMANCE.md) y
+[problemas frecuentes](docs/TROUBLESHOOTING.md).
 
 ## Límites
 
@@ -79,6 +161,12 @@ Seis teclas a la vez (protocolo de arranque, comprobado con el teclado real) y s
 integradas del teclado. Detrás de un conmutador KVM el teclado puede dejar de verse tras un corte de corriente: el firmware lo
 recupera solo en menos de un minuto, y [Hardware](docs/HARDWARE.md) explica cómo evitarlo alimentando la placa por separado.
 
+## Contribuir
+
+Un informe de error con la salida de `typedeck doctor` es lo más útil que puedes mandar; las pull requests son bienvenidas.
+[CONTRIBUTING.md](CONTRIBUTING.md) tiene la preparación y las reglas, y todo se comprueba con `make check`.
+
 ## Licencia
 
-MIT, ver [LICENSE](LICENSE).
+El programa, el editor y la documentación son MIT, ver [LICENSE](LICENSE). El firmware de `firmware/` se compila con la librería USB
+Host Shield 2.0 y por eso es GPL-2.0, ver [NOTICE](NOTICE).
