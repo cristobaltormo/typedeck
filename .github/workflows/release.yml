@@ -31,6 +31,7 @@ jobs:
           awk -v v="$v" '$0 ~ "^## "v" " {on=1; next} /^## / {on=0} on' CHANGELOG.md > notes.md
           test -s notes.md || echo "See CHANGELOG.md." > notes.md
       - uses: actions/attest-build-provenance@v4
+        if: ${{ !github.event.repository.private }}
         with:
           subject-path: |
             dist/typedeck-*
