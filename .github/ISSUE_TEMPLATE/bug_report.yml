@@ -1,0 +1,43 @@
+name: Bug report
+description: Something does not work the way it should
+labels: [bug]
+body:
+  - type: input
+    id: version
+    attributes:
+      label: Typedeck version
+      description: Output of `typedeck version`
+    validations:
+      required: true
+  - type: dropdown
+    id: system
+    attributes:
+      label: Operating system
+      options:
+        - macOS
+        - Linux
+        - Windows
+    validations:
+      required: true
+  - type: input
+    id: board
+    attributes:
+      label: Board, shield and keyboard
+      description: For example Arduino Leonardo, Yanmis shield, BY Tech keyboard. Say how the board is powered (computer, KVM, hub).
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened and what you expected
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+  - type: textarea
+    id: doctor
+    attributes:
+      label: Output of `typedeck doctor`
+      render: text
+    validations:
+      required: true

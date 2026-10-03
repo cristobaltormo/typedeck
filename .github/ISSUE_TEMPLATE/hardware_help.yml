@@ -1,0 +1,27 @@
+name: Hardware or keyboard compatibility
+description: The board does not see your keyboard, or a keyboard behaves oddly
+labels: [hardware]
+body:
+  - type: input
+    id: keyboard
+    attributes:
+      label: Keyboard (brand, model, wired or wireless receiver)
+    validations:
+      required: true
+  - type: input
+    id: board
+    attributes:
+      label: Board and shield (with the revision printed on the shield)
+    validations:
+      required: true
+  - type: textarea
+    id: power
+    attributes:
+      label: How everything is powered
+      description: Straight into the computer, through a KVM or hub, separate power supply for the board.
+  - type: textarea
+    id: bus
+    attributes:
+      label: Output of the `bus` and `bootlog` commands
+      description: In the editor, Diagnostics, or `POST /api/board` with `{"cmd":"bus"}`.
+      render: text
