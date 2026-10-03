@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Added
+- Firmware 11: `BOOTLOG` (persistent boot statistics), `REBOOT` and `DARK`; TX/RX LEDs off by default.
+- A restart-board button in the "keyboard not seen" notice and in the diagnostics page, and a clearer message about what to do.
+
+### Removed
+- The firmware's automatic keyboard power cycles: the shield's VBUS switch does not cut the keyboard, so they did nothing.
+
 ## 0.5.0 - 2026-10-02
 
 ### Added
