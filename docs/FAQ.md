@@ -18,7 +18,7 @@ tested is in [COMPATIBILITY.md](COMPATIBILITY.md).
 
 **Does it work with a KVM switch?**
 Yes, with one caveat: when the KVM cuts power to the board the keyboard may not come back by itself. The firmware restarts the
-board to recover it (20 to 40 seconds); powering the Leonardo from its DC jack avoids it. See [HARDWARE.md](HARDWARE.md).
+board to recover it (20 to 40 seconds); if it does not, unplug the board and plug it in before the keyboard. See [HARDWARE.md](HARDWARE.md).
 
 **Is it a keylogger?**
 No. Without the optional typing history the program only sees the keys that have a macro, and nothing about what you type. The

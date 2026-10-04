@@ -179,16 +179,9 @@ keys. Behind a KVM switch the keyboard can go missing after a power cut; the fir
 Bug reports with the output of `typedeck doctor` are the most useful thing you can send; pull requests are welcome.
 [CONTRIBUTING.md](CONTRIBUTING.md) has the setup and the rules, and everything is checked with `make check`.
 
-## Code signing policy
+## Privacy
 
-Free code signing provided by [SignPath.io](https://signpath.io), certificate by [SignPath Foundation](https://signpath.org). Until the
-project is approved, the Windows builds in the [releases](https://github.com/cristobaltormo/typedeck/releases) are unsigned.
-
-- Only binaries built by this repository's GitHub Actions workflow from its own source code are signed; every release is built from a
-  version tag and carries a build provenance attestation.
-- Roles: author, reviewer and approver is [Cristóbal Tormo](https://github.com/cristobaltormo), the maintainer. Each signing request
-  is approved by hand.
-- Privacy: Typedeck makes no network connection of its own and sends no data anywhere; the editor listens on `127.0.0.1` only.
+Typedeck makes no network connection of its own and sends no data anywhere; the editor listens on `127.0.0.1` only.
 
 ## License
 

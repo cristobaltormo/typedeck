@@ -7,8 +7,6 @@
   the heartbeat stops), and `HELD` lists what is held. Re-flash with `scripts/flash.sh`; nothing else changes.
 - Every release attaches the compiled firmware (`typedeck-firmware-<number>.hex`, with its checksum and attestation), and
   `docs/HARDWARE.md` explains how to flash it with `arduino-cli` on Windows, Linux and macOS, with no Mac and nothing to compile.
-- The release workflow signs the Windows binaries through SignPath when the repository variable `SIGNPATH_ORGANIZATION_ID` and the secret
-  `SIGNPATH_API_TOKEN` are set (`.signpath/artifact-configuration.xml` describes what is signed); without them it publishes unsigned, as before.
 
 ## 0.8.2 - 2026-10-03
 

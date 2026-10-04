@@ -20,7 +20,7 @@ running, whether the board and the keyboard are seen.
 - Unplug the keyboard from the shield and plug it in again.
 - If it appeared right after switching a KVM, see [HARDWARE.md](HARDWARE.md): the firmware restarts itself through the
   bootloader and recovers the keyboard in 20 to 40 seconds. Pressing the board's reset button does the same.
-- If it keeps happening, power the Leonardo from its DC jack as described in the hardware notes.
+- If it does not recover, unplug the board and plug it in first, then the keyboard (a keyboard plugged into a board that is already running is detected; both starting at once is not).
 
 ## Shortcuts or text come out wrong
 

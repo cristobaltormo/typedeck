@@ -61,20 +61,16 @@ What was tried, with the same keyboard connected throughout:
 The bootloader restart is what firmware 10 does automatically, which recovers the keyboard after 20 to 40 seconds. It is a
 safety net, not instant.
 
-### Recommended fix: power the board separately
+### Powering the board from the DC jack did not fix it
 
-The cause looks like the keyboard and the board starting up at the same instant. The fix that removes it is to stop the board
-from losing power when the KVM switches: feed the Leonardo from its DC jack (7 to 9 V, 5.5 × 2.1 mm, centre positive). The Leonardo
-selects the higher source on its own, so the USB cable then only carries data, and a KVM switch just moves the data connection.
+The obvious idea is to feed the Leonardo from its DC jack (7 to 9 V, 5.5 × 2.1 mm, centre positive) so the board never loses power when
+the KVM switches. It was tried on the reference setup with a regulated 9 V 1.5 A adapter and it made things worse: the board went into a
+restart loop every 8 to 10 seconds (the firmware restarts it when it sees no keyboard) and the keyboard never enumerated, with the
+keyboard backlight on or off. The cause was not found (the 5 V rail was not measured). Do not rely on it, and if you try it, measure the
+5 V pin and touch the on-board regulator after a minute. Do not use 12 V adapters.
 
-- Use a regulated 9 V adapter, 1 A or more (1.5 A is comfortable). The on-board regulator is linear, so it dissipates
-  `(Vin - 5 V) × current`: at 9 V and 0.3 A that is about 1.2 W. Prefer 7.5 V when you can; touch the regulator after a minute and
-  unplug if it is too hot to hold a finger on.
-- Do not use 12 V adapters.
-- A USB hub with its own power supply between the shield and the keyboard should work for the same reason (the keyboard never loses
-  power), at the cost of the hub.
-
-This is recommended, not yet verified on the reference setup.
+Two other ideas are untested here: a USB hub with its own power supply between the shield and the keyboard (the firmware does not support
+hubs behind the shield today), and a power switch on the keyboard's 5 V line.
 
 Since the shield's VBUS switch does not cut the keyboard (check whether your clone bridges the switch with a solder jumper), the firmware
 cannot power-cycle the keyboard itself. What does reproduce a good start by hand is plugging the keyboard into the shield *after* the board
