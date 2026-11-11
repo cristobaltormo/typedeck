@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.9.0 - 2026-11-11
 
 ### Windows
 - A second copy no longer starts: it opens the editor of the running one. Opening `typedeck.exe` by hand opens the editor and puts an
