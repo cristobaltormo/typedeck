@@ -46,7 +46,13 @@ export async function run() {
 
     const centre = (u) => { const r = $(`.cap[data-u="${u}"]`).getBoundingClientRect(); return { clientX: r.left + r.width / 2, clientY: r.top + r.height / 2 }; };
     const pointer = (type, target, pos) => target.dispatchEvent(new PointerEvent(type, { bubbles: true, cancelable: true, button: 0, pointerId: 1, ...pos }));
+    const settled = async (...units) => {
+      const sig = () => units.map((u) => { const r = $(`.cap[data-u="${u}"]`).getBoundingClientRect(); return [r.left, r.top, r.width].join(); }).join("|");
+      let last = "", stable = 0;
+      for (let i = 0; i < 100 && stable < 5; i++) { const now = sig(); stable = now === last ? stable + 1 : 0; last = now; await sleep(20); }
+    };
     const drop = async (from, to) => {
+      await settled(from, to);
       const a = centre(from), b = centre(to), src = $(`.cap[data-u="${from}"]`);
       pointer("pointerdown", src, a);
       await sleep(20); pointer("pointermove", window, { clientX: a.clientX + 12, clientY: a.clientY + 4 });
@@ -54,10 +60,10 @@ export async function run() {
       await sleep(20); pointer("pointerup", window, b);
     };
     ok("the keyboard cannot be selected as text", getComputedStyle($(".kb")).userSelect === "none");
-    await drop(4, 6); await until(() => state.cfg.layers[0].keys["06"]);
+    await drop(4, 6); await until(() => state.cfg.layers[0].keys["06"] && $('.cap[data-u="6"]')?.classList.contains("movable"));
     ok("dragging a macro to an empty key moves it", state.cfg.layers[0].keys["06"]?.tap?.app === "Safari" && !state.cfg.layers[0].keys["04"], Object.keys(state.cfg.layers[0].keys).join());
-    await drop(6, 4); await until(() => state.cfg.layers[0].keys["04"]);
-    ok("dragging it back restores it", state.cfg.layers[0].keys["04"]?.tap?.app === "Safari" && !state.cfg.layers[0].keys["06"]);
+    await drop(6, 4); await until(() => state.cfg.layers[0].keys["04"] && $('.cap[data-u="4"]')?.classList.contains("movable"));
+    ok("dragging it back restores it", state.cfg.layers[0].keys["04"]?.tap?.app === "Safari" && !state.cfg.layers[0].keys["06"], Object.keys(state.cfg.layers[0].keys).join());
     document.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true })); await sleep(50);
     ok("arrows move the selection by geometry", state.selKey !== "04", state.selKey);
 

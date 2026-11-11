@@ -87,7 +87,7 @@ export function keyboard(layoutId, lang, getKd, opts = {}) {
         if (e.button !== 0) return;
         const sx = e.clientX, sy = e.clientY;
         let ghost = null, over = null;
-        const target = (ev) => { const c = document.elementFromPoint(ev.clientX, ev.clientY)?.closest?.(".cap"); return c && c !== el && wrap.contains(c) && !c.classList.contains("mod") ? c : null; };
+        const target = (ev) => { const c = document.elementFromPoint(ev.clientX, ev.clientY)?.closest?.(".cap"); return c && c !== el && c.closest(".kb") && !c.classList.contains("mod") ? c : null; };
         const move = (ev) => {
           if (!ghost) {
             if (Math.hypot(ev.clientX - sx, ev.clientY - sy) < 6) return;

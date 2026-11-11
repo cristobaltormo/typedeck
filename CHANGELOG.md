@@ -1,6 +1,10 @@
 # Changelog
 
-## Unreleased
+## 0.9.1 - 2026-11-11
+
+### Editor
+- Dragging a key to another no longer depends on the keyboard staying the same size: the drop target is found on whatever keyboard
+  is on screen, and the self test waits for the layout to settle instead of sleeping, which made it fail from time to time.
 
 ### Linux
 - The user service no longer needs a restart after you log in: Sway, Hyprland and Wayland sockets are found in the runtime directory when
