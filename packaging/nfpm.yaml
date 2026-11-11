@@ -7,8 +7,9 @@ priority: optional
 maintainer: Cristóbal Tormo <info@cristobaltormo.com>
 description: |
   Turn any USB keyboard into a macro keyboard.
-  An Arduino Leonardo with a USB Host Shield sits between the keyboard and the computer; this
-  program gives every key its own actions and serves the editor at http://127.0.0.1:7788.
+  Either an Arduino Leonardo with a USB Host Shield sits between the keyboard and the computer, or
+  the program captures the keyboard itself (software capture, which you turn on in the editor);
+  it gives every key its own actions and serves the editor at http://127.0.0.1:7788.
 homepage: https://github.com/cristobaltormo/typedeck
 license: MIT
 recommends:
@@ -17,6 +18,7 @@ recommends:
 suggests:
   - xdotool
   - xclip
+  - wl-clipboard
 contents:
   - src: dist/typedeck-linux-@ARCH@
     dst: /usr/bin/typedeck
@@ -52,4 +54,4 @@ contents:
       mode: 0644
 scripts:
   postinstall: packaging/linux/postinstall.sh
-  postremove: packaging/linux/postinstall.sh
+  postremove: packaging/linux/postremove.sh

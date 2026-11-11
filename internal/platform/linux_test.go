@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 )
 
 func writeDesktop(t *testing.T, dir, id, body string) string {
@@ -92,5 +93,42 @@ func TestFocusedNode(t *testing.T) {
 	}
 	if focusedNode(map[string]any{"nodes": []any{}}) != nil {
 		t.Fatal("without focus it must return nil")
+	}
+}
+
+func TestDiscoverSessionFindsTheCompositorSockets(t *testing.T) {
+	dir := t.TempDir()
+	for _, f := range []string{"sway-ipc.1000.42.sock", "wayland-1", "wayland-1.lock"} {
+		if err := os.WriteFile(filepath.Join(dir, f), nil, 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := os.MkdirAll(filepath.Join(dir, "hypr", "abc123_1_2"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	for _, v := range []string{"SWAYSOCK", "WAYLAND_DISPLAY", "HYPRLAND_INSTANCE_SIGNATURE", "DISPLAY"} {
+		t.Setenv(v, "")
+	}
+	old := runtimeDir
+	runtimeDir = func() string { return dir }
+	sessionCheckedAt = time.Time{}
+	defer func() { runtimeDir = old }()
+	discoverSession()
+	if os.Getenv("SWAYSOCK") != filepath.Join(dir, "sway-ipc.1000.42.sock") {
+		t.Fatalf("SWAYSOCK = %q", os.Getenv("SWAYSOCK"))
+	}
+	if os.Getenv("WAYLAND_DISPLAY") != "wayland-1" {
+		t.Fatalf("WAYLAND_DISPLAY = %q", os.Getenv("WAYLAND_DISPLAY"))
+	}
+	if os.Getenv("HYPRLAND_INSTANCE_SIGNATURE") != "abc123_1_2" {
+		t.Fatalf("HYPRLAND_INSTANCE_SIGNATURE = %q", os.Getenv("HYPRLAND_INSTANCE_SIGNATURE"))
+	}
+}
+
+func TestTerminalsPasteWithShift(t *testing.T) {
+	for class, want := range map[string]bool{"foot": true, "Alacritty": true, "gnome-terminal-server": true, "org.kde.konsole": true, "firefox": false, "Code": false, "": false} {
+		if isTerminal(class) != want {
+			t.Fatalf("%q: want %v", class, want)
+		}
 	}
 }

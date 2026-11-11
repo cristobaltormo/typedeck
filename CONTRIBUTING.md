@@ -11,6 +11,9 @@ USB Host Shield Library 2.0 are needed to build the firmware.
 make check      # gofmt, go vet for the three systems, race-tested unit tests, editor module tests
 make e2e-linux  # end to end on Linux with a simulated board
 make e2e-linux-capture  # software capture on Linux with uinput virtual keyboards; run it in a throwaway VM, it creates input devices
+make e2e-windows-capture  # software capture and the Go tests natively on a Windows virtual machine; keys are sent by the hypervisor
+make e2e-windows-physical  # on a real Windows PC with its own keyboard; asks you to press F6, lock and suspend
+make e2e-macos-capture  # on a real Mac with its own keyboard; asks you to press F6
 make selftest   # the editor in a headless Chromium (needs Chromium or Chrome)
 make dist       # six binaries with SHA256 sums
 make macos-helpers   # the two Swift helpers for macOS (needs a Mac with swiftc)

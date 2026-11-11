@@ -201,7 +201,24 @@ def scenario_unconsented():
     kill_typedeck()
 
 
+def scenario_native_go_tests():
+    root = os.path.abspath(os.path.join(HERE, "..", ".."))
+    ssh(f"New-Item -ItemType Directory -Force {DIR}\\wt | Out-Null")
+    for pkg in ("board", "capture", "config"):
+        out = os.path.join(tempfile.gettempdir(), f"td-{pkg}.test.exe")
+        env = dict(os.environ, GOOS="windows", GOARCH="amd64", CGO_ENABLED="0")
+        built = subprocess.run(["go", "test", "-c", "-o", out, f"./internal/{pkg}"], cwd=root, env=env, capture_output=True)
+        if built.returncode != 0:
+            check(f"the {pkg} tests build for Windows", False, built.stderr.decode()[-200:])
+            continue
+        scp(out, f"{DIR}\\wt\\{pkg}.test.exe")
+        os.unlink(out)
+        tail = ssh(f"cmd /c \"cd /d {DIR}\\wt && {pkg}.test.exe -test.count=2 2>&1\"").strip().splitlines()[-1:]
+        check(f"the {pkg} package tests pass natively on Windows", tail == ["PASS"], " ".join(tail))
+
+
 def run():
+    scenario_native_go_tests()
     scenario_unconsented()
     deploy(config())
     start_sink()

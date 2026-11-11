@@ -110,7 +110,7 @@ The editor shows the reason and `typedeck doctor` prints it with the command tha
 - macOS, the editor says the capture helper is not running or `doctor` says a permission is missing: open System Settings, Privacy &
   Security, and turn on `typedeck-capture` under **Accessibility** and under **Input Monitoring**. If it is not listed, press `+` and
   choose the file that sits next to `typedeck` (Cmd+Shift+G types a path). The list shows the helper by its file name; Typedeck retries
-  from time to time (after a failure the wait grows from 4 seconds up to 2 minutes), so there is nothing to restart. If you move or replace the helper, macOS may ask again.
+  from time to time (after a failure the wait grows from 4 seconds up to 2 minutes), so there is nothing to restart. If you move or replace the helper (every update does), macOS treats it as a new program: select the old `typedeck-capture` entries in both lists, remove them with `-` and add the new file once, so the lists do not fill up with copies.
 - macOS, `typedeck-capture` is blocked or "cannot be opened": the archive was downloaded with a browser and carries a quarantine mark;
   run `xattr -dr com.apple.quarantine <folder with typedeck>` once. The helper is signed ad hoc, not notarized, so macOS never
   vouches for it.

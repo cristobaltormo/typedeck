@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased
+
+### Linux
+- The user service no longer needs a restart after you log in: Sway, Hyprland and Wayland sockets are found in the runtime directory when
+  the program needs them, so per-application layers and clipboard pasting work from the first minute.
+- Text that has to be pasted goes in with Ctrl+Shift+V when the window in front is a terminal.
+- `doctor` fails the graphical session check when there is no display; removing the package gives `/dev/uinput` back to root unless an
+  upgrade is under way; the package recommends `wl-clipboard` and its description mentions software capture; one message was in Spanish.
+
+### Tests
+- New `make e2e-macos-capture` and `make e2e-windows-physical`, which drive a real Mac and a real Windows PC with their own keyboards
+  (macro, swallowed key, lock, suspend), and the Windows virtual machine run now also runs the Go tests of `board`, `capture` and
+  `config` natively.
+
 ## 0.9.0 - 2026-11-11
 
 ### Windows

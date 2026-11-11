@@ -1,4 +1,4 @@
-.PHONY: build winres macos-helpers dist archives packages release-files test vet fmt check e2e-linux e2e-linux-capture e2e-desktop e2e-windows e2e-linux-real selftest web-test screenshots flash firmware clean
+.PHONY: e2e-windows-capture e2e-windows-physical e2e-macos-capture build winres macos-helpers dist archives packages release-files test vet fmt check e2e-linux e2e-linux-capture e2e-desktop e2e-windows e2e-linux-real selftest web-test screenshots flash firmware clean
 
 VERSION ?= $(shell git describe --tags --always 2>/dev/null || echo dev)
 LDFLAGS = -s -w -X main.version=$(VERSION)
@@ -93,6 +93,16 @@ e2e-linux-capture: build  ## software capture on Linux against uinput virtual ke
 e2e-desktop: build    ## Linux desktop features on a virtual X11 (needs Xvfb, openbox, xdotool, xclip, xterm, x11-utils)
 	python3 tests/e2e/linux_desktop.py dist/typedeck
 	python3 tests/e2e/linux_focus.py dist/typedeck
+
+e2e-windows-capture: build  ## software capture on a Windows virtual machine with keys sent by the hypervisor (WIN_HOST, WIN_VMID)
+	GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -o dist/typedeck-win.exe ./cmd/typedeck
+	python3 tests/e2e/windows_capture.py dist/typedeck-win.exe
+
+e2e-windows-physical:  ## software capture on a real Windows PC with its own keyboard, lock and suspend (WIN_HOST; asks you to press F6; SUSPEND=1 adds suspend)
+	python3 tests/e2e/windows_physical.py
+
+e2e-macos-capture:    ## software capture on a real Mac with its own keyboard (MAC_HOST; asks you to press F6; the helper needs Accessibility and Input Monitoring)
+	python3 tests/e2e/macos_capture.py
 
 e2e-windows:          ## full test run on a Windows machine with the board (WIN_HOST, WIN_DIR, WIN_COM_PORT)
 	scripts/e2e-windows.sh

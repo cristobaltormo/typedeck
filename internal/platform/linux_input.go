@@ -132,10 +132,10 @@ func setClipboard(text string) error {
 
 var (
 	pasteKeysMu sync.Mutex
-	pasteKeysFn func() error
+	pasteKeysFn func(shift bool) error
 )
 
-func SetPasteKeys(fn func() error) {
+func SetPasteKeys(fn func(shift bool) error) {
 	pasteKeysMu.Lock()
 	pasteKeysFn = fn
 	pasteKeysMu.Unlock()
@@ -145,8 +145,12 @@ func pasteKeys() error {
 	pasteKeysMu.Lock()
 	fn := pasteKeysFn
 	pasteKeysMu.Unlock()
-	if fn != nil && fn() == nil {
+	shift := isTerminal(front().class)
+	if fn != nil && fn(shift) == nil {
 		return nil
+	}
+	if shift {
+		return press([]string{"ctrl", "shift"}, "v")
 	}
 	return press([]string{"ctrl"}, "v")
 }

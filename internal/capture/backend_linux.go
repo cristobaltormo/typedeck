@@ -120,8 +120,12 @@ func (b *linuxBackend) TypeText(text string) error {
 	return platform.Current.Paste(text)
 }
 
-func (b *linuxBackend) pasteKeys() error {
-	return b.Inject(hid.Stroke{Mods: hid.ModCtrl, Usage: 0x19}, 0)
+func (b *linuxBackend) pasteKeys(shift bool) error {
+	mods := hid.ModCtrl
+	if shift {
+		mods |= hid.ModShift
+	}
+	return b.Inject(hid.Stroke{Mods: mods, Usage: 0x19}, 0)
 }
 
 func strokeCodes(st hid.Stroke) ([]uint16, error) {

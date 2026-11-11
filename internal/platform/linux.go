@@ -55,6 +55,7 @@ func (*linux) Version() string {
 }
 
 func wayland() bool {
+	discoverSession()
 	if t := os.Getenv("XDG_SESSION_TYPE"); t != "" {
 		return t == "wayland"
 	}
@@ -241,7 +242,7 @@ func (*linux) Doctor() []Check {
 		sess = "Wayland"
 	}
 	checks := []Check{
-		{true, "graphical session: " + sess, ""},
+		{os.Getenv("DISPLAY") != "" || os.Getenv("WAYLAND_DISPLAY") != "", "graphical session: " + sess, "no graphical session was found: run typedeck from your desktop session, or restart the service after logging in (systemctl --user restart typedeck)"},
 		{have("xdg-open"), "xdg-open available (links and files)", "xdg-open is missing: install xdg-utils to open links"},
 		{have("notify-send"), "notify-send available (popups)", "notify-send is missing: install libnotify-bin to see the popups"},
 		{front().id != "", "the front application can be read (per-application layers)",
@@ -306,7 +307,7 @@ WantedBy=default.target
 			return "", fmt.Errorf("systemctl --user %s: %s", c[0], strings.TrimSpace(string(out)))
 		}
 	}
-	return "Service installed and running: " + p + "\nRegistro: journalctl --user -u typedeck", nil
+	return "Service installed and running: " + p + "\nLog: journalctl --user -u typedeck", nil
 }
 
 func (*linux) UninstallService() (string, error) {

@@ -20,6 +20,7 @@ type frontInfo struct {
 }
 
 func front() frontInfo {
+	discoverSession()
 	if os.Getenv("HYPRLAND_INSTANCE_SIGNATURE") != "" && have("hyprctl") {
 		out, err := Run(2*time.Second, "", "hyprctl", "activewindow", "-j")
 		if err == nil {
@@ -175,6 +176,18 @@ func (*linux) FocusEditor(string) bool {
 	case !wayland() && have("wmctrl"):
 		_, err := Run(3*time.Second, "", "wmctrl", "-a", "Typedeck")
 		return err == nil
+	}
+	return false
+}
+
+var terminalClasses = []string{"foot", "kitty", "alacritty", "xterm", "urxvt", "rxvt", "konsole", "terminator", "tilix", "wezterm", "ghostty", "st-256color", "lxterminal", "terminal"}
+
+func isTerminal(class string) bool {
+	class = strings.ToLower(class)
+	for _, t := range terminalClasses {
+		if strings.Contains(class, t) {
+			return true
+		}
 	}
 	return false
 }
