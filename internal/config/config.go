@@ -15,8 +15,8 @@ func Default() Config {
 			"58": {Tap: &Action{Type: "url", URL: "{editor}"}, Label: "Editor", Icon: "sliders"},
 		},
 		Layers: []Layer{
-			{Name: "Capa 1", Color: "#2563eb", Icon: "keyboard", AutoApps: []string{}, Keys: map[string]KeyDef{}},
-			{Name: "Capa 2", Color: "#8b5cf6", Icon: "bolt", AutoApps: []string{}, Keys: map[string]KeyDef{}},
+			{Name: "Layer 1", Color: "#2563eb", Icon: "keyboard", AutoApps: []string{}, Keys: map[string]KeyDef{}},
+			{Name: "Layer 2", Color: "#8b5cf6", Icon: "bolt", AutoApps: []string{}, Keys: map[string]KeyDef{}},
 		},
 		Keyboards: map[string]Keyboard{},
 	}

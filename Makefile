@@ -21,7 +21,7 @@ macos-helpers:        ## build the two Swift helpers for macOS (dist/typedeck-ca
 	  done; \
 	  lipo -create -output dist/typedeck-$$tool-macos dist/typedeck-$$tool-arm64 dist/typedeck-$$tool-x86_64 || exit 1; \
 	  rm -f dist/typedeck-$$tool-arm64 dist/typedeck-$$tool-x86_64; \
-	  codesign --force --sign - --identifier cc.cristobal.typedeck.$$tool dist/typedeck-$$tool-macos || exit 1; \
+	  codesign --force --sign - --identifier io.github.cristobaltormo.typedeck.$$tool dist/typedeck-$$tool-macos || exit 1; \
 	done
 	dist/typedeck-capture-macos --selftest
 

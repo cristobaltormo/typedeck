@@ -13,7 +13,7 @@ ssh "$MAC_HOST" 'bash -s' <<'REMOTE'
 set -u
 export PATH=/opt/homebrew/bin:$PATH
 UIDN=$(id -u)
-launchctl bootout "gui/$UIDN/cc.cristobal.typedeck" 2>/dev/null || true
+launchctl bootout "gui/$UIDN/io.github.cristobaltormo.typedeck" 2>/dev/null || true
 pkill -x typedeck 2>/dev/null || true
 sleep 1
 P=$(ls /dev/cu.usbmodem* 2>/dev/null | head -1)
@@ -22,6 +22,6 @@ stty -f "$P" 1200; sleep 1.5
 for i in 1 2 3 4 5 6 7 8 9 10; do BP=$(ls /dev/cu.usbmodem* 2>/dev/null | head -1); [ -n "$BP" ] && break; sleep 0.5; done
 avrdude -p atmega32u4 -c avr109 -P "$BP" -b 57600 -U flash:w:/tmp/typedeck-fw.hex:i 2>&1 | tail -3
 sleep 3
-launchctl bootstrap "gui/$UIDN" "$HOME/Library/LaunchAgents/cc.cristobal.typedeck.plist" 2>/dev/null || true
+launchctl bootstrap "gui/$UIDN" "$HOME/Library/LaunchAgents/io.github.cristobaltormo.typedeck.plist" 2>/dev/null || true
 ls /dev/cu.usbmodem*
 REMOTE

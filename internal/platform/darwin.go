@@ -352,10 +352,20 @@ func (*darwin) Doctor() []Check {
 	}
 }
 
-const launchAgentLabel = "cc.cristobal.typedeck"
+const (
+	launchAgentLabel       = "io.github.cristobaltormo.typedeck"
+	legacyLaunchAgentLabel = "cc.cristobal.typedeck"
+)
+
+func removeLegacyAgent(home string) {
+	uid := fmt.Sprint(os.Getuid())
+	_ = exec.Command("launchctl", "bootout", "gui/"+uid+"/"+legacyLaunchAgentLabel).Run()
+	_ = os.Remove(filepath.Join(home, "Library", "LaunchAgents", legacyLaunchAgentLabel+".plist"))
+}
 
 func (*darwin) InstallService(exe string) (string, error) {
 	home, _ := os.UserHomeDir()
+	removeLegacyAgent(home)
 	plist := filepath.Join(home, "Library", "LaunchAgents", launchAgentLabel+".plist")
 	body := fmt.Sprintf(`<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -383,6 +393,7 @@ func (*darwin) InstallService(exe string) (string, error) {
 
 func (*darwin) UninstallService() (string, error) {
 	home, _ := os.UserHomeDir()
+	removeLegacyAgent(home)
 	plist := filepath.Join(home, "Library", "LaunchAgents", launchAgentLabel+".plist")
 	_ = exec.Command("launchctl", "bootout", "gui/"+fmt.Sprint(os.Getuid())+"/"+launchAgentLabel).Run()
 	if err := os.Remove(plist); err != nil && !os.IsNotExist(err) {

@@ -58,5 +58,7 @@ Check "doctor from a console writes its report and returns an exit code" ($docto
 & $CliExe nonsense 2>&1 | Out-Null
 Check "an unknown command returns 2" ($LASTEXITCODE -eq 2)
 
+Get-Process -Name "typedeck-cli","typedeck" -ErrorAction SilentlyContinue | Stop-Process -Force
+
 if ($fails -gt 0) { "$fails lifecycle checks failed"; exit 1 }
 "all lifecycle checks passed"

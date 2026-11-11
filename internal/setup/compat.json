@@ -300,8 +300,8 @@
      "name_en": "Windows 10 and 11, global keyboard hook",
      "status": "tested",
      "note": {
-      "es": "Probado en una máquina virtual con Windows Server 2025 y teclado físico simulado por el hipervisor: captura, gestos, capas, inyección y recuperación. Cualquier teclado sirve. No probado en Windows 10 ni con teclado físico real.",
-      "en": "Tested on a Windows Server 2025 virtual machine with a keyboard simulated by the hypervisor: capture, gestures, layers, injection and recovery. Any keyboard works. Not tried on Windows 10 or with a physical keyboard."
+      "es": "Probado en una máquina virtual con Windows Server 2025 y teclado físico simulado por el hipervisor: captura, gestos, capas, inyección y recuperación. Cualquier teclado sirve. En un Windows 11 real se comprobó el ciclo de vida completo (15 pruebas) y que el modo se activa y se desactiva; no se ha probado con teclas físicas, ni en Windows 10.",
+      "en": "Tested on a Windows Server 2025 virtual machine with a keyboard simulated by the hypervisor: capture, gestures, layers, injection and recovery. Any keyboard works. On a real Windows 11 the whole lifecycle was checked (15 checks) and the mode turns on and off; it has not been tried with physical keys or on Windows 10."
      }
     },
     {
@@ -327,8 +327,8 @@
      "name_en": "macOS 12 or later, keyboard event tap (typedeck-capture)",
      "status": "expected",
      "note": {
-      "es": "Un ayudante en Swift instala el filtro; necesita los permisos de Accesibilidad y de Monitorización de entrada. Compilado y probado en un Mac con Apple Silicon (macOS 27): protocolo, tabla de teclas, máquina de estados con eventos sintéticos y el aviso de permisos que falta. Todavía no se ha tragado ni inyectado una tecla real, porque eso exige conceder los permisos a mano. Bloq Mayús llega como un conmutador; los campos de contraseña quedan fuera.",
-      "en": "A Swift helper installs the tap; it needs the Accessibility and Input Monitoring permissions. Built and tested on an Apple Silicon Mac (macOS 27): protocol, key table, state machine with synthetic events and the missing-permission message. No real key has been swallowed or injected yet, because that needs the permissions granted by hand. Caps Lock arrives as a toggle; password fields are out of reach."
+      "es": "Un ayudante en Swift instala el filtro; necesita los permisos de Accesibilidad y de Monitorización de entrada. Compilado y probado en un Mac con Apple Silicon (macOS 27): protocolo, tabla de teclas, máquina de estados con eventos sintéticos y el aviso de permisos que falta. Con los permisos concedidos, una tecla real del teclado externo (F6) llegó al ayudante con su latencia y se probó el aviso cuando faltan. Todavía no se ha comprobado la inyección de teclas en una aplicación. Bloq Mayús llega como un conmutador; los campos de contraseña quedan fuera.",
+      "en": "A Swift helper installs the tap; it needs the Accessibility and Input Monitoring permissions. Built and tested on an Apple Silicon Mac (macOS 27): protocol, key table, state machine with synthetic events and the missing-permission message. With the permissions granted, a real key from the external keyboard (F6) reached the helper with its latency, and the missing-permission message was checked. Injecting keys into an application has not been checked yet. Caps Lock arrives as a toggle; password fields are out of reach."
      }
     },
     {

@@ -113,7 +113,7 @@ func TestSaveLoadBackupRestore(t *testing.T) {
 		t.Fatalf("copias: %+v", b)
 	}
 	r, err := RestoreBackup(p, b[0].Name)
-	if err != nil || r.Layers[0].Name != "Capa 1" {
+	if err != nil || r.Layers[0].Name != "Layer 1" {
 		t.Fatalf("restaurar: %v %+v", err, r.Layers[0])
 	}
 	if _, err := RestoreBackup(p, "../../etc/passwd"); err == nil {

@@ -61,7 +61,7 @@ func clean(s string) string { return strings.Join(strings.Fields(s), " ") }
 func Identify(vid, pid, mfr, prod string) Identity {
 	vid, pid = strings.ToLower(vid), strings.ToLower(pid)
 	mfr, prod = clean(mfr), clean(prod)
-	id := Identity{Confidence: "unknown", Source: "ninguna"}
+	id := Identity{Confidence: "unknown", Source: "none"}
 	setVendor(&id, vid)
 	if !setVerifiedModel(&id, vid, pid, mfr, prod) {
 		setReportedName(&id, mfr, prod)

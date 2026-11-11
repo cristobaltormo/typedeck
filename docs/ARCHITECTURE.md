@@ -168,7 +168,7 @@ same spirit as the board protocol: plain text lines, one command or event per li
    it is started from. `typedeck-capture --check` reports the permissions and whether a tap can be created, without prompting, and
    is what `Checks()` and `typedeck doctor` use.
 7. Packaging: `make macos-helpers` builds it (and the popup helper) with `swiftc` for arm64 and x86_64, joins them with `lipo` and
-   signs them ad hoc with a fixed identifier (`cc.cristobal.typedeck.capture`); CI and the release do it on a macOS runner. Ad hoc
+   signs them ad hoc with a fixed identifier (`io.github.cristobaltormo.typedeck.capture`); CI and the release do it on a macOS runner. Ad hoc
    means no Apple developer account and no notarization. `typedeck-capture --selftest` runs the state machine against synthetic
    events and needs no permission.
 

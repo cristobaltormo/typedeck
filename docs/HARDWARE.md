@@ -15,7 +15,7 @@ It works the same on Windows, Linux and macOS, with [`arduino-cli`](https://ardu
 which brings `avrdude` along:
 
 1. Stop Typedeck, because it holds the board's serial port and would break the upload:
-   macOS `launchctl bootout gui/$(id -u)/cc.cristobal.typedeck`, Linux `systemctl --user stop typedeck`,
+   macOS `launchctl bootout gui/$(id -u)/io.github.cristobaltormo.typedeck`, Linux `systemctl --user stop typedeck`,
    Windows `Stop-ScheduledTask Typedeck; Stop-Process -Name typedeck` in PowerShell.
 2. Install the AVR tools once: `arduino-cli core install arduino:avr`.
 3. Find the port (`arduino-cli board list`: `COM3`, `/dev/ttyACM0`, `/dev/cu.usbmodem1101`) and upload:

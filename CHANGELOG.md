@@ -49,6 +49,8 @@
   ignored.
 
 ### macOS
+- The launch agent is now `io.github.cristobaltormo.typedeck`; `install` and `uninstall` remove the old `cc.cristobal.typedeck` one, so upgrading
+  needs no manual step.
 - Software capture on macOS: Typedeck works without the board. `typedeck-capture`, a small Swift helper that the program starts and
   watches, installs a CoreGraphics event tap, takes only the keys that have a macro and lets every other key through without
   reading it, and sends Typedeck's own shortcuts, text (Unicode), media keys and Caps Lock. It talks to the program through plain
