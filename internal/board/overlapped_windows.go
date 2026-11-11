@@ -94,7 +94,8 @@ func (f *overlappedFile) readOnce(b []byte) (int, error) {
 		return 0, nil
 	}
 	f.rov.Internal, f.rov.InternalHigh, f.rov.Offset, f.rov.OffsetHigh = 0, 0, 0, 0
-	err := syscall.ReadFile(f.h, f.rbuf[:size], nil, &f.rov)
+	var done uint32
+	err := syscall.ReadFile(f.h, f.rbuf[:size], &done, &f.rov)
 	n, err := f.finish(&f.rov, err)
 	copy(b, f.rbuf[:n])
 	return n, err
@@ -117,7 +118,8 @@ func (f *overlappedFile) Write(b []byte) (int, error) {
 	f.wbuf = f.wbuf[:len(b)]
 	copy(f.wbuf, b)
 	f.wov.Internal, f.wov.InternalHigh, f.wov.Offset, f.wov.OffsetHigh = 0, 0, 0, 0
-	err := syscall.WriteFile(f.h, f.wbuf, nil, &f.wov)
+	var done uint32
+	err := syscall.WriteFile(f.h, f.wbuf, &done, &f.wov)
 	n, err := f.finish(&f.wov, err)
 	return n, checkWritten(n, len(b), err)
 }

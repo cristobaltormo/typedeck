@@ -3,7 +3,9 @@ package config
 import (
 	"errors"
 	"fmt"
+	"maps"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -259,6 +261,8 @@ func Validate(c Config) (Config, error) {
 	if len(c.Layers) > MaxLayers {
 		return c, fmt.Errorf("at most %d layers", MaxLayers)
 	}
+	c.Layers = slices.Clone(c.Layers)
+	c.Keyboards = maps.Clone(c.Keyboards)
 	d := DefaultSettings()
 	s := c.Settings
 	s.Language = oneOf(s.Language, d.Language, "es", "en")

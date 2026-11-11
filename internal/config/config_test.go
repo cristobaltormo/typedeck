@@ -287,3 +287,19 @@ func TestSoftwareCaptureModeSurvivesSaveAndLoad(t *testing.T) {
 		t.Fatal("the output setting is independent of the capture mode")
 	}
 }
+
+func TestValidateLeavesTheInputUntouched(t *testing.T) {
+	in := Default()
+	in.Layers[0].Name = "  padded  "
+	in.Keyboards = map[string]Keyboard{"x": {Layout: strings.Repeat("a", 40)}}
+	out, err := Validate(in)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if in.Layers[0].Name != "  padded  " || len(in.Keyboards) != 1 {
+		t.Fatal("Validate changed the configuration it was given")
+	}
+	if out.Layers[0].Name == "  padded  " || len(out.Keyboards) != 0 {
+		t.Fatal("Validate did not clean its copy")
+	}
+}
