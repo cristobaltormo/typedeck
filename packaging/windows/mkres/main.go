@@ -107,7 +107,7 @@ func numericVersion(v string) [4]uint16 {
 	var out [4]uint16
 	if m := versionParts.FindStringSubmatch(v); m != nil {
 		for i := 0; i < 3; i++ {
-			n, _ := strconv.Atoi(m[i+1])
+			n, _ := strconv.ParseUint(m[i+1], 10, 16)
 			out[i] = uint16(n)
 		}
 	}
