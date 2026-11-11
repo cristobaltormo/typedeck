@@ -3,6 +3,8 @@ import { t } from "./i18n.js";
 import { api } from "./api.js";
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+const until = async (done, ms = 2000) => { const t0 = Date.now(); while (!done() && Date.now() - t0 < ms) await sleep(20); };
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => [...document.querySelectorAll(s)];
 const byText = (sel, text) => $$(sel).find((e) => e.textContent.trim().includes(text));
@@ -52,9 +54,9 @@ export async function run() {
       await sleep(20); pointer("pointerup", window, b);
     };
     ok("the keyboard cannot be selected as text", getComputedStyle($(".kb")).userSelect === "none");
-    await drop(4, 6); await sleep(80);
+    await drop(4, 6); await until(() => state.cfg.layers[0].keys["06"]);
     ok("dragging a macro to an empty key moves it", state.cfg.layers[0].keys["06"]?.tap?.app === "Safari" && !state.cfg.layers[0].keys["04"], Object.keys(state.cfg.layers[0].keys).join());
-    await drop(6, 4); await sleep(80);
+    await drop(6, 4); await until(() => state.cfg.layers[0].keys["04"]);
     ok("dragging it back restores it", state.cfg.layers[0].keys["04"]?.tap?.app === "Safari" && !state.cfg.layers[0].keys["06"]);
     document.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true })); await sleep(50);
     ok("arrows move the selection by geometry", state.selKey !== "04", state.selKey);
