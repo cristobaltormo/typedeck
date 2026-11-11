@@ -6,6 +6,7 @@ import { select } from "./controls.js";
 import { keyboard, hex } from "./keyboard.js";
 import { layoutList, legendLang } from "./layouts.js";
 import { state, subscribe, layoutId, setLayout } from "./store.js";
+import { isSoftware, offerCard, hookDownCard, useBoard, osText } from "./capture.js";
 
 const REPORT_KIND = { keyboard: "kind.keyboard", nkro: "kind.nkro", consumer: "kind.consumer", system: "kind.system", mouse: "kind.mouse", vendor: "kind.vendor", other: "kind.other" };
 const FORWARDED = new Set(["keyboard", "consumer"]);
@@ -52,6 +53,16 @@ export function openKeyboardDrawer() {
     }));
   }
 
+  function systemBlock() {
+    return h("section", { class: "stack", style: { gap: "10px" } }, h("h3", {}, t("kb.identity")),
+      h("div", { class: "strong", style: { fontSize: "18px", fontWeight: 600 } }, t("capture.sys_keyboard")), h("p", { class: "dim", style: { fontSize: "13px" } }, t("capture.kb_help")));
+  }
+
+  function limitsBlock() {
+    return h("section", { class: "stack", style: { gap: "8px" } }, h("h3", {}, t("capture.limits_title")), h("p", { class: "dim", style: { fontSize: "13px" } }, osText("capture.c3")),
+      h("div", { class: "row" }, h("button", { type: "button", class: "btn", onclick: async () => { if (await useBoard()) draw(); } }, t("capture.use_board"))));
+  }
+
   function layoutBlock() {
     const ch = state.keyboard.layout;
     const current = layoutId();
@@ -65,7 +76,14 @@ export function openKeyboardDrawer() {
   function draw() {
     clear(body);
     const info = state.keyboard.info, st = state.status;
-    if (!st.connected) { body.append(h("p", { class: "dim" }, t(st.board_error === "outdated_firmware" ? "kb.fw_old" : "kb.no_board"))); return; }
+    if (isSoftware() && !st.connected) { body.append(hookDownCard()); return; }
+    if (isSoftware()) {
+      body.append(systemBlock(), layoutBlock(),
+        h("section", { class: "stack", style: { gap: "10px" } }, h("h3", {}, t("kb.detect")), h("p", { class: "dim", style: { fontSize: "13px" } }, t("kb.detect_help")), (wizardHost = h("div"))), limitsBlock());
+      drawWizard();
+      return;
+    }
+    if (!st.connected) { body.append(h("p", { class: "dim" }, t(st.board_error === "outdated_firmware" ? "kb.fw_old" : "kb.no_board")), st.board_error === "outdated_firmware" ? null : offerCard()); return; }
     if (!info?.present) { body.append(h("p", { class: "dim" }, t("kb.no_keyboard"))); return; }
     body.append(identityBlock(info, state.keyboard.identity), layoutBlock(),
       h("section", { class: "stack", style: { gap: "6px" } }, h("h3", {}, t("kb.reports")), h("p", { class: "help", style: { marginTop: 0 } }, t("kb.reports_help")), reports(info)),

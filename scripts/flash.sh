@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# Usage: [MAC_HOST=mac] scripts/flash.sh [file.hex]   (compiles firmware/ by default)
 MAC_HOST="${MAC_HOST:-mac}"
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -14,7 +13,7 @@ ssh "$MAC_HOST" 'bash -s' <<'REMOTE'
 set -u
 export PATH=/opt/homebrew/bin:$PATH
 UIDN=$(id -u)
-for label in cc.cristobal.typedeck cc.cristobal.numdeck cc.cristobal.leonardo-macros; do launchctl bootout "gui/$UIDN/$label" 2>/dev/null || true; done
+launchctl bootout "gui/$UIDN/cc.cristobal.typedeck" 2>/dev/null || true
 pkill -x typedeck 2>/dev/null || true
 sleep 1
 P=$(ls /dev/cu.usbmodem* 2>/dev/null | head -1)

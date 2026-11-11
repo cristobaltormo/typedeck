@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-"""Records docs/images/drag.gif: a macro dragged to another key in the editor, with real mouse input in a headless Chrome.
-Needs Chromium or Chrome and Pillow. Usage: scripts/drag-gif.py   (the program is started here with a throwaway configuration)"""
 import io, os, subprocess, sys, tempfile, time
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "tests", "e2e"))
 from cdp import Browser

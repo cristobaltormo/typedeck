@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"runtime"
-	"sort"
 	"strings"
 
 	"github.com/cristobaltormo/typedeck/internal/config"
@@ -154,21 +153,17 @@ func Resolve(p Pack, layoutID, lang string, reserved map[string]bool) (Resolved,
 	return ResolveFor(runtime.GOOS, p, layoutID, lang, reserved)
 }
 
-func ResolveFor(goos string, p Pack, layoutID, lang string, reserved map[string]bool) (Resolved, error) {
-	l, ok := layouts.Get(layoutID)
-	if !ok {
-		l, _ = layouts.Get("full-iso")
-	}
-	have := l.KeySet()
-	slotsFor := func(region string) []byte {
-		var out []byte
-		for _, u := range regions[region] {
-			if have[u] && !reserved[fmt.Sprintf("%02X", u)] {
-				out = append(out, u)
-			}
+func regionSlots(region string, have map[byte]bool, reserved map[string]bool) []byte {
+	var out []byte
+	for _, u := range regions[region] {
+		if have[u] && !reserved[fmt.Sprintf("%02X", u)] {
+			out = append(out, u)
 		}
-		return out
 	}
+	return out
+}
+
+func chooseRegion(p Pack, have map[byte]bool, reserved map[string]bool) (string, []byte) {
 	order := []string{p.Region}
 	for _, r := range []string{"numpad", "fn", "numrow", "letters"} {
 		if r != p.Region {
@@ -178,45 +173,57 @@ func ResolveFor(goos string, p Pack, layoutID, lang string, reserved map[string]
 	region, slots := "", []byte(nil)
 	need := len(p.Macros)
 	for _, r := range order {
-		s := slotsFor(r)
+		s := regionSlots(r, have, reserved)
 		if len(s) >= need || (len(s) >= (need+1)/2 && len(s) > 0 && r == p.Region) {
-			region, slots = r, s
-			break
+			return r, s
 		}
 		if region == "" || len(s) > len(slots) {
 			region, slots = r, s
 		}
 	}
+	return region, slots
+}
+
+func keyDefFor(goos string, m Macro, lang string) config.KeyDef {
+	tap, hold, double := m.Tap, m.Hold, m.Double
+	if goos != "darwin" {
+		pick := func(pc, mac *config.Action) *config.Action {
+			if pc != nil {
+				return pc
+			}
+			return pcAction(mac)
+		}
+		tap, hold, double = pick(m.TapPC, m.Tap), pick(m.HoldPC, m.Hold), pick(m.DoublePC, m.Double)
+	}
+	return config.KeyDef{Tap: tap, Hold: hold, Double: double, Label: m.Label.Get(lang), Icon: m.Icon, Color: m.Color}
+}
+
+func removeSlot(slots []byte, u byte) []byte {
+	for i, f := range slots {
+		if f == u {
+			return append(slots[:i], slots[i+1:]...)
+		}
+	}
+	return slots
+}
+
+func ResolveFor(goos string, p Pack, layoutID, lang string, reserved map[string]bool) (Resolved, error) {
+	l, ok := layouts.Get(layoutID)
+	if !ok {
+		l, _ = layouts.Get("full-iso")
+	}
+	have := l.KeySet()
+	region, slots := chooseRegion(p, have, reserved)
 	res := Resolved{Region: region, Global: map[string]config.KeyDef{}}
 	res.Layer = config.Layer{Name: p.Name.Get(lang), Color: p.Color, Icon: p.Icon, AutoApps: append([]string{}, p.AutoApps...), Keys: map[string]config.KeyDef{}}
-	put := func(id string, m Macro) {
-		tap, hold, double := m.Tap, m.Hold, m.Double
-		if goos != "darwin" {
-			pick := func(pc, mac *config.Action) *config.Action {
-				if pc != nil {
-					return pc
-				}
-				return pcAction(mac)
-			}
-			tap, hold, double = pick(m.TapPC, m.Tap), pick(m.HoldPC, m.Hold), pick(m.DoublePC, m.Double)
-		}
-		res.Layer.Keys[id] = config.KeyDef{Tap: tap, Hold: hold, Double: double, Label: m.Label.Get(lang), Icon: m.Icon, Color: m.Color}
-	}
 	free := append([]byte(nil), slots...)
 	var pending []Macro
 	for _, m := range p.Macros {
-		if m.Key != "" {
-			var u byte
-			if _, err := fmt.Sscanf(m.Key, "%02X", &u); err == nil && have[u] && !reserved[m.Key] {
-				put(m.Key, m)
-				for i, f := range free {
-					if f == u {
-						free = append(free[:i], free[i+1:]...)
-						break
-					}
-				}
-				continue
-			}
+		var u byte
+		if _, err := fmt.Sscanf(m.Key, "%02X", &u); m.Key != "" && err == nil && have[u] && !reserved[m.Key] {
+			res.Layer.Keys[m.Key] = keyDefFor(goos, m, lang)
+			free = removeSlot(free, u)
+			continue
 		}
 		pending = append(pending, m)
 	}
@@ -225,19 +232,10 @@ func ResolveFor(goos string, p Pack, layoutID, lang string, reserved map[string]
 			res.Dropped++
 			continue
 		}
-		put(fmt.Sprintf("%02X", free[i]), m)
+		res.Layer.Keys[fmt.Sprintf("%02X", free[i])] = keyDefFor(goos, m, lang)
 	}
 	for k, kd := range p.Global {
 		res.Global[k] = kd
 	}
 	return res, nil
-}
-
-func SortedIDs() []string {
-	var ids []string
-	for _, p := range data.Packs {
-		ids = append(ids, p.ID)
-	}
-	sort.Strings(ids)
-	return ids
 }

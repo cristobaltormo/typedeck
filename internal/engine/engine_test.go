@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/cristobaltormo/typedeck/internal/actions"
-	"github.com/cristobaltormo/typedeck/internal/board"
+	"github.com/cristobaltormo/typedeck/internal/capture"
 	"github.com/cristobaltormo/typedeck/internal/config"
 	"github.com/cristobaltormo/typedeck/internal/hid"
 )
@@ -26,6 +26,11 @@ func (r *rec) snapshot() []string {
 
 func newTest(t *testing.T, mutate func(*config.Config)) (*Engine, *rec) {
 	t.Helper()
+	return newTestWith(t, nil, mutate)
+}
+
+func newTestWith(t *testing.T, src capture.Source, mutate func(*config.Config)) (*Engine, *rec) {
+	t.Helper()
 	c := config.Default()
 	c.Settings.HoldMS, c.Settings.DoubleMS = 200, 120
 	c.Layers[0].Keys = map[string]config.KeyDef{}
@@ -36,7 +41,7 @@ func newTest(t *testing.T, mutate func(*config.Config)) (*Engine, *rec) {
 	if err := config.Save(p, c, false, false); err != nil {
 		t.Fatal(err)
 	}
-	e, err := New(p, nil)
+	e, err := New(p, src)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -52,7 +57,9 @@ func newTest(t *testing.T, mutate func(*config.Config)) (*Engine, *rec) {
 		return actions.Result{OK: true}
 	}
 	e.hudFn = func(title, sub string, _ float64, _ bool) { r.mu.Lock(); r.huds = append(r.huds, title); r.mu.Unlock() }
-	e.injectFn = func(s hid.Stroke, _ int) { r.mu.Lock(); r.injects = append(r.injects, s.Usage); r.mu.Unlock() }
+	if src == nil {
+		e.injectFn = func(s hid.Stroke, _ int) { r.mu.Lock(); r.injects = append(r.injects, s.Usage); r.mu.Unlock() }
+	}
 	return e, r
 }
 
@@ -341,9 +348,9 @@ func TestPlainKeysAreReportedAndRecordedOnlyWhenHistoryIsOn(t *testing.T) {
 	e, _ := newTest(t, func(c *config.Config) { c.Settings.KeyHistory = true })
 	var seen []string
 	e.OnPlainKey = func(u byte, down bool) { seen = append(seen, hexKey(u)+map[bool]string{true: "v", false: "^"}[down]) }
-	e.HandleBoardEvent(board.Event{Kind: 'P', Usage: 0x04})
+	e.HandleEvent(capture.Event{Kind: 'P', Usage: 0x04})
 	time.Sleep(15 * time.Millisecond)
-	e.HandleBoardEvent(board.Event{Kind: 'R', Usage: 0x04})
+	e.HandleEvent(capture.Event{Kind: 'R', Usage: 0x04})
 	if len(seen) != 2 || seen[0] != "04v" || seen[1] != "04^" {
 		t.Fatalf("key events: %v", seen)
 	}
@@ -355,8 +362,8 @@ func TestPlainKeysAreReportedAndRecordedOnlyWhenHistoryIsOn(t *testing.T) {
 	c := e.Config()
 	c.Settings.KeyHistory = false
 	e.ApplyRestored(c)
-	e.HandleBoardEvent(board.Event{Kind: 'P', Usage: 0x05})
-	e.HandleBoardEvent(board.Event{Kind: 'R', Usage: 0x05})
+	e.HandleEvent(capture.Event{Kind: 'P', Usage: 0x05})
+	e.HandleEvent(capture.Event{Kind: 'R', Usage: 0x05})
 	if _, n := e.KeyLog().Recent(5); n != 1 {
 		t.Fatalf("with the history off nothing more is stored, there are %d", n)
 	}

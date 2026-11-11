@@ -1,8 +1,4 @@
 #!/usr/bin/env python3
-"""Tests on a REAL Linux machine with the board plugged in and a graphical session (not run in CI).
-Needs Typedeck running in the user session with TYPEDECK_DEV=1, the editor reachable on 127.0.0.1:7788 (for example
-ssh -L 7788:127.0.0.1:7788 laptop) and tests/e2e/linux_testbox.py copied to LINUX_TESTBOX. It types only into its own test box.
-Usage: linux_real.py typing|focus|desktop"""
 import sys, re, json, time, os, urllib.request
 BOX = os.environ.get("LINUX_TESTBOX", "/tmp/linux_testbox.py")
 DIR = os.environ.get("LINUX_TESTBOX_DIR", "/tmp/typedeck-testbox")

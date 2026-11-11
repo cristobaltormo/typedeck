@@ -40,7 +40,7 @@ export function activityView(root) {
           e.output ? h("div", { class: "faint mono", style: { overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" } }, e.output) : null), h("span", { class: "ms" }, `${e.ms} ms`));
     }
     if (e.kind === "layer") return h("div", { class: "li" }, ago, ic("layers", 15), h("div", { class: "grow dim" }, t("activity.layer", { name: e.name }) + (e.auto ? ` (${t("activity.auto")})` : "")));
-    if (e.kind === "board") return h("div", { class: "li" }, ago, h("span", { class: `res ${e.connected ? "" : "bad"}` }), h("div", { class: "grow dim" }, e.connected ? t("activity.board_on") : t("activity.board_off")));
+    if (e.kind === "board") return h("div", { class: "li" }, ago, h("span", { class: `res ${e.connected ? "" : "bad"}` }), h("div", { class: "grow dim" }, e.connected ? t(e.name === "software" ? "activity.cap_on" : "activity.board_on") : t(e.name === "software" ? "activity.cap_off" : "activity.board_off")));
     if (e.kind === "keyboard") return h("div", { class: "li" }, ago, h("span", { class: `res ${e.connected ? "" : "bad"}` }), h("div", { class: "grow dim" }, e.connected ? t("activity.kbd_on") : t("activity.kbd_off")));
     return null;
   }

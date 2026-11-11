@@ -1,6 +1,4 @@
 #!/usr/bin/env bash
-# Regenerates the screenshots in docs/images with a headless Chromium and a throwaway configuration.
-# Usage: [CHROME=chromium] scripts/screenshots.sh
 set -euo pipefail
 cd "$(dirname "$0")/.."
 CHROME="${CHROME:-$(command -v chromium || command -v chromium-browser || command -v google-chrome || true)}"

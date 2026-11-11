@@ -184,7 +184,6 @@ var layoutESPC = func() *Layout {
 	return l
 }()
 
-// layoutESWin is the Windows Spanish layout: AltGr+4 is a dead key there (checked on a real Windows 11), so ~ needs a space after it.
 var layoutESWin = func() *Layout {
 	l := *layoutESPC
 	l.Name = "es-win"

@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-"""Generates docs/COMPATIBILITY.md from internal/setup/compat.json (the same source the app shows)."""
 import json, os
 
 root = os.path.join(os.path.dirname(__file__), "..")

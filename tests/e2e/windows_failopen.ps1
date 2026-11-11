@@ -1,4 +1,4 @@
-param([string]$Port = "COM4")
+param([Parameter(Mandatory = $true)][string]$Port)
 $p = New-Object System.IO.Ports.SerialPort $Port, 115200
 $p.DtrEnable = $true
 $p.ReadTimeout = 1500

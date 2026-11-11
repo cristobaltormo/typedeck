@@ -70,8 +70,6 @@ var (
 	kbAt   time.Time
 )
 
-// keyboardType is the type macOS stores for the board (40 ANSI, 41 ISO). With ANSI and an ISO layout macOS swaps the two keys
-// that do not exist on ANSI (usages 0x35 and 0x64).
 func keyboardType() int {
 	kbMu.Lock()
 	defer kbMu.Unlock()

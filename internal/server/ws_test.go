@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cristobaltormo/typedeck/internal/board"
+	"github.com/cristobaltormo/typedeck/internal/capture"
 	"github.com/cristobaltormo/typedeck/internal/config"
 )
 
@@ -112,7 +112,7 @@ func TestPlainKeysAreBroadcastToTheEditor(t *testing.T) {
 	_, _ = r.Read(hdr[:])
 	_, _ = r.Read(make([]byte, hdr[1]))
 
-	s.eng.HandleBoardEvent(board.Event{Kind: 'P', Usage: 0x1E})
+	s.eng.HandleEvent(capture.Event{Kind: 'P', Usage: 0x1E})
 	_ = c.SetReadDeadline(time.Now().Add(2 * time.Second))
 	_, _ = r.Read(hdr[:])
 	body := make([]byte, hdr[1])

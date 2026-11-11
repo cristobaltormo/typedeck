@@ -50,6 +50,18 @@ Status: **Tested**, **Should work**, **Planned**, **Not supported**. *Tested* me
 | KVM switch between the computer and the board | Tested | The board sits behind a KVM in the author's setup. |
 | OBS Studio 28 or later (WebSocket control) | Tested | Tested with OBS 32.2.2 on macOS: scenes, mute, studio mode and password. The protocol is the same on Windows and Linux. |
 
+## Capture without a board (software)
+
+| Item | Status | Notes |
+|---|---|---|
+| Windows 10 and 11, global keyboard hook | Tested | Tested on a Windows Server 2025 virtual machine with a keyboard simulated by the hypervisor: capture, gestures, layers, injection and recovery. Any keyboard works. Not tried on Windows 10 or with a physical keyboard. |
+| Windows running as administrator and the UAC screen | Not supported | Windows does not show those keys to a program that is not elevated. It works with the board. |
+| Games with anti-cheat | Not supported | Some reject any global keyboard hook. Use the board. |
+| macOS 12 or later, keyboard event tap (typedeck-capture) | Should work | A Swift helper installs the tap; it needs the Accessibility and Input Monitoring permissions. Built and tested on an Apple Silicon Mac (macOS 27): protocol, key table, state machine with synthetic events and the missing-permission message. No real key has been swallowed or injected yet, because that needs the permissions granted by hand. Caps Lock arrives as a toggle; password fields are out of reach. |
+| Linux without a board, evdev capture and uinput virtual keyboard (X11) | Tested | Tested on a Kali Linux virtual machine (kernel 7.2) with uinput virtual keyboards, and end to end with the emulated PS/2 keyboard, libinput and a real Xorg: a key with a macro removed, the others intact and in order, auto-repeat, gestures, layers, modifiers, injection, media keys, hotplug, LEDs, kill -9 giving the keyboard back at once, and permissions as a member of the input group. It needs the input group and the uinput module. Not tried with a real physical keyboard, with a mouse and keyboard in one node, or alongside a remapper such as keyd. |
+| Linux without a board on Wayland | Should work | Capture works below the compositor, so it should behave as on X11. It has not been tried with any Wayland compositor. |
+| Linux without a board: locked screen and other consoles | Not supported | Typedeck does not detect the lock or a virtual terminal switch, so macros can run there. The same happens with the board. |
+
 ## Mac keyboard layout
 
 | Item | Status | Notes |

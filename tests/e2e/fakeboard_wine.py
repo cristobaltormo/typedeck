@@ -1,7 +1,4 @@
 #!/usr/bin/env python3
-"""Windows build under Wine with a fake board: Wine's COM3 points at a pseudo terminal where a fake firmware speaks the
-protocol. Checks the native Windows serial port (DCB, DTR, read timeouts), the API, the Windows Spanish layout and a clean
-shutdown. Needs: wine, Xvfb.   Usage: fakeboard_wine.py /path/to/typedeck.exe"""
 import json, os, pty, re, subprocess, sys, tempfile, threading, time, tty, urllib.request
 
 EXE = os.path.abspath(sys.argv[1])

@@ -81,7 +81,6 @@ func Run(timeout time.Duration, stdin string, name string, args ...string) (stri
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 	cmd := exec.CommandContext(ctx, name, args...)
-	// a child that inherits the output must not keep us waiting after the timeout kills the command
 	cmd.WaitDelay = 2 * time.Second
 	hideWindow(cmd)
 	if stdin != "" {
@@ -90,7 +89,7 @@ func Run(timeout time.Duration, stdin string, name string, args ...string) (stri
 	var buf bytes.Buffer
 	cmd.Stdout, cmd.Stderr = &buf, &buf
 	err := cmd.Run()
-	out := strings.TrimSpace(buf.String())
+	out := strings.TrimSpace(decodeOutput(buf.Bytes()))
 	if ctx.Err() == context.DeadlineExceeded {
 		return out, fmt.Errorf("timed out (%s)", timeout)
 	}
@@ -114,8 +113,6 @@ func Detached(name string, args ...string) error {
 	return nil
 }
 
-// Launch starts a program that opens a graphical application without collecting its output: the application would
-// inherit the pipe and make us wait until it exits. A quick failure is returned; still running after 3 s counts as launched.
 func Launch(name string, args ...string) error {
 	cmd := exec.Command(name, args...)
 	cmd.Stdout, cmd.Stderr = nil, nil

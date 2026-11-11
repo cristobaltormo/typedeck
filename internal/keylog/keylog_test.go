@@ -1,7 +1,6 @@
 package keylog
 
 import (
-	"github.com/cristobaltormo/typedeck/internal/hid"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -9,6 +8,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/cristobaltormo/typedeck/internal/hid"
 )
 
 func newLog(t *testing.T) (*Log, string) {

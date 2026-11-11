@@ -1,15 +1,10 @@
 #!/usr/bin/env bash
-# Runs every test that needs a real Linux machine with a graphical session and the board plugged in: the unit tests compiled for
-# Linux, the hardware tests, typing through the board into a window of our own, the desktop features, the editor tab focus,
-# fail-open, the editor self test in the machine's Chrome and the user service. It uses ssh (LINUX_HOST, default
-# user@host, key LINUX_KEY, default ~/.ssh/id_ed25519) and passwordless access to sudo through LINUX_SUDO_FILE, a file holding the password.
-# The machine needs the session variables in /tmp/tdenv.sh (XDG_RUNTIME_DIR, WAYLAND_DISPLAY or DISPLAY, DBUS_SESSION_BUS_ADDRESS).
-# Usage: scripts/e2e-linux-real.sh
 set -uo pipefail
 cd "$(dirname "$0")/.."
 HOST="${LINUX_HOST:?set LINUX_HOST, for example user@laptop}"
 KEY="${LINUX_KEY:-$HOME/.ssh/id_ed25519}"
 SUDO_FILE="${LINUX_SUDO_FILE:-}"
+SERIAL="${LINUX_SERIAL:-/dev/ttyACM0}"
 PORT=7788
 FAIL=0
 step() { printf '\n===== %s =====\n' "$1"; }
@@ -72,7 +67,7 @@ stop_program
 sleep 8
 out=$(rs 'timeout 20 python3 -c "
 import os, time, termios, select
-fd = os.open(\"/dev/ttyACM0\", os.O_RDWR | os.O_NOCTTY)
+fd = os.open(\"'"$SERIAL"'\", os.O_RDWR | os.O_NOCTTY)
 a = termios.tcgetattr(fd); a[4] = a[5] = termios.B115200; a[0] = a[1] = a[3] = 0; a[2] = termios.CS8 | termios.CREAD | termios.CLOCAL; termios.tcsetattr(fd, termios.TCSANOW, a)
 time.sleep(1); os.write(fd, b\"STATS\n\"); time.sleep(0.8); r = b\"\"
 while select.select([fd], [], [], 0.3)[0]: r += os.read(fd, 400)

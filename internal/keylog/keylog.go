@@ -45,12 +45,6 @@ func (l *Log) SetRetention(d time.Duration) {
 	l.pruneLocked(time.Now())
 }
 
-func (l *Log) Prune(now time.Time) {
-	l.mu.Lock()
-	defer l.mu.Unlock()
-	l.pruneLocked(now)
-}
-
 func (l *Log) pruneLocked(now time.Time) {
 	l.lastPrune = now
 	if l.keepFor <= 0 {
@@ -193,7 +187,7 @@ func (l *Log) Recent(limit int) ([]Entry, int) {
 }
 
 func newest(all []Entry, limit int) []Entry {
-	out := make([]Entry, 0, min(limit, len(all)))
+	out := []Entry{}
 	for i := len(all) - 1; i >= 0 && len(out) < limit; i-- {
 		out = append(out, all[i])
 	}

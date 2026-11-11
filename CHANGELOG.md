@@ -2,7 +2,105 @@
 
 ## Unreleased
 
+### Windows
+- A second copy no longer starts: it opens the editor of the running one. Opening `typedeck.exe` by hand opens the editor and puts an
+  icon in the notification area (Open editor, status, Restart, Quit); a fatal error at start-up shows a message box.
+- Orderly stop: `taskkill` without `/F`, signing out and shutting down release the board and save the statistics. `uninstall` stops
+  the program that way (forcing it only if it does not answer in 8 seconds) and no longer depends on the language of Windows.
+- Locking the screen or suspending releases the captured keys and they are captured again afterwards. Both go through one path (the
+  tray window calls `Pause` and `Resume`; `Resume` also reinstalls the hook), and the second hidden window of the hook is gone.
+- Software capture: if the hook cannot be reinstalled the session is declared dead and restarted instead of staying "alive" without a
+  hook; a `Start` that times out cancels its thread, so no orphan hook is left; `AC Search` is a media key like on Linux. Serial port: concurrent readers are serialised and a write after `Close` fails
+  cleanly.
+- `typedeck install` makes the scheduled task from XML: no time limit, runs on battery, never starts two copies, restarts after a
+  failure, for your own account and with limited rights; without permission to create tasks it uses the `Run` key.
+- The release ships `typedeck-cli.exe` for terminals (output and exit code of `doctor`, `install`, `uninstall`), and the executables
+  carry a manifest, version information and an icon.
+- Serial port: overlapped I/O, so a pending read never delays a write; a short write is an error; only COM ports of the supported
+  boards (USB vendor and product id) are opened.
+- The typing history moves to `%LOCALAPPDATA%` and the log rotates at 1 MB instead of being truncated.
+- Applications: opening one that is already running brings its window to the front (restoring it only if minimised) instead of
+  starting another; Microsoft Store apps are listed and opened; closing and "is it in front" match the program, not the window title.
+- Text: typed text no longer erases an image or files on the clipboard, is kept out of the clipboard history, and the clipboard is
+  restored when the target program has read the text. Scan codes and extended keys are complete, the numeric keypad and international
+  keys map, Alt Gr is kept and Ctrl or Alt from the layout are honoured. `cmd` output keeps its accents and `{clipboard}` in shell
+  actions no longer drops characters.
+- Layout detection follows the layout id and variants, and only Spanish (Spain) selects `es-win`.
+- Popups replace the previous one, appear on the monitor in use and scale per monitor; notifications use the notification area icon
+  instead of PowerShell; dark mode notifies running programs; sleep uses the system call.
+
+### Software capture, all systems
+- The consent is recorded on the installation (`capture-consent.json`, outside `config.json` and its backups) by the same call that
+  turns the mode on. Restoring a backup, importing a configuration, `POST /api/config` and a `config.json` that says `software`
+  without that record can no longer turn on the keyboard hook: they are normalised to `board` and the log and a notice say so.
+  Configurations written by earlier builds of this branch fall back to the board once.
+- With software capture, keys without a macro are reported to the program (and so reach the WebSocket and the history) only while the
+  key assistant detects keys or when you turned the typing history on; an open editor no longer asks for every key, and the consent
+  text says that the history records what you type in every application. With the board nothing changes. `SECURITY.md`, the FAQ and
+  the READMEs state the real limit: the editor's port is shared by every local user, so do not use Typedeck on a shared computer.
+- A failed start retries with a growing delay (4 s, doubling up to 2 minutes) instead of every 4 s. If switching to software capture
+  fails, at start-up or when applying a configuration, the board stays active and a notice is shown; switching is serialised, and
+  `Pause` and `Resume` reach both sources. State changes (connected, disconnected) are delivered in order with the key events.
+- `capture.Source` is split into `Capturer` and `Injector`; what only the board has (`LayerSetter`, `Commander`, `RawDoer`,
+  `SysReporter`) is separate. Injecting with the hook off says that capture is not running instead of "unsupported".
+- Release: the macOS helpers keep their execute bit in the archives (artifacts lose it between jobs); `make archives` sets it and
+  fails if a helper is not executable inside the archive, and the release fails if a helper is missing. The generated example
+  macros use documentation addresses (`192.0.2.x`). The compiled `typedeck` binary that had been committed by mistake is gone and
+  ignored.
+
+### macOS
+- Software capture on macOS: Typedeck works without the board. `typedeck-capture`, a small Swift helper that the program starts and
+  watches, installs a CoreGraphics event tap, takes only the keys that have a macro and lets every other key through without
+  reading it, and sends Typedeck's own shortcuts, text (Unicode), media keys and Caps Lock. It talks to the program through plain
+  text lines on its standard input and output. It is off until you choose it, exactly like on Windows (`settings.capture`,
+  `POST /api/capture`, the consent in the editor), and the permissions it needs, Accessibility and Input Monitoring, are asked for
+  only then. If the program dies the helper sees its input close and exits, which removes the tap; if macOS disables a slow tap the
+  helper releases what it held, turns it back on and tells the program. `typedeck doctor` and the editor say which permission is
+  missing and where to grant it, and `typedeck install` tells you if the helper is not next to the program. Honest status: built and
+  tested on an Apple Silicon Mac (key table, protocol, state machine with synthetic events, permission messages), but no real key has
+  been swallowed or injected yet because that needs the permissions granted by hand. Caps Lock reaches the tap as a toggle and
+  password fields are hidden by macOS from every tap.
+- `make macos-helpers` builds `typedeck-capture` and the popup helper `typedeck-hud` as universal binaries signed ad hoc (no Apple
+  developer account, no notarization); the CI builds and self tests them on a macOS runner, and the release puts both in the macOS
+  archives. `typedeck-capture --check` and `--selftest` need no permission.
+- Key compensation of the board's keyboard (modifier remap and the swapped ISO keys) is not applied to keys Typedeck sends in
+  software capture mode, since it belongs to the board.
+
+### Linux
+- Software capture on Linux: Typedeck works without the board. The program opens the keyboards in `/dev/input` (every node with all
+  the letter keys and no pointer axes), takes each one exclusively (`EVIOCGRAB`) and passes every key it does not take back through a
+  virtual keyboard of its own (`/dev/uinput`), with modifiers, auto-repeat, media keys and the LEDs going the other way. It works
+  under the compositor, so X11 and Wayland behave the same, and it needs no library and no cgo. It is off until you choose it,
+  exactly like on Windows and macOS (`settings.capture`, `POST /api/capture`, the consent in the editor). Keyboards plugged in while
+  it runs are picked up (inotify) and an unplugged one releases its held keys. Typedeck's own shortcuts, text and media keys go out
+  through the same virtual keyboard; text the layout cannot type is pasted with Ctrl+V sent that way.
+- Fail-open: the grab belongs to the file descriptor, so if the program dies, even with `SIGKILL`, the kernel gives the keyboards back
+  at once (measured: 2 ms). `SIGTSTP` is ignored while capture runs so Ctrl+Z cannot freeze it. A process frozen but alive (`SIGSTOP`)
+  does keep the keyboards until it resumes or is killed; that is documented, not fixed.
+- Access: it needs your user in the `input` group and the `uinput` module. The `.deb` and `.rpm` packages now install a udev rule that
+  gives `/dev/uinput` to that group, load the module at boot and at install, and nothing adds anybody to the group. `typedeck doctor`
+  and the editor (Spanish and English) say which of `/dev/uinput`, the keyboards in `/dev/input` or the clipboard tool is missing and
+  how to fix it.
+- The evdev to HID usage table has its own tests, as do the ioctl numbers and the per-key decisions; `tests/e2e/linux_capture.py` runs
+  the whole thing against uinput virtual keyboards (swallow, order, auto-repeat, gestures, layers, modifiers, injection, hotplug,
+  LEDs, signals, latency, idle cost, permission errors). Honest status: tested on a Kali Linux virtual machine, with virtual keyboards
+  and end to end with its emulated PS/2 keyboard and a real Xorg with libinput; not tried on a physical keyboard, on a Wayland
+  compositor or next to a remapper such as keyd, and macros keep running on the lock screen because Typedeck does not detect it.
+- The virtual keyboard now declares keyboard keys 1 to 255 and 0x160 to 0x2BF, so keys such as `KEY_FN` are no longer lost; the button
+  ranges stay out because they would make the kernel and udev classify it as a mouse or a joystick. The access to `/dev/input` is checked
+  before the virtual keyboard is created, so a failing start no longer leaves a new virtual keyboard every few seconds. A keyboard that
+  cannot be grabbed (`EBUSY`) is not counted as captured and shows up in `typedeck doctor` and as a warning in the editor.
+
 ### Added
+- Software capture on Windows: Typedeck works without the board. A global keyboard hook takes the keys that have a macro and lets every
+  other key through without reading it, and gestures, layers, actions, the editor and the key assistant work as with the board. It is
+  off until you choose it: the editor offers **Use without a board** when no board shows up, asks for consent with a plain statement of
+  what it does and does not do, and Settings has the switch to go back. The new setting is `settings.capture` (`board` or `software`,
+  default `board`; it is separate from `settings.input`, which only decides how typed output is sent) and the endpoint is
+  `POST /api/capture`; importing a configuration cannot turn it on. If the program is killed the hook goes with it and every key types
+  again. `typedeck doctor` checks the hook, the session and whether it runs elevated.
+- `internal/capture`: the interface the engine, the server and `main` depend on instead of the board, the hook state machine, the
+  scancode and HID usage tables and the Windows backend. Porting software capture to another system means implementing `Backend`.
 - Firmware 15: `HOLD <usage>` and `RELEASE [usage]` keep a key down for longer than `KEY` allows (8 s deadline, re-armed by each `HOLD`, released when
   the heartbeat stops), and `HELD` lists what is held. Re-flash with `scripts/flash.sh`; nothing else changes.
 - Every release attaches the compiled firmware (`typedeck-firmware-<number>.hex`, with its checksum and attestation), and

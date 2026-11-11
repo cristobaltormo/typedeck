@@ -3523,7 +3523,7 @@
      "tap": {
       "type": "http",
       "method": "GET",
-      "url": "http://192.168.1.50/relay/0?turn=toggle",
+      "url": "http://192.0.2.50/relay/0?turn=toggle",
       "body": ""
      }
     },
@@ -3537,7 +3537,7 @@
      "tap": {
       "type": "http",
       "method": "GET",
-      "url": "http://192.168.1.51/cm?cmnd=Power%20Toggle",
+      "url": "http://192.0.2.51/cm?cmnd=Power%20Toggle",
       "body": ""
      }
     },
@@ -3565,7 +3565,7 @@
      "tap": {
       "type": "http",
       "method": "GET",
-      "url": "http://192.168.1.52/relay/0?turn=toggle",
+      "url": "http://192.0.2.52/relay/0?turn=toggle",
       "body": ""
      }
     }

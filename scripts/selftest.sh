@@ -1,6 +1,4 @@
 #!/usr/bin/env bash
-# Runs the editor self test in a headless Chromium or Chrome against a throwaway configuration.
-# Usage: [CHROME=chromium] scripts/selftest.sh
 set -euo pipefail
 cd "$(dirname "$0")/.."
 CHROME="${CHROME:-$(command -v chromium || command -v chromium-browser || command -v google-chrome || command -v google-chrome-stable || true)}"

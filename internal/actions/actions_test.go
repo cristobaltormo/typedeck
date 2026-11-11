@@ -18,7 +18,7 @@ func TestSubstituteAndDescribe(t *testing.T) {
 	}
 	want := `'a'\''b'`
 	if runtime.GOOS == "windows" {
-		want = `"a'b"`
+		want = `^"a'b^"`
 	}
 	if got := shellQuote("a'b"); got != want {
 		t.Fatal(got)

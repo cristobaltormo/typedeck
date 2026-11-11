@@ -9,45 +9,18 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
+	"github.com/cristobaltormo/typedeck/internal/capture"
 	"github.com/cristobaltormo/typedeck/internal/hid"
 )
 
-type Event struct {
-	Kind  byte
-	Usage byte
-	Mods  byte
-	Arg   byte
-}
-
-type Info struct {
-	Firmware  string       `json:"firmware"`
-	Present   bool         `json:"present"`
-	VID       string       `json:"vid,omitempty"`
-	PID       string       `json:"pid,omitempty"`
-	BCD       string       `json:"bcd,omitempty"`
-	USB       string       `json:"usb,omitempty"`
-	Class     string       `json:"class,omitempty"`
-	EP0       int          `json:"ep0,omitempty"`
-	Mfr       string       `json:"mfr,omitempty"`
-	Prod      string       `json:"prod,omitempty"`
-	Serial    string       `json:"serial,omitempty"`
-	CfgLen    int          `json:"cfglen,omitempty"`
-	Ifaces    int          `json:"ifaces,omitempty"`
-	PowerMA   int          `json:"power_ma,omitempty"`
-	HIDLen    []int        `json:"hid_len,omitempty"`
-	Reports   []hid.Report `json:"reports,omitempty"`
-	RawRDesc  []string     `json:"-"`
-	Connected time.Time    `json:"-"`
-}
-
-func (i Info) ID() string {
-	if i.VID == "" {
-		return ""
-	}
-	return strings.ToUpper(i.VID + ":" + i.PID)
-}
+type (
+	Event = capture.Event
+	Info  = capture.Info
+	Sys   = capture.Sys
+)
 
 type Connector interface {
 	Open() (io.ReadWriteCloser, string, error)
@@ -78,7 +51,16 @@ type Board struct {
 	lastMsk string
 	stop    chan struct{}
 	lastErr string
+	paused  atomic.Bool
 }
+
+func (b *Board) Kind() string { return capture.Board }
+
+func (b *Board) Bind(h capture.Handlers) {
+	b.OnEvent, b.Mask, b.OnConnected, b.OnDisconnect = h.OnEvent, h.Mask, h.OnConnected, h.OnDisconnect
+}
+
+func (b *Board) SetLayer(index int) { _, _ = b.Command("layer", index) }
 
 func New(c Connector) *Board {
 	return &Board{conn: c, replies: make(chan string, 64), stop: make(chan struct{}), Log: func(string, ...any) {}}
@@ -387,7 +369,7 @@ func (b *Board) refreshInfo() {
 }
 
 func (b *Board) SyncMask(force bool) {
-	if b.Mask == nil {
+	if b.Mask == nil || b.paused.Load() {
 		return
 	}
 	m := b.Mask()
@@ -473,17 +455,6 @@ func (b *Board) Command(name string, arg int) ([]string, error) {
 func (b *Board) Connected() bool {
 	c, _, _, _ := b.Status()
 	return c
-}
-
-type Sys struct {
-	MCU        string `json:"mcu"`
-	Board      string `json:"board"`
-	FCPU       int    `json:"f_cpu"`
-	FW         string `json:"fw"`
-	VccMV      int    `json:"vcc_mv"`
-	FreeRAM    int    `json:"free_ram"`
-	MAX3421Rev string `json:"max3421e_rev"`
-	UptimeS    int    `json:"uptime_s"`
 }
 
 func (b *Board) Sys() (Sys, error) {

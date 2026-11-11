@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-"""A GTK window of our own for the real Linux tests: it writes its text and every key it receives to files, so no real application
-is ever typed into. Usage: linux_testbox.py [directory]"""
 import os, sys, gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, GLib

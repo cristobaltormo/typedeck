@@ -1,7 +1,4 @@
 #!/usr/bin/env python3
-"""End-to-end test on Linux without hardware: a fake board on a pseudo terminal speaks the serial protocol, and the test
-checks that Typedeck finds it, runs actions, types through it and answers on the API.
-Usage: tests/e2e/fakeboard_linux.py /path/to/typedeck   (uses a temporary HOME, never touches the real configuration)"""
 import json, os, pty, re, subprocess, sys, tempfile, threading, time, tty, urllib.request
 
 BIN = sys.argv[1]
@@ -90,7 +87,6 @@ try:
     say("D 06 00"); say("U 06")
     wait(lambda: len(sent("KEY ")) >= n + 10)
     typed = sent("KEY ")[n:]
-    # the sample text is Añ@~€\{ -> A=shift+04, ñ=00 33, @=40 1F (AltGr+2), ~=40 21, €=40 08, \=40 35, {=40 34
     want = ["KEY 02 04", "KEY 00 33", "KEY 40 1F", "KEY 40 21", "KEY 40 08", "KEY 40 35", "KEY 40 34"]
     check("text is typed with the Spanish (PC) layout: Alt Gr for @ ~ € \\ {", typed[:7] == want, typed[:8])
 

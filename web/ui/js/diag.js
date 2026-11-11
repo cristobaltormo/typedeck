@@ -3,6 +3,7 @@ import { api } from "./api.js";
 import { t, lang } from "./i18n.js";
 import { toast } from "./toast.js";
 import { state } from "./store.js";
+import { isSoftware, osText } from "./capture.js";
 
 const fmtTime = (ts) => (ts ? new Date(ts * 1000).toLocaleTimeString(lang()) : "-");
 const fmtUp = (s) => { const m = Math.floor(s / 60); return m < 60 ? `${m} min` : `${Math.floor(m / 60)} h ${m % 60} min`; };
@@ -16,6 +17,7 @@ export function diagView(root) {
 
   function drawInfo() {
     const s = state.status, k = state.keyboard.info;
+    if (isSoftware()) { drawSoftInfo(s); return; }
     clear(info).append(
       h("dt", {}, t("diag.board")), h("dd", {}, h("span", { class: `dot ${s.connected ? "on" : "bad"}`, style: { display: "inline-block", marginRight: "8px" } }), s.connected ? t("diag.connected") : t("diag.disconnected")),
       h("dt", {}, t("diag.port")), h("dd", { class: "mono" }, s.port || "-"),
@@ -24,6 +26,17 @@ export function diagView(root) {
       h("dt", {}, t("diag.keyboard")), h("dd", {}, k?.present ? [k.mfr, k.prod].filter(Boolean).join(" ") + ` (${k.vid}:${k.pid})` : t("diag.kbd_none")),
       h("dt", {}, t("diag.latency")), h("dd", {}, stats && stats.n !== "0" ? `${stats.avg_us} us ${t("diag.avg")}, ${stats.max_us} us ${t("diag.max")} (${stats.n})` : t("diag.no_samples")),
       h("dt", {}, t("diag.capture")), h("dd", {}, stats ? (stats.captura === "1" ? t("diag.capture_on") : t("diag.capture_off")) : t("diag.unknown")),
+      h("dt", {}, t("diag.front")), h("dd", {}, (s.front || []).join(", ") || "-"),
+      h("dt", {}, t("diag.daemon")), h("dd", {}, `Typedeck ${s.version || ""}, ${t("diag.up")} ${fmtUp(s.uptime || 0)}`));
+  }
+
+  function drawSoftInfo(s) {
+    clear(info).append(
+      h("dt", {}, t("diag.hook")), h("dd", {}, h("span", { class: `dot ${s.connected ? "on" : "bad"}`, style: { display: "inline-block", marginRight: "8px" } }), s.connected ? t("diag.hook_on") : t("diag.hook_off")),
+      h("dt", {}, t("diag.since")), h("dd", {}, fmtTime(s.connected_since)),
+      h("dt", {}, t("diag.keyboard")), h("dd", {}, t("capture.sys_keyboard")),
+      h("dt", {}, t("diag.latency_soft")), h("dd", {}, stats && stats.n !== "0" ? `${stats.avg_us} us ${t("diag.avg")}, ${stats.max_us} us ${t("diag.max")} (${stats.n})` : t("diag.no_samples")),
+      h("dt", {}, t("diag.capture")), h("dd", {}, stats ? (stats.captura === "1" ? t("diag.capture_on_soft") : t("diag.capture_off")) : t("diag.unknown")),
       h("dt", {}, t("diag.front")), h("dd", {}, (s.front || []).join(", ") || "-"),
       h("dt", {}, t("diag.daemon")), h("dd", {}, `Typedeck ${s.version || ""}, ${t("diag.up")} ${fmtUp(s.uptime || 0)}`));
   }
@@ -50,6 +63,13 @@ export function diagView(root) {
   }
   const btn = (label, fn, i) => h("button", { type: "button", class: "btn sm", onclick: fn }, i && ic(i, 15), label);
 
+  function testButtons() {
+    const common = [btn("Ping", () => cmd("ping"), "pulse"), btn(t("diag.stats"), () => cmd("stats"), "activity")];
+    if (isSoftware()) return common;
+    return [...common, btn(t("diag.bootlog"), () => cmd("bootlog"), "clock"), btn(t("diag.reboot"), () => cmd("reboot"), "power"), btn(t("diag.leds"), () => cmd("leds", 7), "bolt"),
+      btn(t("diag.layer_blink"), () => cmd("layer", state.status.layer), "layers")];
+  }
+
   function drawRaw() {
     clear(raw);
     const evs = state.events.filter((e) => e.kind === "down" || e.kind === "up").slice(-24).reverse();
@@ -57,15 +77,14 @@ export function diagView(root) {
     for (const e of evs) raw.append(h("div", { class: "li" }, h("time", {}, fmtTime(e.ts)), h("span", { class: "mono" }, e.kind === "down" ? "D" : "U"), h("span", { class: "grow mono" }, e.key)));
   }
 
-  root.append(h("div", { class: "page" }, h("header", {}, h("h1", {}, t("diag.title")), h("p", {}, t("diag.sub"))),
+  root.append(h("div", { class: "page" }, h("header", {}, h("h1", {}, t("diag.title")), h("p", {}, t(isSoftware() ? "diag.sub_soft" : "diag.sub"))),
     h("section", { class: "section" }, h("h2", {}, t("diag.status")), h("div", { style: { paddingTop: "14px" } }, info)),
     h("section", { class: "section" }, h("h2", {}, t("diag.mac")), h("p", { class: "sub" }, t("diag.mac_sub")), h("div", { style: { paddingTop: "14px" } }, sys)),
     h("section", { class: "section" }, h("h2", {}, t("diag.tests")),
       h("div", { class: "stack", style: { paddingTop: "14px", gap: "12px" } },
-        h("div", { class: "row wrap" }, btn("Ping", () => cmd("ping"), "pulse"), btn(t("diag.stats"), () => cmd("stats"), "activity"), btn(t("diag.bootlog"), () => cmd("bootlog"), "clock"), btn(t("diag.reboot"), () => cmd("reboot"), "power"), btn(t("diag.leds"), () => cmd("leds", 7), "bolt"),
-          btn(t("diag.layer_blink"), () => cmd("layer", state.status.layer), "layers"), btn(t("diag.hud_test"), () => api("/api/hud", { method: "POST", body: { title: "Typedeck", subtitle: t("diag.hud_sub") } }), "hud")), out)),
+        h("div", { class: "row wrap" }, testButtons(), btn(t("diag.hud_test"), () => api("/api/hud", { method: "POST", body: { title: "Typedeck", subtitle: t("diag.hud_sub") } }), "hud")), out)),
     h("section", { class: "section" }, h("h2", {}, t("diag.raw")), raw),
-    h("section", { class: "section" }, h("h2", {}, t("diag.help")), h("div", { class: "stack", style: { paddingTop: "12px", gap: "8px" } }, ["diag.h1", "diag.h2", "diag.h3"].map((k) => h("p", { class: "dim" }, t(k)))))));
+    h("section", { class: "section" }, h("h2", {}, t("diag.help")), h("div", { class: "stack", style: { paddingTop: "12px", gap: "8px" } }, (isSoftware() ? ["capture.c3", "diag.h3"] : ["diag.h1", "diag.h2", "diag.h3"]).map((k) => h("p", { class: "dim" }, osText(k)))))));
   drawInfo(); drawSys(); drawRaw(); cmd("stats");
   api("/api/system").then((s) => { system = s; drawSys(); }).catch(() => {});
   return { on(topic, ev) { if (topic === "status" || topic === "keyboard") drawInfo(); if (topic === "event" && (ev.kind === "down" || ev.kind === "up")) drawRaw(); } };

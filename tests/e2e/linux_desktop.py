@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-"""Linux desktop features on a virtual X11 (Xvfb): applications, active window, software keys, clipboard and clear errors.
-Needs: Xvfb xterm xdotool xclip x11-utils.   Usage: tests/e2e/linux_desktop.py /path/to/typedeck   (temporary HOME)"""
 import json, os, re, shutil, subprocess, sys, tempfile, time, urllib.request
 
 BIN = sys.argv[1]

@@ -1,7 +1,4 @@
 #!/usr/bin/env python3
-"""Generates internal/packs/packs.json: the gallery macro packs.
-Shortcuts are each application's macOS defaults (except OBS, which is driven over WebSocket). Only letters, digits, arrows and
-function keys are used in shortcuts so they work on any keyboard layout."""
 import json, os
 
 BLUE, PURPLE, GREEN, RED, ORANGE, AMBER, PINK, TEAL, SKY, SLATE = "#2563eb", "#8b5cf6", "#16a34a", "#cc4848", "#f97316", "#f59e0b", "#ec4899", "#0ea5a4", "#0ea5e9", "#64748b"
@@ -240,8 +237,8 @@ P("docker", "home", "server", SKY, ("Docker por SSH", "Docker over SSH"),
 
 P("smart-home", "home", "bolt", AMBER, ("Casa conectada (HTTP)", "Smart home (HTTP)"),
   ("Plantilla para enchufes y luces con API web: Shelly, Tasmota y Home Assistant.", "Template for plugs and lights with a web API: Shelly, Tasmota and Home Assistant."),
-  [M("Shelly on/off", "Shelly toggle", "bolt", http("GET", "http://192.168.1.50/relay/0?turn=toggle"), AMBER), M("Tasmota on/off", "Tasmota toggle", "bolt", http("GET", "http://192.168.1.51/cm?cmnd=Power%20Toggle"), AMBER),
-   M("Home Assistant", "Home Assistant", "home", http("POST", "http://homeassistant.local:8123/api/webhook/TU_ID"), BLUE), M("Luz salón", "Living room light", "sun", http("GET", "http://192.168.1.52/relay/0?turn=toggle"), AMBER)],
+  [M("Shelly on/off", "Shelly toggle", "bolt", http("GET", "http://192.0.2.50/relay/0?turn=toggle"), AMBER), M("Tasmota on/off", "Tasmota toggle", "bolt", http("GET", "http://192.0.2.51/cm?cmnd=Power%20Toggle"), AMBER),
+   M("Home Assistant", "Home Assistant", "home", http("POST", "http://homeassistant.local:8123/api/webhook/TU_ID"), BLUE), M("Luz salón", "Living room light", "sun", http("GET", "http://192.0.2.52/relay/0?turn=toggle"), AMBER)],
   apps=["Home Assistant"], notes=("Las direcciones son ejemplos: cambia las IP y el identificador del webhook por los tuyos.", "The addresses are examples: replace the IPs and the webhook id with yours."), tags=["domotica", "domotics", "iot"])
 
 P("mac-productivity", "work", "monitor", BLUE, ("Mac: escritorios y apps", "Mac: spaces and apps"),

@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/cristobaltormo/typedeck/internal/capture"
 	"github.com/cristobaltormo/typedeck/internal/config"
 	"github.com/cristobaltormo/typedeck/internal/hid"
 	"github.com/cristobaltormo/typedeck/internal/obs"
@@ -80,33 +81,11 @@ func dispatch(a config.Action, env Env, capture bool) (string, error) {
 	case "app":
 		return "", appAction(a)
 	case "url":
-		u := Substitute(a.URL, false)
-		if EditorFocus != nil && isEditorURL(u) {
-			if EditorFocus() {
-				return "focused", nil
-			}
-			return "opened", platform.Current.OpenURL(u)
-		}
-		return "", platform.Current.OpenURL(u)
+		return openURL(a)
 	case "shell":
-		cmd := Substitute(a.Cmd, true)
-		if strings.TrimSpace(cmd) == "" {
-			return "", errors.New("empty command")
-		}
-		sh, args := platform.Current.ShellCommand(cmd)
-		if capture || (a.ShowOutput != nil && *a.ShowOutput) {
-			return run(20*time.Second, "", sh, args...)
-		}
-		return "", detached(sh, args...)
+		return shellAction(a, capture)
 	case "ssh":
-		if strings.TrimSpace(a.Host) == "" || strings.TrimSpace(a.Cmd) == "" {
-			return "", errors.New("the server or the command is missing")
-		}
-		args := []string{"-o", "BatchMode=yes", "-o", "ConnectTimeout=5", a.Host, Substitute(a.Cmd, true)}
-		if capture || a.ShowOutput == nil || *a.ShowOutput {
-			return run(25*time.Second, "", "ssh", args...)
-		}
-		return "", detached("ssh", args...)
+		return sshAction(a, capture)
 	case "http":
 		return httpAction(a)
 	case "hotkey":
@@ -124,11 +103,7 @@ func dispatch(a config.Action, env Env, capture bool) (string, error) {
 		env.StartTimer(a.Minutes, a.Label)
 		return fmt.Sprintf("%g min", a.Minutes), nil
 	case "layer":
-		if a.Toggle {
-			env.ToggleLayer(a.To)
-		} else {
-			env.Goto(a.To)
-		}
+		layerAction(a, env)
 		return "", nil
 	case "history":
 		if env.SetKeyHistory(a.Cmd) {
@@ -144,16 +119,62 @@ func dispatch(a config.Action, env Env, capture bool) (string, error) {
 	case "sequence":
 		return runSteps(a.Steps, env)
 	case "if":
-		ok, err := condition(a, env)
-		if err != nil {
-			return "", err
-		}
-		if ok {
-			return runSteps(a.Steps, env)
-		}
-		return runSteps(a.Else, env)
+		return ifAction(a, env)
 	}
 	return "", fmt.Errorf("unknown action: %s", a.Type)
+}
+
+func openURL(a config.Action) (string, error) {
+	u := Substitute(a.URL, false)
+	if EditorFocus != nil && isEditorURL(u) {
+		if EditorFocus() {
+			return "focused", nil
+		}
+		return "opened", platform.Current.OpenURL(u)
+	}
+	return "", platform.Current.OpenURL(u)
+}
+
+func shellAction(a config.Action, capture bool) (string, error) {
+	cmd := Substitute(a.Cmd, true)
+	if strings.TrimSpace(cmd) == "" {
+		return "", errors.New("empty command")
+	}
+	sh, args := platform.Current.ShellCommand(cmd)
+	if capture || (a.ShowOutput != nil && *a.ShowOutput) {
+		return run(20*time.Second, "", sh, args...)
+	}
+	return "", detached(sh, args...)
+}
+
+func sshAction(a config.Action, capture bool) (string, error) {
+	if strings.TrimSpace(a.Host) == "" || strings.TrimSpace(a.Cmd) == "" {
+		return "", errors.New("the server or the command is missing")
+	}
+	args := []string{"-o", "BatchMode=yes", "-o", "ConnectTimeout=5", a.Host, Substitute(a.Cmd, true)}
+	if capture || a.ShowOutput == nil || *a.ShowOutput {
+		return run(25*time.Second, "", "ssh", args...)
+	}
+	return "", detached("ssh", args...)
+}
+
+func layerAction(a config.Action, env Env) {
+	if a.Toggle {
+		env.ToggleLayer(a.To)
+	} else {
+		env.Goto(a.To)
+	}
+}
+
+func ifAction(a config.Action, env Env) (string, error) {
+	ok, err := condition(a, env)
+	if err != nil {
+		return "", err
+	}
+	if ok {
+		return runSteps(a.Steps, env)
+	}
+	return runSteps(a.Else, env)
 }
 
 func runSteps(steps []config.Action, env Env) (string, error) {
@@ -256,7 +277,12 @@ func TypingLayout(env Env) *hid.Layout {
 	return hid.LayoutByName(platform.Current.SystemLayout())
 }
 
-func adapt(st hid.Stroke, l *hid.Layout) hid.Stroke { return platform.Current.AdaptStroke(st, l) }
+func adapt(env Env, st hid.Stroke, l *hid.Layout) hid.Stroke {
+	if env.Settings().Capture == capture.Software {
+		return st
+	}
+	return platform.Current.AdaptStroke(st, l)
+}
 
 func hotkey(spec string, env Env) error {
 	l := TypingLayout(env)
@@ -265,7 +291,7 @@ func hotkey(spec string, env Env) error {
 		if err != nil {
 			return err
 		}
-		if err := hw.Tap(adapt(st, l)); err == nil {
+		if err := hw.Tap(adapt(env, st, l)); err == nil {
 			return nil
 		}
 	}
@@ -280,7 +306,7 @@ func typeText(text string, env Env) error {
 		for _, r := range text {
 			strokes, _ := l.Strokes(r)
 			for _, s := range strokes {
-				if err := hw.Tap(adapt(s, l)); err != nil {
+				if err := hw.Tap(adapt(env, s, l)); err != nil {
 					failed = true
 					break
 				}
@@ -292,6 +318,9 @@ func typeText(text string, env Env) error {
 		if !failed {
 			return nil
 		}
+	}
+	if tt, ok := hw.(capture.TextTyper); ok && tt.TypeText(text) == nil {
+		return nil
 	}
 	return platform.Current.Paste(text)
 }
@@ -317,7 +346,7 @@ func system(cmd string, env Env) (string, error) {
 	case "lock":
 		if st, ok := platform.Current.LockStroke(); ok {
 			if hw := useHardware(env); hw != nil && TypingLayout(env).SafeForKeys() {
-				if err := hw.Tap(adapt(st, TypingLayout(env))); err == nil {
+				if err := hw.Tap(adapt(env, st, TypingLayout(env))); err == nil {
 					return "", nil
 				}
 			}

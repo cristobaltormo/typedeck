@@ -21,15 +21,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cristobaltormo/typedeck/internal/actions"
 	"github.com/cristobaltormo/typedeck/internal/app"
-	"github.com/cristobaltormo/typedeck/internal/board"
+	"github.com/cristobaltormo/typedeck/internal/capture"
 	"github.com/cristobaltormo/typedeck/internal/config"
 	"github.com/cristobaltormo/typedeck/internal/engine"
-	"github.com/cristobaltormo/typedeck/internal/hid"
-	"github.com/cristobaltormo/typedeck/internal/kbdb"
 	"github.com/cristobaltormo/typedeck/internal/layouts"
-	"github.com/cristobaltormo/typedeck/internal/obs"
 	"github.com/cristobaltormo/typedeck/internal/packs"
 	"github.com/cristobaltormo/typedeck/internal/platform"
 	"github.com/cristobaltormo/typedeck/internal/setup"
@@ -49,7 +45,7 @@ type asset struct {
 
 type Server struct {
 	eng    *engine.Engine
-	brd    *board.Board
+	src    capture.Source
 	paths  config.Paths
 	token  string
 	assets map[string]*asset
@@ -57,12 +53,12 @@ type Server struct {
 	hub    hub
 }
 
-func New(eng *engine.Engine, brd *board.Board, paths config.Paths, logf func(string, ...any)) (*Server, error) {
+func New(eng *engine.Engine, src capture.Source, paths config.Paths, logf func(string, ...any)) (*Server, error) {
 	tok := make([]byte, 24)
 	if _, err := rand.Read(tok); err != nil {
 		return nil, err
 	}
-	s := &Server{eng: eng, brd: brd, paths: paths, token: base64.RawURLEncoding.EncodeToString(tok), assets: map[string]*asset{}, log: logf}
+	s := &Server{eng: eng, src: src, paths: paths, token: base64.RawURLEncoding.EncodeToString(tok), assets: map[string]*asset{}, log: logf}
 	eng.OnPlainKey = func(u byte, down bool) {
 		s.hub.broadcast(map[string]any{"t": "key", "k": fmt.Sprintf("%02X", u), "d": down})
 	}
@@ -145,107 +141,142 @@ func fail(w http.ResponseWriter, code int, msg string) {
 	writeJSON(w, code, map[string]string{"error": msg})
 }
 
+type router struct {
+	s   *Server
+	mux *http.ServeMux
+}
+
+func (rt router) handle(method, p string, h http.HandlerFunc) {
+	rt.mux.HandleFunc(method+" "+p, func(w http.ResponseWriter, r *http.Request) {
+		securityHeaders(w)
+		if !rt.s.authed(r) {
+			fail(w, 403, "token")
+			return
+		}
+		h(w, r)
+	})
+}
+
+func (rt router) get(p string, h http.HandlerFunc)  { rt.handle("GET", p, h) }
+func (rt router) post(p string, h http.HandlerFunc) { rt.handle("POST", p, h) }
+
 func (s *Server) Handler() http.Handler {
 	mux := http.NewServeMux()
-	api := func(method string, handler http.HandlerFunc) http.HandlerFunc {
-		return func(w http.ResponseWriter, r *http.Request) {
-			securityHeaders(w)
-			if r.Method != method {
-				fail(w, 405, "method not allowed")
-				return
-			}
-			if !s.authed(r) {
-				fail(w, 403, "token")
-				return
-			}
-			handler(w, r)
-		}
-	}
-	get := func(p string, h http.HandlerFunc) { mux.HandleFunc("GET "+p, api("GET", h)) }
-	post := func(p string, h http.HandlerFunc) { mux.HandleFunc("POST "+p, api("POST", h)) }
-
-	get("/api/config", func(w http.ResponseWriter, r *http.Request) { writeJSON(w, 200, s.eng.Config()) })
-	post("/api/config", s.postConfig)
-	get("/api/apps", func(w http.ResponseWriter, r *http.Request) { writeJSON(w, 200, installedApps()) })
-	get("/api/status", s.status)
-	get("/api/keyboard", s.keyboard)
-	get("/api/layouts", func(w http.ResponseWriter, r *http.Request) { writeJSON(w, 200, layouts.All()) })
-	get("/api/setup", s.setup)
-	get("/api/compat", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		_, _ = w.Write(setup.Compat)
-	})
-	get("/api/packs", func(w http.ResponseWriter, r *http.Request) {
-		writeJSON(w, 200, map[string]any{"categories": packs.Categories(), "packs": packs.ForOS(platform.Current.Name()), "os": platform.Current.Name()})
-	})
-	post("/api/packs/resolve", s.resolvePack)
-	post("/api/keyboard/layout", s.setLayout)
-	get("/api/system", func(w http.ResponseWriter, r *http.Request) { writeJSON(w, 200, s.eng.System()) })
-	get("/api/events", s.events)
-	get("/api/stats", func(w http.ResponseWriter, r *http.Request) { writeJSON(w, 200, s.eng.Stats()) })
-	post("/api/stats/reset", func(w http.ResponseWriter, r *http.Request) {
-		s.eng.ResetStats()
-		writeJSON(w, 200, map[string]bool{"ok": true})
-	})
-	get("/api/backups", func(w http.ResponseWriter, r *http.Request) { writeJSON(w, 200, config.ListBackups(s.paths)) })
-	post("/api/backups/restore", s.restore)
-	post("/api/backups/create", func(w http.ResponseWriter, r *http.Request) {
-		if err := config.Save(s.paths, s.eng.Config(), true, true); err != nil {
-			fail(w, 400, err.Error())
-			return
-		}
-		writeJSON(w, 200, map[string]bool{"ok": true})
-	})
-	post("/api/test", s.test)
-	post("/api/hud", s.hud)
-	post("/api/obs/probe", s.obsProbe)
-	post("/api/layer", func(w http.ResponseWriter, r *http.Request) {
-		var b struct{ Index int }
-		if json.NewDecoder(io.LimitReader(r.Body, 1<<10)).Decode(&b) != nil {
-			fail(w, 400, "json")
-			return
-		}
-		s.eng.Goto(b.Index)
-		writeJSON(w, 200, map[string]bool{"ok": true})
-	})
-	post("/api/board", s.boardCmd)
-	post("/api/learn", s.learnSet)
-	get("/api/history", s.history)
-	post("/api/history/clear", func(w http.ResponseWriter, r *http.Request) {
-		if err := s.eng.KeyLog().Clear(); err != nil {
-			fail(w, 500, err.Error())
-			return
-		}
-		writeJSON(w, 200, map[string]bool{"ok": true})
-	})
-	post("/api/macros/inspect", s.inspectPack)
-	post("/api/editing", func(w http.ResponseWriter, r *http.Request) {
-		var b struct{ On bool }
-		if decode(r, &b) != nil {
-			fail(w, 400, "json")
-			return
-		}
-		s.eng.SetEditing(b.On || s.hub.editing())
-		writeJSON(w, 200, map[string]bool{"ok": true})
-	})
-	if os.Getenv("TYPEDECK_DEV") == "1" {
-		post("/api/dev/raw", func(w http.ResponseWriter, r *http.Request) {
-			var b struct {
-				Line  string
-				Multi bool
-			}
-			if decode(r, &b) != nil {
-				fail(w, 400, "json")
-				return
-			}
-			lines, err := s.brd.Do(b.Line, b.Multi, 3*time.Second)
-			writeJSON(w, 200, map[string]any{"reply": lines, "error": fmt.Sprint(err)})
-		})
-	}
-	get("/api/learn", s.learnGet)
+	rt := router{s: s, mux: mux}
+	s.configRoutes(rt)
+	s.boardRoutes(rt)
+	s.libraryRoutes(rt)
 	mux.HandleFunc("GET /api/ws", s.ws)
 	mux.HandleFunc("/", s.static)
 	return mux
+}
+
+func writeOK(w http.ResponseWriter) { writeJSON(w, 200, map[string]bool{"ok": true}) }
+
+func (s *Server) configRoutes(rt router) {
+	rt.get("/api/config", func(w http.ResponseWriter, r *http.Request) { writeJSON(w, 200, s.eng.Config()) })
+	rt.post("/api/config", s.postConfig)
+	rt.get("/api/backups", func(w http.ResponseWriter, r *http.Request) { writeJSON(w, 200, config.ListBackups(s.paths)) })
+	rt.post("/api/backups/restore", s.restore)
+	rt.post("/api/backups/create", s.createBackup)
+	rt.post("/api/editing", s.setEditing)
+}
+
+func (s *Server) boardRoutes(rt router) {
+	rt.get("/api/status", s.status)
+	rt.get("/api/keyboard", s.keyboard)
+	rt.get("/api/setup", s.setup)
+	rt.post("/api/keyboard/layout", s.setLayout)
+	rt.post("/api/board", s.boardCmd)
+	rt.post("/api/capture", s.setCapture)
+	rt.get("/api/learn", s.learnGet)
+	rt.post("/api/learn", s.learnSet)
+	rt.post("/api/layer", s.setLayer)
+	if os.Getenv("TYPEDECK_DEV") == "1" {
+		rt.post("/api/dev/raw", s.devRaw)
+	}
+}
+
+func (s *Server) libraryRoutes(rt router) {
+	rt.get("/api/apps", func(w http.ResponseWriter, r *http.Request) { writeJSON(w, 200, installedApps()) })
+	rt.get("/api/layouts", func(w http.ResponseWriter, r *http.Request) { writeJSON(w, 200, layouts.All()) })
+	rt.get("/api/compat", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		_, _ = w.Write(setup.Compat)
+	})
+	rt.get("/api/packs", func(w http.ResponseWriter, r *http.Request) {
+		writeJSON(w, 200, map[string]any{"categories": packs.Categories(), "packs": packs.ForOS(platform.Current.Name()), "os": platform.Current.Name()})
+	})
+	rt.post("/api/packs/resolve", s.resolvePack)
+	rt.post("/api/macros/inspect", s.inspectPack)
+	rt.get("/api/system", func(w http.ResponseWriter, r *http.Request) { writeJSON(w, 200, s.eng.System()) })
+	rt.get("/api/events", s.events)
+	rt.get("/api/stats", func(w http.ResponseWriter, r *http.Request) { writeJSON(w, 200, s.eng.Stats()) })
+	rt.post("/api/stats/reset", s.resetStats)
+	rt.get("/api/history", s.history)
+	rt.post("/api/history/clear", s.clearHistory)
+	rt.post("/api/test", s.test)
+	rt.post("/api/hud", s.hud)
+	rt.post("/api/obs/probe", s.obsProbe)
+}
+
+func (s *Server) resetStats(w http.ResponseWriter, r *http.Request) {
+	s.eng.ResetStats()
+	writeOK(w)
+}
+
+func (s *Server) createBackup(w http.ResponseWriter, r *http.Request) {
+	if err := config.Save(s.paths, s.eng.Config(), true, true); err != nil {
+		fail(w, 400, err.Error())
+		return
+	}
+	writeOK(w)
+}
+
+func (s *Server) setLayer(w http.ResponseWriter, r *http.Request) {
+	var b struct{ Index int }
+	if json.NewDecoder(io.LimitReader(r.Body, 1<<10)).Decode(&b) != nil {
+		fail(w, 400, "json")
+		return
+	}
+	s.eng.Goto(b.Index)
+	writeOK(w)
+}
+
+func (s *Server) clearHistory(w http.ResponseWriter, r *http.Request) {
+	if err := s.eng.KeyLog().Clear(); err != nil {
+		fail(w, 500, err.Error())
+		return
+	}
+	writeOK(w)
+}
+
+func (s *Server) setEditing(w http.ResponseWriter, r *http.Request) {
+	var b struct{ On bool }
+	if decode(r, &b) != nil {
+		fail(w, 400, "json")
+		return
+	}
+	s.eng.SetEditing(b.On || s.hub.editing())
+	writeOK(w)
+}
+
+func (s *Server) devRaw(w http.ResponseWriter, r *http.Request) {
+	var b struct {
+		Line  string
+		Multi bool
+	}
+	if decode(r, &b) != nil {
+		fail(w, 400, "json")
+		return
+	}
+	d, ok := s.src.(capture.RawDoer)
+	if !ok {
+		writeJSON(w, 200, map[string]any{"reply": []string{}, "error": "not available without a board"})
+		return
+	}
+	lines, err := d.Do(b.Line, b.Multi, 3*time.Second)
+	writeJSON(w, 200, map[string]any{"reply": lines, "error": fmt.Sprint(err)})
 }
 
 func (s *Server) static(w http.ResponseWriter, r *http.Request) {
@@ -295,199 +326,11 @@ func decode(r *http.Request, v any) error {
 	return dec.Decode(v)
 }
 
-func (s *Server) postConfig(w http.ResponseWriter, r *http.Request) {
-	var c config.Config
-	c.Settings = config.DefaultSettings()
-	if err := decode(r, &c); err != nil {
-		fail(w, 400, "json: "+err.Error())
-		return
-	}
-	loaded, err := s.eng.SetConfig(c)
-	if err != nil {
-		fail(w, 400, err.Error())
-		return
-	}
-	writeJSON(w, 200, map[string]any{"ok": true, "config": loaded})
-}
-
-func (s *Server) restore(w http.ResponseWriter, r *http.Request) {
-	var b struct{ Name string }
-	if decode(r, &b) != nil {
-		fail(w, 400, "json")
-		return
-	}
-	c, err := config.RestoreBackup(s.paths, b.Name)
-	if err != nil {
-		fail(w, 400, err.Error())
-		return
-	}
-	s.eng.ApplyRestored(c)
-	writeJSON(w, 200, map[string]any{"ok": true, "config": c})
-}
-
-func (s *Server) test(w http.ResponseWriter, r *http.Request) {
-	var a config.Action
-	if err := decode(r, &a); err != nil {
-		fail(w, 400, "json")
-		return
-	}
-	clean, err := config.Validate(config.Config{Layers: []config.Layer{{Name: "t", Keys: map[string]config.KeyDef{"04": {Tap: &a}}}}})
-	if err != nil {
-		fail(w, 400, err.Error())
-		return
-	}
-	writeJSON(w, 200, s.eng.Test(*clean.Layers[0].Keys["04"].Tap))
-}
-
-func (s *Server) hud(w http.ResponseWriter, r *http.Request) {
-	var b struct{ Title, Subtitle string }
-	if decode(r, &b) != nil {
-		fail(w, 400, "json")
-		return
-	}
-	s.eng.HUD(clip(b.Title, 60), clip(b.Subtitle, 80), true)
-	writeJSON(w, 200, map[string]bool{"ok": true})
-}
-
-func (s *Server) obsProbe(w http.ResponseWriter, r *http.Request) {
-	var b config.OBS
-	if decode(r, &b) != nil {
-		fail(w, 400, "json")
-		return
-	}
-	if b == (config.OBS{}) {
-		b = s.eng.Config().Settings.OBS
-	}
-	info, err := obs.Probe(obs.Config{Host: b.Host, Port: b.Port, Password: b.Password})
-	if err != nil {
-		writeJSON(w, 200, map[string]any{"ok": false, "error": err.Error()})
-		return
-	}
-	writeJSON(w, 200, map[string]any{"ok": true, "info": info})
-}
-
 func clip(s string, n int) string {
 	if r := []rune(s); len(r) > n {
 		return string(r[:n])
 	}
 	return s
-}
-
-func (s *Server) boardCmd(w http.ResponseWriter, r *http.Request) {
-	var b struct {
-		Cmd string
-		Arg int
-	}
-	if decode(r, &b) != nil {
-		fail(w, 400, "json")
-		return
-	}
-	lines, err := s.brd.Command(b.Cmd, b.Arg)
-	if err != nil {
-		fail(w, 400, err.Error())
-		return
-	}
-	writeJSON(w, 200, map[string]any{"ok": true, "reply": lines})
-}
-
-func (s *Server) learnSet(w http.ResponseWriter, r *http.Request) {
-	var b struct{ On bool }
-	if decode(r, &b) != nil {
-		fail(w, 400, "json")
-		return
-	}
-	if b.On {
-		if err := s.eng.StartLearn(); err != nil {
-			fail(w, 400, err.Error())
-			return
-		}
-	} else {
-		s.eng.StopLearn()
-	}
-	writeJSON(w, 200, map[string]any{"ok": true, "learning": b.On})
-}
-
-func (s *Server) status(w http.ResponseWriter, r *http.Request) {
-	connected, port, info, since := s.brd.Status()
-	st := s.eng.Status()
-	out := map[string]any{
-		"connected": connected, "port": port, "layer": st.Layer, "manual_layer": st.ManualLyr, "last": st.Last,
-		"last_ts": st.LastTS, "front": st.Front, "version": Version, "uptime": st.Uptime, "auto_active": st.AutoActive,
-		"last_id": st.LastID, "learning": st.Learning, "firmware": "", "keyboard_present": false, "board_error": s.brd.Error(), "app_name": app.Name, "editing": s.eng.Editing(), "editors": s.hub.count(),
-	}
-	if connected {
-		out["connected_since"] = float64(since.Unix())
-	}
-	if info != nil {
-		out["firmware"] = info.Firmware
-		out["keyboard_present"] = info.Present
-	}
-	writeJSON(w, 200, out)
-}
-
-func (s *Server) keyboard(w http.ResponseWriter, r *http.Request) {
-	connected, port, info, since := s.brd.Status()
-	out := map[string]any{"connected": connected, "port": port}
-	if connected {
-		out["connected_since"] = float64(since.Unix())
-	}
-	if info != nil {
-		out["info"] = info
-		cfg := s.eng.Config()
-		if prefs, ok := cfg.Keyboards[info.ID()]; ok {
-			out["prefs"] = prefs
-		}
-		if info.Present {
-			id := kbdb.Identify(info.VID, info.PID, info.Mfr, info.Prod)
-			out["identity"] = id
-			out["layout"] = setup.Resolve(cfg, info, id, s.eng.System())
-		}
-	}
-	writeJSON(w, 200, out)
-}
-
-func (s *Server) setup(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, 200, setup.Describe(s.eng.Config(), s.brd, s.eng))
-}
-
-func (s *Server) setLayout(w http.ResponseWriter, r *http.Request) {
-	var b struct{ Layout string }
-	if decode(r, &b) != nil {
-		fail(w, 400, "json")
-		return
-	}
-	l, ok := layouts.Get(b.Layout)
-	if !ok {
-		fail(w, 400, "unknown layout")
-		return
-	}
-	_, _, info, _ := s.brd.Status()
-	key := "default"
-	name := ""
-	if info != nil && info.VID != "" {
-		key, name = info.ID(), strings.TrimSpace(info.Mfr+" "+info.Prod)
-	}
-	cfg := s.eng.Config()
-	if cfg.Keyboards == nil {
-		cfg.Keyboards = map[string]config.Keyboard{}
-	}
-	cfg.Keyboards[key] = config.Keyboard{Layout: l.ID, Name: name}
-	loaded, err := s.eng.SetConfig(cfg)
-	if err != nil {
-		fail(w, 400, err.Error())
-		return
-	}
-	writeJSON(w, 200, map[string]any{"ok": true, "config": loaded})
-}
-
-func (s *Server) events(w http.ResponseWriter, r *http.Request) {
-	since, _ := strconv.Atoi(r.URL.Query().Get("since"))
-	wait, _ := strconv.ParseFloat(r.URL.Query().Get("wait"), 64)
-	if wait > 30 {
-		wait = 30
-	}
-	evs, last := s.eng.EventsSince(since, time.Duration(wait*float64(time.Second)), r.Context().Done())
-	writeJSON(w, 200, map[string]any{"events": evs, "last_id": last})
 }
 
 func installedApps() []string {
@@ -512,68 +355,3 @@ func Listen() (net.Listener, error) {
 }
 
 func EditorURL() string { return fmt.Sprintf("http://127.0.0.1:%d/", Port) }
-
-func (s *Server) learnGet(w http.ResponseWriter, r *http.Request) {
-	seen := s.eng.Seen()
-	set := map[byte]bool{}
-	for k := range seen {
-		var u byte
-		if _, err := fmt.Sscanf(k, "%02X", &u); err == nil {
-			set[u] = true
-		}
-	}
-	sugs := layouts.Match(set)
-	if len(sugs) > 4 {
-		sugs = sugs[:4]
-	}
-	amb, hints := layouts.Ambiguity(sugs)
-	writeJSON(w, 200, map[string]any{"learning": s.eng.Status().Learning, "seen": seen, "suggestions": sugs, "ambiguous": amb, "hint_keys": hints})
-}
-
-func (s *Server) resolvePack(w http.ResponseWriter, r *http.Request) {
-	var b struct{ ID, Layout, Lang string }
-	if decode(r, &b) != nil {
-		fail(w, 400, "json")
-		return
-	}
-	p, ok := packs.Get(b.ID)
-	if !ok {
-		fail(w, 404, "unknown pack")
-		return
-	}
-	cfg := s.eng.Config()
-	if b.Layout == "" {
-		_, _, info, _ := s.brd.Status()
-		id := kbdb.Identity{}
-		if info != nil && info.Present {
-			id = kbdb.Identify(info.VID, info.PID, info.Mfr, info.Prod)
-		}
-		b.Layout = setup.Resolve(cfg, info, id, s.eng.System()).ID
-	}
-	if b.Lang == "" {
-		b.Lang = cfg.Settings.Language
-	}
-	reserved := map[string]bool{}
-	for k := range cfg.Global {
-		reserved[k] = true
-	}
-	res, err := packs.ResolveFor(platform.Current.Name(), p, b.Layout, b.Lang, reserved)
-	if err != nil {
-		fail(w, 400, err.Error())
-		return
-	}
-	writeJSON(w, 200, res)
-}
-
-func (s *Server) history(w http.ResponseWriter, r *http.Request) {
-	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
-	if limit <= 0 || limit > 500 {
-		limit = 100
-	}
-	layout := actions.TypingLayout(s.eng)
-	if layout.Name == "none" {
-		layout = hid.LayoutByName("us")
-	}
-	rep := s.eng.KeyLog().Report(limit, 2500, time.Now(), layout)
-	writeJSON(w, 200, map[string]any{"enabled": s.eng.KeyLog().Enabled(), "count": rep.Summary.Total, "entries": rep.Entries, "summary": rep.Summary, "text": rep.Text})
-}

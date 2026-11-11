@@ -4,6 +4,7 @@ import { t, lang } from "./i18n.js";
 import { toast } from "./toast.js";
 import { toggle, seg, swatches, armed, select, textInput } from "./controls.js";
 import { state, edit, replaceConfig, settings, saveNow } from "./store.js";
+import { isSoftware, useBoard, useWithoutBoard } from "./capture.js";
 
 const section = (title, sub, ...rows) => h("section", { class: "section" }, h("h2", {}, title), sub ? h("p", { class: "sub" }, sub) : null, h("div", {}, rows));
 const setting = (what, control, sub) => h("div", { class: "setting" }, h("div", { class: "what" }, h("b", {}, what), sub ? h("small", {}, sub) : null), h("div", { class: "ctl" }, control));
@@ -16,6 +17,7 @@ function slider(value, min, max, step, unit, onInput) {
 }
 
 export function settingsView(root) {
+  const redraw = () => { root.replaceChildren(); settingsView(root); };
   const s = settings();
   const set = (path, v) => edit("s:" + path.join("."), (cfg) => { let o = cfg.settings; for (const k of path.slice(0, -1)) o = (o[k] ??= {}); o[path.at(-1)] = v; });
   const sw = (label, checked, path, sub) => setting(label, toggle("", checked, (v) => set(path, v)), sub);
@@ -46,8 +48,11 @@ export function settingsView(root) {
       setting(t("settings.theme"), seg([["auto", t("theme.auto")], ["dark", t("theme.dark")], ["light", t("theme.light")]], s.theme, (v) => set(["theme"], v))),
       setting(t("settings.accent"), swatches(s.accent, (v) => { if (v) set(["accent"], v); }, { allowNone: false })),
       setting(t("settings.density"), seg([["comfortable", t("density.comfortable")], ["compact", t("density.compact")]], s.density, (v) => set(["density"], v)))),
+    section(t("capture.title"), t("capture.sub"),
+      setting(t("capture.mode"), seg([["board", t("capture.board")], ["software", t("capture.software")]], isSoftware() ? "software" : "board", async (v) => { await (v === "software" ? useWithoutBoard() : useBoard()); redraw(); }), t("capture.mode_sub"))),
     section(t("settings.input"), t("settings.input_sub"),
-      setting(t("settings.input_mode"), select("", s.input, [["auto", t("input.auto")], ["hardware", t("input.hardware")], ["software", t("input.software")]], (v) => set(["input"], v)), t("settings.input_mode_sub")),
+      isSoftware() ? setting(t("settings.input_mode"), h("span", { class: "dim" }, t("capture.input_note")))
+        : setting(t("settings.input_mode"), select("", s.input, [["auto", t("input.auto")], ["hardware", t("input.hardware")], ["software", t("input.software")]], (v) => set(["input"], v)), t("settings.input_mode_sub")),
       setting(t("settings.typing_layout"), select("", s.typing_layout, [["auto", t("typing.auto")], ["es-iso", "Español (macOS)"], ["es-win", "Español (Windows)"], ["es-pc", "Español (Linux)"], ["us", "US"]], (v) => set(["typing_layout"], v)), t("settings.typing_layout_sub")),
       setting(t("gesture.hold"), slider(s.hold_ms, 200, 1500, 50, "ms", (v) => set(["hold_ms"], v)), t("settings.hold_sub")),
       setting(t("gesture.double"), slider(s.double_ms, 120, 800, 20, "ms", (v) => set(["double_ms"], v)), t("settings.double_sub")),

@@ -251,3 +251,39 @@ func TestKeyHistoryRetentionIsClamped(t *testing.T) {
 		t.Fatal("a valid retention must be kept")
 	}
 }
+
+func TestCaptureModeDefaultsToTheBoard(t *testing.T) {
+	if DefaultSettings().Capture != "board" {
+		t.Fatal("the default must be the board")
+	}
+	for name, raw := range map[string]string{
+		"v3 without the setting": `{"version":3,"settings":{"language":"es"},"global":{},"layers":[{"name":"A","keys":{}}]}`,
+		"v3 with an unknown one": `{"version":3,"settings":{"capture":"telepathy"},"global":{},"layers":[{"name":"A","keys":{}}]}`,
+		"v2":                     `{"version":2,"settings":{},"global":{},"layers":[{"name":"A","keys":{}}]}`,
+		"v1":                     `{"layers":[{"name":"A","keys":{}}]}`,
+	} {
+		c, err := Parse([]byte(raw))
+		if err != nil {
+			t.Fatalf("%s: %v", name, err)
+		}
+		if c.Settings.Capture != "board" {
+			t.Errorf("%s: capture %q", name, c.Settings.Capture)
+		}
+	}
+}
+
+func TestSoftwareCaptureModeSurvivesSaveAndLoad(t *testing.T) {
+	p := Paths{Dir: t.TempDir()}
+	c := Default()
+	c.Settings.Capture = "software"
+	if err := Save(p, c, false, false); err != nil {
+		t.Fatal(err)
+	}
+	got, err := Load(p)
+	if err != nil || got.Settings.Capture != "software" {
+		t.Fatalf("%v %q", err, got.Settings.Capture)
+	}
+	if got.Settings.Input != "auto" {
+		t.Fatal("the output setting is independent of the capture mode")
+	}
+}

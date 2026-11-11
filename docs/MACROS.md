@@ -37,7 +37,9 @@ only exists there: put it in **All layers** to use it from any layer (the editor
 | Layer | Go to a layer | `to`, `momentary`, `toggle` |
 | Popup | Show a message on screen | `text` |
 
-Shortcuts, text and media keys leave the board as real USB keystrokes, which needs no permission on any system.
+Shortcuts, text and media keys leave the board as real USB keystrokes, which needs no permission on any system. With software
+capture on Windows they leave the program through `SendInput`, which needs no permission either, but is ignored by windows running as
+administrator unless Typedeck does too.
 
 Add **Ask for a double press** to an action that should not run by accident: the first press shows a popup and the second, within
 three seconds, runs it.

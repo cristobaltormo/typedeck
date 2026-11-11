@@ -7,6 +7,7 @@ import { layout as getLayout, legendLang } from "./layouts.js";
 import { field, textInput, select, toggle, swatches, iconPicker, armed } from "./controls.js";
 import { actionFields, actionExtras, typeOptions, wantsConfirm } from "./actionform.js";
 import { openKeyboardDrawer, layoutLabel } from "./kbinfo.js";
+import { isSoftware, boardMissing, offerCard, hookDownCard, useWithoutBoard, useBoard, osText } from "./capture.js";
 import { exportLayer, importPack } from "./share.js";
 import { state, notify, edit, undo, redo, canUndo, canRedo, keysOf, keyDef, ensureKey, pruneKey, newAction, describe, layerCount, layoutId } from "./store.js";
 
@@ -84,19 +85,25 @@ export function workView(root) {
 
   function selectKey(usage) { state.selKey = hex(usage); state.panel = "key"; renderKeyboard(); renderDock(); }
 
-  const bannerSig = () => { const st = state.status; return [st.connected, !!state.keyboard.info?.present, st.board_error].join("|"); };
+  const bannerSig = () => { const st = state.status; return [st.connected, !!state.keyboard.info?.present, st.board_error, st.capture, boardMissing()].join("|"); };
   let lastSig = bannerSig();
   function renderBanner() {
     clear(bannerHost);
     lastSig = bannerSig();
-    const st = state.status, boardOk = !!st.connected, kbOk = boardOk && !!state.keyboard.info?.present;
+    const st = state.status, soft = isSoftware(), boardOk = !!st.connected, kbOk = boardOk && !!state.keyboard.info?.present;
+    const offer = boardMissing() ? h("button", { type: "button", class: "btn sm", onclick: useWithoutBoard }, t("capture.use_without")) : null;
     const total = state.cfg.layers.reduce((n, l) => n + Object.keys(l.keys).length, 0);
     const step = (done, text, action) => h("li", { class: `step-row ${done ? "done" : ""}` }, h("span", { class: "tick" }, done ? ic("check", 13) : null), h("span", { class: "grow" }, text), action);
     if (total === 0) {
-      bannerHost.append(h("div", { class: "setup" }, h("div", {}, h("h3", {}, t("setup.title")), h("p", { class: "dim" }, t("setup.sub"))),
-        h("ol", {}, step(boardOk, boardOk ? t("setup.board_ok") : t(st.board_error === "outdated_firmware" ? "info.fw_old" : "setup.board")),
-          step(kbOk, kbOk ? t("setup.kbd_ok") : t("setup.kbd"), kbOk ? h("button", { type: "button", class: "txtbtn", onclick: () => openKeyboardDrawer() }, t("info.details")) : null),
-          step(false, t("setup.pack"), h("button", { type: "button", class: "btn sm primary", onclick: () => { location.hash = "#/gallery"; } }, t("setup.pack_cta"))))));
+      const pack = step(false, t("setup.pack"), h("button", { type: "button", class: "btn sm primary", onclick: () => { location.hash = "#/gallery"; } }, t("setup.pack_cta")));
+      const steps = soft ? [step(boardOk, boardOk ? t("setup.soft") : osText("setup.soft_off"), boardOk ? null : h("button", { type: "button", class: "btn sm", onclick: useBoard }, t("capture.use_board"))), pack]
+        : [step(boardOk, boardOk ? t("setup.board_ok") : t(st.board_error === "outdated_firmware" ? "info.fw_old" : "setup.board"), offer),
+          step(kbOk, kbOk ? t("setup.kbd_ok") : t("setup.kbd"), kbOk ? h("button", { type: "button", class: "txtbtn", onclick: () => openKeyboardDrawer() }, t("info.details")) : null), pack];
+      bannerHost.append(h("div", { class: "setup" }, h("div", {}, h("h3", {}, t("setup.title")), h("p", { class: "dim" }, t(soft ? "setup.sub_soft" : "setup.sub"))), h("ol", {}, steps)));
+    } else if (soft) {
+      if (!boardOk) bannerHost.append(hookDownCard());
+    } else if (!boardOk && boardMissing()) {
+      bannerHost.append(offerCard());
     } else if (!boardOk || !kbOk) {
       bannerHost.append(h("div", { class: "banner" }, ic("alert", 18), h("p", {}, t(!boardOk ? "setup.warn_board" : "setup.warn_kbd")),
         boardOk ? h("button", { type: "button", class: "btn sm", onclick: async () => { try { await api("/api/board", { method: "POST", body: { cmd: "reboot" } }); toast(t("setup.rebooting")); } catch (e) { toast(e.message, "bad"); } } }, t("setup.reboot")) : null));
@@ -106,10 +113,11 @@ export function workView(root) {
   function renderInfo() {
     clear(infoLine);
     const kbd = state.keyboard, info = kbd.info, st = state.status;
-    if (!st.connected) infoLine.append(h("span", {}, t(st.board_error === "outdated_firmware" ? "info.fw_old" : "info.no_board")));
+    const soft = isSoftware();
+    if (!st.connected) infoLine.append(h("span", {}, soft ? osText("setup.soft_off") : t(st.board_error === "outdated_firmware" ? "info.fw_old" : "info.no_board")));
     else if (!info?.present) infoLine.append(h("span", {}, t("info.no_keyboard")));
     else {
-      const name = kbd.identity?.display || [info.mfr, info.prod].filter(Boolean).join(" ") || t("info.unnamed");
+      const name = soft ? t("capture.sys_keyboard") : kbd.identity?.display || [info.mfr, info.prod].filter(Boolean).join(" ") || t("info.unnamed");
       const sure = kbd.layout ? kbd.layout.confident || kbd.layout.source === "user" : true;
       infoLine.append(...[h("b", {}, name), h("span", {}, layoutLabel(layoutId())), sure ? null : h("span", { class: "unsure" }, t("info.unconfirmed")),
         h("span", {}, `${getLayout(layoutId()).keys.length} ${t("info.keys")}`), info.power_ma ? h("span", {}, `${info.power_ma} mA`) : null].filter(Boolean));

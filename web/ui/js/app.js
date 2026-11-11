@@ -13,8 +13,10 @@ import { settingsView } from "./settings.js";
 import { openPalette } from "./palette.js";
 import { openKeyboardDrawer } from "./kbinfo.js";
 import { startLive, isLive } from "./live.js";
+import { isSoftware, watchBoard, osText } from "./capture.js";
 
 const VIEWS = { keys: workView, gallery: galleryView, activity: activityView, history: historyView, sheet: sheetView, compat: compatView, diag: diagView, settings: settingsView };
+const isView = (id) => Object.hasOwn(VIEWS, id);
 const NAV = [["keys", "keyboard"], ["gallery", "grid"], null, ["activity", "activity"], ["history", "history"], ["sheet", "list"], ["compat", "layers"], ["diag", "cpu"]];
 let current = null, viewHost, navEl, rightEl, titleEl, deviceEl;
 
@@ -52,7 +54,7 @@ async function boot() {
   const q = location.search;
   if (q.includes("scene=")) { (await import("./scenes.js")).run(new URLSearchParams(q).get("scene")); return; }
   if (q.includes("selftest")) { startLive(onLive); (await import("./selftest.js")).run(); return; }
-  if (!q.includes("nolive")) { startLive(onLive, onPlainKey); eventsLoop(); }
+  if (!q.includes("nolive")) { startLive(onLive, onPlainKey); eventsLoop(); watchBoard(); }
 }
 
 function brand() {
@@ -65,7 +67,7 @@ function drawTabs() {
   const view = location.hash.replace("#/", "") || "keys";
   const item = ([id, icon]) => h("button", { type: "button", class: "navitem", title: t("nav." + id), "aria-current": view === id ? "page" : undefined, onclick: () => { location.hash = `#/${id}`; } }, ic(icon, 18), h("span", {}, t("nav." + id)));
   clear(navEl).append(...NAV.map((n) => (n ? item(n) : h("hr", { class: "navsep" }))), h("span", { class: "grow" }), item(["settings", "gear"]));
-  titleEl.textContent = t("nav." + (VIEWS[view] ? view : "keys"));
+  titleEl.textContent = t("nav." + (isView(view) ? view : "keys"));
 }
 
 function drawRight() {
@@ -75,18 +77,20 @@ function drawRight() {
     h("button", { type: "button", class: "tool", disabled: !canUndo(), title: t("tool.undo") + " (Cmd Z)", "aria-label": t("tool.undo"), onclick: undo }, ic("undo", 17)),
     h("button", { type: "button", class: "tool", disabled: !canRedo(), title: t("tool.redo") + " (Cmd Shift Z)", "aria-label": t("tool.redo"), onclick: redo }, ic("redo", 17)),
     h("button", { type: "button", class: "tool find", title: t("tool.palette"), onclick: () => notify("palette") }, ic("search", 15), h("span", { class: "dim" }, t("tool.palette")), h("span", { class: "kbd" }, "Cmd K")));
+  const soft = isSoftware();
   const on = s.connected && kb.info?.present;
+  const name = soft ? t("capture.sys_keyboard") : on ? (kb.identity?.display || kb.info?.prod || t("info.unnamed")) : s.connected ? t("board.no_kbd") : t("board.off");
+  const sub = soft ? (s.connected ? t("capture.soft_state") : osText("setup.soft_off")) : s.connected ? t("board.on") : t("info.no_board");
   clear(deviceEl).append(h("button", { type: "button", class: "status", onclick: () => openKeyboardDrawer(), title: t("info.details") },
     h("span", { class: `dot ${s.connected ? (on ? "on" : "") : "bad"}` }),
-    h("span", { class: "who" }, h("b", {}, on ? (kb.identity?.display || kb.info?.prod || t("info.unnamed")) : s.connected ? t("board.no_kbd") : t("board.off")),
-      h("small", {}, s.connected ? t("board.on") : t("info.no_board")), state.live ? h("small", { class: "live" }, t("live.on")) : null)));
+    h("span", { class: "who" }, h("b", {}, name), h("small", {}, sub), state.live ? h("small", { class: "live" }, t("live.on")) : null)));
 }
 
 function route() {
   const id = location.hash.replace("#/", "") || "keys";
-  const factory = VIEWS[id] || VIEWS.keys;
+  const factory = isView(id) ? VIEWS[id] : VIEWS.keys;
   current?.api?.unmount?.();
-  state.view = VIEWS[id] ? id : "keys";
+  state.view = isView(id) ? id : "keys";
   clear(viewHost);
   current = { id, api: factory(viewHost) };
   drawTabs();

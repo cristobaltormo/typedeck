@@ -8,6 +8,7 @@ import (
 	"strings"
 	"sync"
 	"syscall"
+	"time"
 	"unsafe"
 )
 
@@ -66,8 +67,10 @@ var (
 	pDrawText         = user32.NewProc("DrawTextW")
 	pGetSystemMetrics = user32.NewProc("GetSystemMetrics")
 	pSetWindowRgn     = user32.NewProc("SetWindowRgn")
-	pSetProcessDPI    = user32.NewProc("SetProcessDPIAware")
-	pGetDpiForSystem  = user32.NewProc("GetDpiForSystem")
+	pGetDpiForWindow  = user32.NewProc("GetDpiForWindow")
+	pMonitorFromWin   = user32.NewProc("MonitorFromWindow")
+	pGetMonitorInfo   = user32.NewProc("GetMonitorInfoW")
+	pGetDpiForMonitor = syscall.NewLazyDLL("shcore.dll").NewProc("GetDpiForMonitor")
 	pLoadCursor       = user32.NewProc("LoadCursorW")
 	pGetModuleHandle  = kernel32.NewProc("GetModuleHandleW")
 	pCreateSolidBrush = gdi32.NewProc("CreateSolidBrush")
@@ -104,7 +107,15 @@ var (
 	popClass  *uint16
 	popOnce   sync.Once
 	popProcPt uintptr
+	popCur    uintptr
 )
+
+type monitorInfo struct {
+	Size    uint32
+	Monitor rect
+	Work    rect
+	Flags   uint32
+}
 
 func rgb(r, g, b byte) uintptr { return uintptr(r) | uintptr(g)<<8 | uintptr(b)<<16 }
 
@@ -132,6 +143,9 @@ func popupProc(hwnd, m, wp, lp uintptr) uintptr {
 		pKillTimer.Call(hwnd, 1)
 		popMu.Lock()
 		delete(popTexts, hwnd)
+		if popCur == hwnd {
+			popCur = 0
+		}
 		popMu.Unlock()
 		pPostQuitMessage.Call(0)
 		return 0
@@ -140,12 +154,28 @@ func popupProc(hwnd, m, wp, lp uintptr) uintptr {
 	return r
 }
 
-func dpiScale() float64 {
-	pSetProcessDPI.Call()
-	if d, _, _ := pGetDpiForSystem.Call(); d >= 96 {
+func windowScale(hwnd uintptr) float64 {
+	if d, _, _ := pGetDpiForWindow.Call(hwnd); d >= 96 {
 		return float64(d) / 96
 	}
 	return 1
+}
+
+func activeMonitor() (work rect, scale float64) {
+	fg, _, _ := pGetForegroundWindow.Call()
+	mon, _, _ := pMonitorFromWin.Call(fg, 2)
+	mi := monitorInfo{Size: uint32(unsafe.Sizeof(monitorInfo{}))}
+	if r, _, _ := pGetMonitorInfo.Call(mon, uintptr(unsafe.Pointer(&mi))); r == 0 {
+		w, _, _ := pGetSystemMetrics.Call(0)
+		h, _, _ := pGetSystemMetrics.Call(1)
+		return rect{0, 0, int32(w), int32(h)}, 1
+	}
+	var dx, dy uint32
+	scale = 1
+	if r, _, _ := pGetDpiForMonitor.Call(mon, 0, uintptr(unsafe.Pointer(&dx)), uintptr(unsafe.Pointer(&dy))); r == 0 && dx >= 96 {
+		scale = float64(dx) / 96
+	}
+	return mi.Work, scale
 }
 
 func font(height int32, weight int32) uintptr {
@@ -161,7 +191,7 @@ func paintPopup(hwnd uintptr) {
 	var ps paintStruct
 	hdc, _, _ := pBeginPaint.Call(hwnd, uintptr(unsafe.Pointer(&ps)))
 	defer pEndPaint.Call(hwnd, uintptr(unsafe.Pointer(&ps)))
-	sc := dpiScale()
+	sc := windowScale(hwnd)
 	var rc rect
 	rc.Right, rc.Bottom = ps.Paint.Right, ps.Paint.Bottom
 	pGetClientRect.Call(hwnd, uintptr(unsafe.Pointer(&rc)))
@@ -230,13 +260,38 @@ func (*windows) Popup(o PopupOptions) bool {
 	if strings.TrimSpace(o.Title) == "" && strings.TrimSpace(o.Subtitle) == "" {
 		return true
 	}
-	go showPopup(o)
-	return true
+	ready := make(chan bool, 1)
+	go showPopup(o, ready)
+	select {
+	case ok := <-ready:
+		return ok
+	case <-time.After(2 * time.Second):
+		return false
+	}
 }
 
-func showPopup(o PopupOptions) {
-	runtime.LockOSThread()
-	defer runtime.UnlockOSThread()
+func popupRect(o PopupOptions) (x, y, w, h int32) {
+	work, sc := activeMonitor()
+	w = int32(440 * sc)
+	h = int32(70 * sc)
+	if strings.TrimSpace(o.Subtitle) != "" {
+		h = int32(96 * sc)
+	}
+	if o.Dots > 1 {
+		h += int32(18 * sc)
+	}
+	x = work.Left + (work.Right-work.Left-w)/2
+	y = work.Bottom - h - int32(110*sc)
+	switch o.Position {
+	case "top":
+		y = work.Top + int32(70*sc)
+	case "center":
+		y = work.Top + (work.Bottom-work.Top-h)/2
+	}
+	return
+}
+
+func registerPopupClass() {
 	popOnce.Do(func() {
 		popProcPt = syscall.NewCallback(popupProc)
 		popClass, _ = syscall.UTF16PtrFromString("TypedeckPopup")
@@ -246,35 +301,35 @@ func showPopup(o PopupOptions) {
 		wc.Size = uint32(unsafe.Sizeof(wc))
 		pRegisterClassEx.Call(uintptr(unsafe.Pointer(&wc)))
 	})
-	sc := dpiScale()
-	w := int32(440 * sc)
-	h := int32(70 * sc)
-	if strings.TrimSpace(o.Subtitle) != "" {
-		h = int32(96 * sc)
+}
+
+func replacePopup(hwnd uintptr) {
+	popMu.Lock()
+	prev := popCur
+	popCur = hwnd
+	popMu.Unlock()
+	if prev != 0 {
+		pPostMessageW.Call(prev, wmClose, 0, 0)
 	}
-	if o.Dots > 1 {
-		h += int32(18 * sc)
-	}
-	sw, _, _ := pGetSystemMetrics.Call(0)
-	sh, _, _ := pGetSystemMetrics.Call(1)
-	x := (int32(sw) - w) / 2
-	y := int32(sh) - h - int32(110*sc)
-	switch o.Position {
-	case "top":
-		y = int32(70 * sc)
-	case "center":
-		y = (int32(sh) - h) / 2
-	}
+}
+
+func showPopup(o PopupOptions, ready chan<- bool) {
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+	registerPopupClass()
+	x, y, w, h := popupRect(o)
 	hwnd, _, _ := pCreateWindowEx.Call(wsExTopmost|wsExToolWindow|wsExNoActivate|wsExLayered|wsExTransparent, uintptr(unsafe.Pointer(popClass)), 0, wsPopup,
 		uintptr(x), uintptr(y), uintptr(w), uintptr(h), 0, 0, 0, 0)
 	if hwnd == 0 {
+		ready <- false
 		return
 	}
 	popMu.Lock()
 	popTexts[hwnd] = o
 	popMu.Unlock()
+	replacePopup(hwnd)
 	pSetLayeredAttr.Call(hwnd, 0, 240, 2)
-	rgn, _, _ := pCreateRoundRgn.Call(0, 0, uintptr(w), uintptr(h), uintptr(int32(18*sc)), uintptr(int32(18*sc)))
+	rgn, _, _ := pCreateRoundRgn.Call(0, 0, uintptr(w), uintptr(h), uintptr(int32(18*windowScale(hwnd))), uintptr(int32(18*windowScale(hwnd))))
 	pSetWindowRgn.Call(hwnd, rgn, 1)
 	secs := o.Seconds
 	if secs < 0.6 {
@@ -282,6 +337,7 @@ func showPopup(o PopupOptions) {
 	}
 	pSetTimer.Call(hwnd, 1, uintptr(secs*1000), 0)
 	pShowWindow2.Call(hwnd, swShowNoActive)
+	ready <- true
 	var m msg
 	for {
 		r, _, _ := pGetMessage.Call(uintptr(unsafe.Pointer(&m)), 0, 0, 0)

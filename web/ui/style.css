@@ -393,3 +393,7 @@ body.dragging-key, body.dragging-key * { cursor: grabbing !important; }
 .inh-row .k { color: var(--faint); min-width: 64px; }
 .inh-row .v { display: flex; flex-direction: column; color: var(--strong); font-weight: 600; }
 .inh-row .v small { color: var(--dim); font-weight: 400; }
+
+.consent { padding: 24px; display: flex; flex-direction: column; gap: 14px; }
+.consent h2 { font-size: 17px; }
+.consent ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 8px; color: var(--dim); font-size: 13.5px; }

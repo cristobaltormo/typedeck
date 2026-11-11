@@ -14,23 +14,36 @@ import (
 	"time"
 
 	"github.com/cristobaltormo/typedeck/internal/board"
+	"github.com/cristobaltormo/typedeck/internal/capture"
 	"github.com/cristobaltormo/typedeck/internal/config"
 	"github.com/cristobaltormo/typedeck/internal/engine"
+	"github.com/cristobaltormo/typedeck/internal/hid"
 )
 
 type noBoard struct{}
 
 func (noBoard) Open() (io.ReadWriteCloser, string, error) { return nil, "", board.ErrNoBoard }
 
+type stubBackend struct{ alive bool }
+
+func (b *stubBackend) Start(*capture.Filter) error  { b.alive = true; return nil }
+func (b *stubBackend) Alive() bool                  { return b.alive }
+func (b *stubBackend) Stop()                        { b.alive = false }
+func (b *stubBackend) Inject(hid.Stroke, int) error { return nil }
+func (b *stubBackend) Consumer(uint16) error        { return nil }
+func (b *stubBackend) TypeText(string) error        { return nil }
+func (b *stubBackend) Latency() capture.Latency     { return capture.Latency{} }
+func (b *stubBackend) Checks() []capture.Check      { return nil }
+
 func newSrv(t *testing.T) (*Server, http.Handler) {
 	t.Helper()
-	brd := board.New(noBoard{})
+	src := capture.NewSelector(board.New(noBoard{}), capture.NewSoftwareWith(&stubBackend{}))
 	paths := config.Paths{Dir: t.TempDir()}
-	eng, err := engine.New(paths, brd)
+	eng, err := engine.New(paths, src)
 	if err != nil {
 		t.Fatal(err)
 	}
-	s, err := New(eng, brd, paths, func(string, ...any) {})
+	s, err := New(eng, src, paths, func(string, ...any) {})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -355,5 +368,140 @@ func TestHistoryTextFallsBackToUSWhenTheSystemLayoutIsUnknown(t *testing.T) {
 	_ = json.Unmarshal(do(h, "GET", "/api/history", good, s.token, nil).Body.Bytes(), &out)
 	if strings.ToLower(out.Text) != "a" {
 		t.Fatalf("text %q", out.Text)
+	}
+}
+
+func TestSoftwareCaptureNeedsConsent(t *testing.T) {
+	s, h := newSrv(t)
+	if got := do(h, "POST", "/api/capture", good, s.token, map[string]any{"mode": "software"}).Code; got != 400 {
+		t.Fatalf("without consent: %d", got)
+	}
+	if s.eng.CaptureMode() != "board" {
+		t.Fatal("must stay on the board")
+	}
+	if got := do(h, "POST", "/api/capture", good, s.token, map[string]any{"mode": "software", "consent": true}).Code; got != 200 {
+		t.Fatalf("with consent: %d", got)
+	}
+	if s.eng.CaptureMode() != "software" || s.eng.Config().Settings.Capture != "software" {
+		t.Fatal("software mode not applied")
+	}
+	var st map[string]any
+	_ = json.Unmarshal(do(h, "GET", "/api/status", good, s.token, nil).Body.Bytes(), &st)
+	if st["capture"] != "software" || st["connected"] != true || st["keyboard_present"] != true {
+		t.Fatalf("status: %v", st)
+	}
+	if got := do(h, "POST", "/api/capture", good, s.token, map[string]any{"mode": "board"}).Code; got != 200 || s.eng.CaptureMode() != "board" {
+		t.Fatal("going back to the board needs no consent")
+	}
+	if got := do(h, "POST", "/api/capture", good, s.token, map[string]any{"mode": "x", "consent": true}).Code; got != 400 {
+		t.Fatalf("unknown mode: %d", got)
+	}
+}
+
+func TestConfigPostCannotEnableSoftwareCapture(t *testing.T) {
+	s, h := newSrv(t)
+	c := s.eng.Config()
+	c.Settings.Capture = "software"
+	rec := do(h, "POST", "/api/config", good, s.token, c)
+	if rec.Code != 200 {
+		t.Fatalf("%d %s", rec.Code, rec.Body)
+	}
+	if s.eng.CaptureMode() != "board" || s.eng.Config().Settings.Capture != "board" {
+		t.Fatal("an imported configuration must not turn on a keyboard hook")
+	}
+}
+
+func TestRestoringABackupCannotEnableSoftwareCapture(t *testing.T) {
+	s, h := newSrv(t)
+	c := config.Default()
+	c.Settings.Capture = "software"
+	raw, _ := json.Marshal(c)
+	if err := os.MkdirAll(s.paths.Backups(), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	name := "config-20260101-000000.json"
+	if err := os.WriteFile(filepath.Join(s.paths.Backups(), name), raw, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	rec := do(h, "POST", "/api/backups/restore", good, s.token, map[string]any{"name": name})
+	if rec.Code != 200 {
+		t.Fatalf("%d %s", rec.Code, rec.Body)
+	}
+	var out struct {
+		Config struct{ Settings struct{ Capture string } }
+	}
+	_ = json.Unmarshal(rec.Body.Bytes(), &out)
+	if out.Config.Settings.Capture != "board" || s.eng.CaptureMode() != "board" || s.eng.Config().Settings.Capture != "board" {
+		t.Fatalf("a restored backup must not turn on a keyboard hook: %+v", out)
+	}
+	saved, _ := config.Load(s.paths)
+	if saved.Settings.Capture != "board" {
+		t.Fatal("the restored file must not keep the software mode")
+	}
+}
+
+func TestRestoringABackupKeepsSoftwareCaptureOnceConsented(t *testing.T) {
+	s, h := newSrv(t)
+	do(h, "POST", "/api/capture", good, s.token, map[string]any{"mode": "software", "consent": true})
+	do(h, "POST", "/api/capture", good, s.token, map[string]any{"mode": "board"})
+	c := config.Default()
+	c.Settings.Capture = "software"
+	raw, _ := json.Marshal(c)
+	_ = os.MkdirAll(s.paths.Backups(), 0o755)
+	name := "config-20260101-000001.json"
+	_ = os.WriteFile(filepath.Join(s.paths.Backups(), name), raw, 0o600)
+	do(h, "POST", "/api/backups/restore", good, s.token, map[string]any{"name": name})
+	if s.eng.CaptureMode() != "software" {
+		t.Fatal("this installation agreed earlier, so its own backup may bring the mode back")
+	}
+}
+
+func TestSoftwareCaptureNeedsTheFlagOnEveryActivation(t *testing.T) {
+	s, h := newSrv(t)
+	do(h, "POST", "/api/capture", good, s.token, map[string]any{"mode": "software", "consent": true})
+	do(h, "POST", "/api/capture", good, s.token, map[string]any{"mode": "board"})
+	if got := do(h, "POST", "/api/capture", good, s.token, map[string]any{"mode": "software"}).Code; got != 400 {
+		t.Fatalf("a past consent does not replace the explicit flag: %d", got)
+	}
+}
+
+func TestSystemKeyboardIdentityInSoftwareMode(t *testing.T) {
+	s, h := newSrv(t)
+	do(h, "POST", "/api/capture", good, s.token, map[string]any{"mode": "software", "consent": true})
+	var kb struct {
+		Connected bool
+		Info      struct{ System bool }
+		Identity  struct{ Display string }
+		Layout    struct{ ID string }
+	}
+	_ = json.Unmarshal(do(h, "GET", "/api/keyboard", good, s.token, nil).Body.Bytes(), &kb)
+	if !kb.Connected || !kb.Info.System || kb.Identity.Display != "System keyboard" || kb.Layout.ID == "" {
+		t.Fatalf("keyboard: %+v", kb)
+	}
+	if got := do(h, "POST", "/api/keyboard/layout", good, s.token, map[string]any{"layout": "full-iso"}).Code; got != 200 {
+		t.Fatalf("set layout: %d", got)
+	}
+	if kb := s.eng.Config().Keyboards["system"]; kb.Layout != "full-iso" {
+		t.Fatalf("layout stored under the system keyboard: %+v", s.eng.Config().Keyboards)
+	}
+	var su struct {
+		Board  struct{ Capture string }
+		Checks []struct{ Code string }
+	}
+	_ = json.Unmarshal(do(h, "GET", "/api/setup", good, s.token, nil).Body.Bytes(), &su)
+	if su.Board.Capture != "software" || len(su.Checks) == 0 || su.Checks[0].Code != "software_ok" {
+		t.Fatalf("setup: %+v", su)
+	}
+}
+
+func TestBoardOnlyCommandsAnswerInSoftwareMode(t *testing.T) {
+	s, h := newSrv(t)
+	do(h, "POST", "/api/capture", good, s.token, map[string]any{"mode": "software", "consent": true})
+	rec := do(h, "POST", "/api/board", good, s.token, map[string]any{"cmd": "stats"})
+	if rec.Code != 200 || !strings.Contains(rec.Body.String(), "captura=1") {
+		t.Fatalf("stats: %d %s", rec.Code, rec.Body)
+	}
+	if got := do(h, "POST", "/api/board", good, s.token, map[string]any{"cmd": "reboot"}).Code; got != 400 {
+		t.Fatalf("reboot without a board: %d", got)
 	}
 }

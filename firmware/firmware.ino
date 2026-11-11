@@ -1,4 +1,4 @@
-#define protected public  // BootKeyboard keeps its report in a protected member we need to forward as is
+#define protected public
 #include <HID-Project.h>
 #undef protected
 #include <hidcomposite.h>
@@ -27,10 +27,6 @@ uint8_t lastLeds = 0xFF, ledOverride = 0xFF;
 unsigned long ledOverrideUntil = 0;
 bool hidWasReady = false;
 unsigned long lastDeviceSeen = 0;
-// Restart when the keyboard does not show up. After a power cut (a KVM switch) the shield can stop seeing the keyboard, and
-// neither resetting the shield chip nor an immediate MCU reset fixes it; going through the bootloader (as when uploading a
-// sketch) does. Cutting the keyboard port power from the firmware does nothing on the reference shield: it keeps the keyboard
-// connected with VBUS "off". At most 3 times in a row unless a keyboard was ever seen; the counters survive the restart.
 #define SOFT_MAGIC 0xA55A
 #define EE_SEEN 0
 uint16_t softMagic __attribute__((section(".noinit")));
@@ -117,7 +113,7 @@ void processReport(const uint8_t *buf, bool quiet) {
   for (uint8_t i = 0; i < 6; i++) {
     uint8_t k = buf[2 + i];
     if (k == 0) { physKeys[i] = 0; continue; }
-    if (cap && k > 3 && isCaptured(k)) { physKeys[i] = 0; nowDown[nowN++] = k; }  // 1..3 are rollover errors
+    if (cap && k > 3 && isCaptured(k)) { physKeys[i] = 0; nowDown[nowN++] = k; }
     else physKeys[i] = k;
   }
   if (cap) {
@@ -148,8 +144,6 @@ void consumerReport(uint16_t usage) {
   lastConsumer = usage;
 }
 
-// Listens to both keyboard interfaces: 1 (ep 1) is the boot keyboard and 2 (ep 2) carries the reports with an id
-// (media keys, system control, full keyboard, mouse).
 class DeckHid : public HIDComposite {
   uint8_t bootIface = 255;
  public:
@@ -294,8 +288,6 @@ void tapKey(uint8_t mods, uint8_t usage, uint16_t holdMs) {
   sendReport(); delay(5);
 }
 
-// HOLD keeps a key down until RELEASE. Each HOLD (re)arms an 8 s deadline, and the key is also let go when the heartbeat stops, so
-// a crashed host cannot leave a key stuck. Separate from injKeys because tapKey clears those.
 static bool holdActive() { for (uint8_t i = 0; i < HOLD_SLOTS; i++) if (holdKeys[i]) return true; return false; }
 
 static bool holdKey(uint8_t usage) {
@@ -404,8 +396,6 @@ void handle(char *cmd) {
 
 char line[160]; uint8_t lineN = 0;
 
-// Restart through the bootloader (what the Arduino core does to upload a sketch): the MCU sits in the bootloader for about 8 s
-// and then starts the sketch. An immediate restart does NOT recover the keyboard; this one does.
 void bootloaderReset() {
   *(volatile uint16_t *)0x0800 = 0x7777;
   wdt_enable(WDTO_120MS);
@@ -442,7 +432,7 @@ void loop() {
   expireHolds();
 
   bool running = Usb.getUsbTaskState() == USB_STATE_RUNNING;
-  if (dark) { DDRB &= ~_BV(0); DDRD &= ~_BV(5); }  // RX (PB0) and TX (PD5) LEDs as inputs: the USB core keeps toggling them
+  if (dark) { DDRB &= ~_BV(0); DDRD &= ~_BV(5); }
   if (running) {
     lastDeviceSeen = millis(); lastRunningMs = millis(); softResets = 0;
     if (!seenSinceBoot) {

@@ -348,7 +348,7 @@ func (*darwin) ConfigDir() string {
 func (*darwin) Doctor() []Check {
 	return []Check{
 		{have("lsappinfo"), "lsappinfo available (per-application layers)", "lsappinfo is missing: without it there are no per-application layers"},
-		{have("osascript"), "osascript disponible", "osascript is missing: opening and closing applications needs it"},
+		{have("osascript"), "osascript available", "osascript is missing: opening and closing applications needs it"},
 	}
 }
 

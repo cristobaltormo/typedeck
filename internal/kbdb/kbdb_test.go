@@ -47,7 +47,7 @@ func TestLayoutNeedsFormAndStandard(t *testing.T) {
 }
 
 func TestVerifiedModelWins(t *testing.T) {
-	AddVerified(Model{VID: "1234", PID: "00aa", Brand: "Acme", Model: "K1", Layout: "75-ansi"})
+	addVerified(Model{VID: "1234", PID: "00aa", Brand: "Acme", Model: "K1", Layout: "75-ansi"})
 	id := Identify("1234", "00AA", "x", "y")
 	if id.Brand != "Acme" || id.Layout != "75-ansi" || id.Confidence != "verified" {
 		t.Fatalf("%+v", id)
@@ -63,3 +63,5 @@ func TestSharedControllerIDsAreNotAutoVerified(t *testing.T) {
 		t.Fatalf("the name says 60%%: %+v", id)
 	}
 }
+
+func addVerified(m Model) { data.Models = append(data.Models, m) }

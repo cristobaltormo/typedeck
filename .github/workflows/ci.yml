@@ -24,6 +24,18 @@ jobs:
       - name: Tests
         run: go test -race -count=1 ./...
 
+  macos-helpers:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      - name: Build and self test the Swift helpers
+        run: make macos-helpers
+      - name: Run the compiled capture helper
+        run: TYPEDECK_CAPTURE_HELPER="$PWD/dist/typedeck-capture-macos" go test -count=1 -run Real -v ./internal/capture
+
   checks:
     runs-on: ubuntu-latest
     steps:

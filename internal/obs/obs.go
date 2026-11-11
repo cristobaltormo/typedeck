@@ -17,10 +17,6 @@ type Config struct {
 	Password string `json:"password"`
 }
 
-var Commands = []string{"scene", "scene_next", "scene_prev", "stream", "stream_start", "stream_stop", "record", "record_pause", "mute", "replay_save", "virtualcam", "studio", "studio_transition"}
-
-func NeedsTarget(cmd string) bool { return cmd == "scene" || cmd == "mute" }
-
 type msg struct {
 	Op int             `json:"op"`
 	D  json.RawMessage `json:"d"`

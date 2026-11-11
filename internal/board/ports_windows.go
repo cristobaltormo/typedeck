@@ -1,46 +1,36 @@
 package board
 
 import (
-	"sort"
-	"syscall"
-	"unsafe"
+	"github.com/cristobaltormo/typedeck/internal/winreg"
 )
 
-// systemPorts lists USB serial ports (usbser.sys) from HKLM\HARDWARE\DEVICEMAP\SERIALCOMM, skipping Bluetooth and real ports
-// that could stall the probe.
-func systemPorts() []string {
-	var key syscall.Handle
-	k, _ := syscall.UTF16PtrFromString(`HARDWARE\DEVICEMAP\SERIALCOMM`)
-	if syscall.RegOpenKeyEx(syscall.HKEY_LOCAL_MACHINE, k, 0, syscall.KEY_READ, &key) != nil {
-		return nil
-	}
-	defer syscall.RegCloseKey(key)
-	enum := syscall.NewLazyDLL("advapi32.dll").NewProc("RegEnumValueW")
+const (
+	serialCommKey = `HARDWARE\DEVICEMAP\SERIALCOMM`
+	usbEnumKey    = `SYSTEM\CurrentControlSet\Enum\USB`
+)
+
+func presentPorts() []string {
 	var out []string
-	for i := uint32(0); ; i++ {
-		name := make([]uint16, 256)
-		data := make([]uint16, 256)
-		nl, dl := uint32(len(name)), uint32(len(data)*2)
-		var typ uint32
-		r, _, _ := enum.Call(uintptr(key), uintptr(i), uintptr(unsafe.Pointer(&name[0])), uintptr(unsafe.Pointer(&nl)), 0,
-			uintptr(unsafe.Pointer(&typ)), uintptr(unsafe.Pointer(&data[0])), uintptr(unsafe.Pointer(&dl)))
-		if r != 0 {
-			break
-		}
-		dev := syscall.UTF16ToString(name[:nl])
-		if len(dev) >= 6 && (contains(dev, "USBSER") || contains(dev, "VCP")) {
-			out = append(out, syscall.UTF16ToString(data))
-		}
+	for _, v := range winreg.StringValues(winreg.LocalMachine, serialCommKey) {
+		out = append(out, v.Data)
 	}
-	sort.Strings(out)
 	return out
 }
 
-func contains(s, sub string) bool {
-	for i := 0; i+len(sub) <= len(s); i++ {
-		if s[i:i+len(sub)] == sub {
-			return true
+func usbPortNames() map[string][]string {
+	usb := map[string][]string{}
+	for _, dev := range winreg.SubKeys(winreg.LocalMachine, usbEnumKey) {
+		if !isBoardKey(dev) {
+			continue
+		}
+		for _, inst := range winreg.SubKeys(winreg.LocalMachine, usbEnumKey+`\`+dev) {
+			path := usbEnumKey + `\` + dev + `\` + inst + `\Device Parameters`
+			if port, ok := winreg.String(winreg.LocalMachine, path, "PortName"); ok {
+				usb[dev] = append(usb[dev], port)
+			}
 		}
 	}
-	return false
+	return usb
 }
+
+func systemPorts() []string { return boardPorts(usbPortNames(), presentPorts()) }

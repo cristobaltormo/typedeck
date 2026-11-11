@@ -1,6 +1,6 @@
 import { h, ic, clear } from "./dom.js";
 import { api } from "./api.js";
-import { t, lang } from "./i18n.js";
+import { t, tOS, lang } from "./i18n.js";
 import { state } from "./store.js";
 
 const pick = (v) => (v && typeof v === "object" ? v[lang()] || v.es : v);
@@ -12,7 +12,7 @@ export function compatView(root) {
 
   function check(c) {
     const lvl = c.level;
-    const text = t("check." + c.code, c.args || {});
+    const text = tOS("check." + c.code, state.system?.os, c.args || {});
     return h("div", { class: `check ${lvl}` }, ic(LEVEL_ICON[lvl] || "info", 16), h("span", {}, text));
   }
 
@@ -21,15 +21,17 @@ export function compatView(root) {
     let s;
     try { s = await api("/api/setup"); state.setup = s; } catch (e) { mine.append(h("p", { class: "dim" }, e.message)); return; }
     const rows = [];
-    if (s.board?.connected) {
+    const soft = s.board?.capture === "software";
+    if (soft) rows.push([t("compat.capture"), t("capture.software")]);
+    if (s.board?.connected && !soft) {
       const b = s.board.sys;
       rows.push([t("compat.board"), b ? `${b.board === "leonardo" ? "Arduino Leonardo" : b.board} (${b.mcu}, ${Math.round(b.f_cpu / 1e6)} MHz)` : t("diag.unknown")],
         [t("compat.shield"), b ? `MAX3421E ${t("compat.rev")} ${parseInt(b.max3421e_rev, 16) & 15}` : "-"], [t("compat.power"), b ? `${(b.vcc_mv / 1000).toFixed(2)} V` : "-"], [t("compat.fw"), `Typedeck FW ${s.board.firmware}`]);
     }
     const k = s.keyboard;
-    if (k) rows.push([t("compat.keyboard"), k.identity.display || t("info.unnamed")], [t("compat.format"), k.layout.id ? `${k.layout.percent || ""}${k.layout.percent ? "% " : ""}${(k.layout.standard || "").toUpperCase()}`.trim() || t("layout.numpad") : "-"]);
+    if (k) rows.push([t("compat.keyboard"), soft ? t("capture.sys_keyboard") : k.identity.display || t("info.unnamed")], [t("compat.format"), k.layout.id ? `${k.layout.percent || ""}${k.layout.percent ? "% " : ""}${(k.layout.standard || "").toUpperCase()}`.trim() || t("layout.numpad") : "-"]);
     const hs = s.host;
-    rows.push([t("compat.mac"), `macOS ${hs.version} (${hs.arch})`], [t("compat.typing"), t("layout.sys." + (hs.typing_layout || "none"))]);
+    rows.push([t("compat.mac"), `${{ darwin: "macOS", windows: "Windows", linux: "Linux" }[hs.os] || hs.os} ${hs.version} (${hs.arch})`], [t("compat.typing"), t("layout.sys." + (hs.typing_layout || "none"))]);
     const dl = h("dl", { class: "kv" });
     for (const [a, b] of rows) dl.append(h("dt", {}, a), h("dd", {}, b));
     mine.append(dl, h("div", { class: "checks" }, s.checks.map(check)));

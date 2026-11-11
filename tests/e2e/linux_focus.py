@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-"""The key that opens the editor focuses the tab that is already open, on X11 with a window manager.
-Needs: Xvfb openbox xdotool xterm. An xterm of class Chromium titled Typedeck stands in for the browser tab.   Usage: tests/e2e/linux_focus.py /path/to/typedeck   (temporary HOME)"""
 import json, os, re, shutil, socket, subprocess, sys, tempfile, time, urllib.request
 
 BIN = sys.argv[1]

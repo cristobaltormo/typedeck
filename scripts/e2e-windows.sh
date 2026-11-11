@@ -1,13 +1,9 @@
 #!/usr/bin/env bash
-# Runs every test that needs a real Windows machine with the board plugged in: the unit tests compiled for Windows, the hardware
-# tests, typing through the board, the desktop features, the editor tab focus, fail-open, the editor self test in Chrome and the
-# service install and uninstall. The host is an ssh alias, WIN_HOST (default "windows"); Typedeck is installed there as a scheduled
-# task named Typedeck, in WIN_DIR (set WIN_DIR, for example C:\Users\me\typedeck), and Chrome is in its default place.
-# Usage: scripts/e2e-windows.sh
 set -uo pipefail
 cd "$(dirname "$0")/.."
 WIN_HOST="${WIN_HOST:-windows}"
 WIN_DIR="${WIN_DIR:?set WIN_DIR, for example C:\\Users\\me\\typedeck}"
+WIN_COM_PORT="${WIN_COM_PORT:?set WIN_COM_PORT, the serial port of the board, for example COM3}"
 WIN_TMP='C:\typedeck'
 CHROME='C:\Program Files\Google\Chrome\Application\chrome.exe'
 PORT=7788
@@ -27,6 +23,14 @@ wait_editor() {
 }
 stop_program() { win "taskkill /F /IM typedeck.exe" >/dev/null; sleep 2; }
 start_task() { win "schtasks /Run /TN $1" >/dev/null; sleep 5; }
+interactive() {
+  win "del $WIN_TMP\\$1.txt" >/dev/null
+  make_task tdint "powershell -NoProfile -ExecutionPolicy Bypass -File $WIN_TMP\\$2 $3 > $WIN_TMP\\$1.txt 2>&1"
+  win "schtasks /Run /TN tdint" >/dev/null
+  for _ in $(seq 120); do sleep 1; win "schtasks /Query /TN tdint /FO LIST" | grep -q "Status: *Ready" && break; done
+  win "type $WIN_TMP\\$1.txt"
+  win "schtasks /Delete /TN tdint /F" >/dev/null
+}
 make_task() { win "schtasks /Create /TN $1 /TR \"$2\" /SC ONCE /ST 23:59 /IT /F" >/dev/null; }
 open_chrome() {
   win "taskkill /F /IM chrome.exe" >/dev/null; sleep 2
@@ -57,6 +61,24 @@ for t in $(ls /tmp/wt | sed 's/.test.exe//'); do
   [ "$out" = "PASS" ] || FAIL=$((FAIL + 1))
 done
 
+step "lifecycle: single instance, orderly stop, scheduled task, install and uninstall"
+GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -trimpath -ldflags "-s -w" -o /tmp/typedeck-win-cli.exe ./cmd/typedeck || exit 1
+scp -q /tmp/typedeck-win-cli.exe "$WIN_HOST:C:/typedeck/typedeck-cli.exe"
+scp -q tests/e2e/windows_lifecycle.ps1 "$WIN_HOST:C:/typedeck/lifecycle.ps1"
+out=$(interactive lifecycle lifecycle.ps1 "-Exe $WIN_DIR\\typedeck.exe -CliExe $WIN_TMP\\typedeck-cli.exe -Dir $WIN_TMP\\life")
+echo "$out" | grep -E "^(PASS|FAIL|all |[0-9]+ lifecycle)"
+echo "$out" | grep -q "all lifecycle checks passed" || FAIL=$((FAIL + 1))
+
+step "Windows platform actions: clipboard, app toggle, popups, soft keys (interactive session)"
+GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go test -c -o /tmp/platform-win.test.exe ./internal/platform || exit 1
+scp -q /tmp/platform-win.test.exe "$WIN_HOST:C:/typedeck/platform.test.exe"
+scp -q tests/e2e/windows_platform.ps1 "$WIN_HOST:C:/typedeck/platform.ps1"
+scp -q tests/e2e/windows_testbox.ps1 "$WIN_HOST:C:/typedeck/windows_testbox.ps1"
+out=$(interactive platform platform.ps1 "-TestExe $WIN_TMP\\platform.test.exe -Dir $WIN_TMP\\box")
+echo "$out" | grep -E "^(--- |FAIL|PASS)"
+echo "$out" | grep -q "^FAIL" && FAIL=$((FAIL + 1))
+echo "$out" | grep -q "^PASS" || FAIL=$((FAIL + 1))
+
 step "hardware tests (program in development mode)"
 make_task tddev "cmd /c set TYPEDECK_DEV=1&& $WIN_DIR\\typedeck.exe"
 start_task tddev
@@ -86,7 +108,7 @@ stop_program
 tunnel_down
 win "taskkill /F /IM chrome.exe" >/dev/null
 sleep 8
-out=$(win "powershell -NoProfile -ExecutionPolicy Bypass -File C:\\typedeck\\failopen.ps1")
+out=$(win "powershell -NoProfile -ExecutionPolicy Bypass -File C:\\typedeck\\failopen.ps1 -Port $WIN_COM_PORT")
 echo "$out" | grep -o "capture=[01]" | head -1
 echo "$out" | grep -q "capture=0" && echo "PASS  without a heartbeat the board stops capturing" || { echo "FAIL  fail-open"; FAIL=$((FAIL + 1)); }
 

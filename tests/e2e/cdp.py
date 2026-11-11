@@ -1,5 +1,3 @@
-"""A tiny Chrome DevTools Protocol client over a raw WebSocket (standard library only), for tests and screen captures that need real
-mouse input. Usage: with Browser(url, size) as b: b.eval("..."); b.mouse("mousePressed", x, y); b.png()"""
 import base64, json, os, shutil, socket, struct, subprocess, tempfile, time, urllib.request
 
 CHROME = shutil.which("chromium") or shutil.which("google-chrome") or shutil.which("chromium-browser") or shutil.which("chrome")

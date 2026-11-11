@@ -1,10 +1,4 @@
 #!/usr/bin/env python3
-"""Manual tests on a REAL Windows machine with the board plugged in (not run in CI).
-Needs Typedeck running in the user session (typedeck install), the session unlocked, the editor reachable on 127.0.0.1:7788
-(for example ssh -L 7788:127.0.0.1:7788 windows) and tests/e2e/windows_fg.ps1 copied to WIN_FG_SCRIPT.
-Types only into its own test box (tests/e2e/windows_testbox.ps1 copied to WIN_TESTBOX_SCRIPT), never into a real application, and only when the box is in front. Usage: windows_real.py typing|desktop|focus|failopen
-focus needs Chrome open on the editor in the user session; failopen stops the program (over ssh, host alias WIN_HOST=windows) and reads the
-board straight from COM4 with tests/e2e/windows_failopen.ps1 copied to WIN_FAILOPEN_SCRIPT."""
 import sys, re, json, time, os, subprocess, urllib.request
 FG_SCRIPT = os.environ.get("WIN_FG_SCRIPT", r"C:\typedeck\fg.ps1")
 B="http://127.0.0.1:7788"
@@ -18,7 +12,6 @@ BOX_TEXT = r"C:\typedeck\testbox.txt"
 BOX_KEYS = r"C:\typedeck\testbox.keys"
 
 class Box:
-    """A window of our own that records its text and every key it receives, so no real application is touched."""
     def __init__(self):
         self.res = []
         self.fg = "powershell -NoProfile -ExecutionPolicy Bypass -File " + FG_SCRIPT
@@ -53,7 +46,7 @@ class Box:
 def run_typing():
     b = Box()
     cfg = api("/api/config"); cfg["settings"]["typing_layout"] = "auto"; cfg["settings"]["input"] = "auto"; api("/api/config", cfg)
-    b.check("the board is connected on COM4", api("/api/status")["connected"])
+    b.check("the board is connected", api("/api/status")["connected"])
     print("layout:", api("/api/setup")["host"]["typing_layout"])
     opened = b.open()
     b.check("the test box is in front (needed to type safely)", opened, b.front())
@@ -135,7 +128,7 @@ def run_failopen():
     def check(n, c, x=""): res.append(bool(c)); print(("PASS  " if c else "FAIL  ") + n + (f"   [{x}]" if x and not c else ""), flush=True)
     ssh("taskkill /F /IM typedeck.exe")
     time.sleep(8)
-    out = ssh("powershell -NoProfile -ExecutionPolicy Bypass -File " + script)
+    out = ssh("powershell -NoProfile -ExecutionPolicy Bypass -File " + script + " -Port " + os.environ["WIN_COM_PORT"])
     check("without a heartbeat for 5 s the board stops capturing (fail-open)", "capture=0" in out, out)
     ssh("schtasks /Run /TN Typedeck")
     time.sleep(6)

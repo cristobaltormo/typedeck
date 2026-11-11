@@ -26,6 +26,10 @@ contents:
     dst: /usr/lib/udev/rules.d/70-typedeck.rules
     file_info:
       mode: 0644
+  - src: packaging/linux/modules-load.conf
+    dst: /usr/lib/modules-load.d/typedeck.conf
+    file_info:
+      mode: 0644
   - src: README.md
     dst: /usr/share/doc/typedeck/README.md
     file_info:
