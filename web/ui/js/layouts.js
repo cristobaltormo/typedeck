@@ -1,4 +1,6 @@
 import { state } from "./store.js";
+import { t } from "./i18n.js";
+import { hex } from "./util.js";
 
 const SH = (main, shift) => ({ main, shift });
 
@@ -37,7 +39,12 @@ export function legend(usage, lang) {
   return { main: n === undefined ? "0x" + usage.toString(16).toUpperCase() : n };
 }
 
-export const isModifier = (u) => u >= 0xE0 && u <= 0xE7;
+export function keyName(usage, lang = legendLang()) {
+  const l = legend(usage, lang);
+  if (l.icon) return `${t("key.arrow")} ${t("arrow." + l.icon)}`;
+  if (usage === 0x2C) return t("key.space");
+  return (l.main || "").trim() || hex(usage);
+}
 
 export function legendLang() {
   const sys = state.system?.typing_layout;

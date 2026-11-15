@@ -1,51 +1,47 @@
-import { h, ic, clear } from "./dom.js";
+import { h, ic, clear, isTyping } from "./dom.js";
 import { api } from "./api.js";
 import { t } from "./i18n.js";
-import { toast } from "./toast.js";
-import { keyboard, neighbor, hex, TYPE_ICON } from "./keyboard.js";
-import { layout as getLayout, legendLang } from "./layouts.js";
+import { toast, guarded } from "./toast.js";
+import { keyboard, neighbor } from "./keyboard.js";
+import { layout as getLayout, legendLang, keyName } from "./layouts.js";
 import { field, textInput, select, toggle, swatches, iconPicker, armed } from "./controls.js";
-import { actionFields, actionExtras, typeOptions, wantsConfirm } from "./actionform.js";
+import { actionFields, actionExtras, typeOptions, wantsConfirm, stopRecording } from "./actionform.js";
 import { openKeyboardDrawer, layoutLabel } from "./kbinfo.js";
 import { isSoftware, boardMissing, offerCard, hookDownCard, useWithoutBoard, useBoard, osText } from "./capture.js";
 import { exportLayer, importPack } from "./share.js";
-import { state, notify, edit, undo, redo, canUndo, canRedo, keysOf, keyDef, ensureKey, pruneKey, newAction, describe, layerCount, layoutId } from "./store.js";
+import { modalOpen } from "./modal.js";
+import { clone, hex, usageOf } from "./util.js";
+import { state, edit, keysOf, keyDef, ensureKey, pruneKey, newAction, describe, firstAction, layerCount, layoutId, addLayer, moveLayer, removeLayer, canAddLayer } from "./store.js";
 
 const GESTURES = ["tap", "hold", "double"];
-const clone = (o) => JSON.parse(JSON.stringify(o));
-const usageOf = (id) => parseInt(id, 16);
 
 export function workView(root) {
-  const layerbar = h("div", { class: "layerbar", role: "tablist" });
-  const kbHost = h("div", { class: "grid" });
+  const layerbar = h("div", { class: "layerbar", role: "tablist", "aria-label": t("layer.title") });
+  const kbHost = h("div", { class: "kb-host" });
   const infoLine = h("div", { class: "kbinfo" });
-  const bannerHost = h("div");
+  const bannerHost = h("div", { class: "banner-host" });
   const stage = h("div", { class: "stage" }, bannerHost, kbHost, infoLine);
-  const dock = h("div", { class: "dock" });
+  const dock = h("aside", { class: "dock", "aria-label": t("insp.aria") });
   root.append(h("div", { class: "work" }, h("div", { class: "canvas" }, layerbar, stage), dock));
   let kb = null, gesture = "tap";
 
-  const accent = () => (state.scope === "global" ? state.cfg.settings.accent : state.cfg.layers[state.scope].color || state.cfg.settings.accent);
+  const accent = () => (state.scope === "global" ? state.cfg.settings.accent : state.cfg.layers[state.scope]?.color || state.cfg.settings.accent);
+  const scopeName = () => (state.scope === "global" ? t("strip.global") : state.cfg.layers[state.scope].name);
 
   function renderLayers() {
     clear(layerbar);
     state.cfg.layers.forEach((l, i) => {
-      const live = state.status.layer === i;
-      layerbar.append(h("button", { type: "button", role: "tab", class: `layer ${live ? "live" : ""}`, "aria-selected": String(state.scope === i), style: l.color ? { "--lc": l.color } : {}, title: live ? t("strip.live") : "",
-        onclick: () => {
-          if (state.scope === i) state.panel = state.panel === "layer" ? "key" : "layer"; else { state.scope = i; state.panel = "key"; }
-          renderAll();
-        } }, h("span", { class: "n" }, String(i + 1)), l.name));
+      const sel = state.scope === i;
+      const tab = h("button", { type: "button", role: "tab", class: "layer", "aria-selected": String(sel), style: l.color ? { "--lc": l.color } : {},
+        title: state.status.layer === i ? t("strip.live") : undefined,
+        onclick: () => { if (sel) state.panel = state.panel === "layer" ? "key" : "layer"; else { state.scope = i; state.panel = "key"; } renderAll(); } },
+        h("span", { class: "n" }, String(i + 1)), h("span", { class: "name" }, l.name), state.status.layer === i ? h("span", { class: "live", "aria-label": t("strip.live") }) : null);
+      layerbar.append(tab);
     });
-    if (layerCount() < 9) layerbar.append(h("button", { type: "button", class: "layer add", onclick: addLayer, "aria-label": t("strip.add") }, ic("plus", 15), t("strip.add")));
+    if (canAddLayer()) layerbar.append(h("button", { type: "button", class: "layer add", onclick: () => { addLayer(); state.panel = "layer"; renderAll(); }, title: t("strip.add_tip") }, ic("plus", 14), t("strip.add")));
     layerbar.append(h("span", { class: "sep" }),
-      h("button", { type: "button", class: "layer", "aria-selected": String(state.scope === "global"), title: t("strip.global_tip"), onclick: () => { state.scope = "global"; state.panel = "key"; renderAll(); } }, ic("globe", 15), t("strip.global")));
-  }
-
-  function addLayer() {
-    edit("", (cfg) => { cfg.layers.push({ name: t("layer.default_name", { n: cfg.layers.length + 1 }), color: "", icon: "", auto_apps: [], keys: {} }); });
-    state.scope = layerCount() - 1; state.panel = "layer";
-    renderAll();
+      h("button", { type: "button", role: "tab", class: "layer", "aria-selected": String(state.scope === "global"), title: t("strip.global_tip"), onclick: () => { state.scope = "global"; state.panel = "key"; renderAll(); } }, ic("globe", 14), h("span", { class: "name" }, t("strip.global"))));
+    if (state.scope !== "global") layerbar.append(h("button", { type: "button", class: "tool layer-edit", "aria-pressed": String(state.panel === "layer"), title: t("layer.edit"), "aria-label": t("layer.edit"), onclick: () => { state.panel = state.panel === "layer" ? "key" : "layer"; renderDock(); renderLayers(); } }, ic("sliders", 15)));
   }
 
   function getKd(usage) {
@@ -58,15 +54,19 @@ export function workView(root) {
 
   function renderKeyboard() {
     renderBanner();
+    const refocus = document.activeElement?.closest?.(".kb") === kb?.el;
     kb?.destroy();
-    kb = keyboard(layoutId(), legendLang(), getKd, { selected: usageOf(state.selKey), onSelect: selectKey, onMove: moveKey, color: accent(), maxU: 60, fitHeight: () => stage.clientHeight - infoLine.offsetHeight - bannerHost.offsetHeight - 70 });
+    kb = keyboard(layoutId(), legendLang(), getKd, { selected: usageOf(state.selKey), onSelect: selectKey, onMove: moveKey, color: accent(), maxU: 64, minU: 22, observe: stage,
+      fitHeight: () => stage.clientHeight - infoLine.offsetHeight - bannerHost.offsetHeight - 64 });
     clear(kbHost).append(kb.el);
+    if (refocus) kb.caps.get(usageOf(state.selKey))?.el.focus({ preventScroll: true });
   }
 
   function moveKey(from, to, copy) {
     const a = hex(from), b = hex(to);
     const keys = keysOf();
     if (!keys[a]) return;
+    const swap = !copy && !!keys[b];
     edit("", () => {
       const src = clone(keys[a]), dst = keys[b] ? clone(keys[b]) : null;
       keys[b] = src;
@@ -75,38 +75,40 @@ export function workView(root) {
     });
     state.selKey = b; state.panel = "key";
     renderKeyboard(); renderDock();
-    toast(t(copy ? "key.copied_to" : keys[a] ? "key.swapped" : "key.moved", { from: keyName(from), to: keyName(to) }));
+    toast(t(copy ? "key.copied_to" : swap ? "key.swapped" : "key.moved", { from: keyName(from), to: keyName(to) }));
   }
 
-  function keyName(usage) {
-    const k = getLayout(layoutId(), legendLang()).keys.find((x) => x.usage === usage);
-    return k ? (k.legend.icon ? t("key.arrow") + " " + t("arrow." + k.legend.icon) : k.legend.main) : hex(usage);
+  function selectKey(usage) {
+    if (state.selKey === hex(usage) && state.panel === "key") return;
+    state.selKey = hex(usage); state.panel = "key";
+    kb?.select(usage);
+    renderDock(); renderLayers();
   }
 
-  function selectKey(usage) { state.selKey = hex(usage); state.panel = "key"; renderKeyboard(); renderDock(); }
-
-  const bannerSig = () => { const st = state.status; return [st.connected, !!state.keyboard.info?.present, st.board_error, st.capture, boardMissing()].join("|"); };
-  let lastSig = bannerSig();
+  const bannerSig = () => { const st = state.status; return [st.connected, !!state.keyboard.info?.present, st.board_error, st.capture, boardMissing(), totalMacros() === 0].join("|"); };
+  const totalMacros = () => state.cfg.layers.reduce((n, l) => n + Object.keys(l.keys).length, 0) + Object.keys(state.cfg.global || {}).length;
+  let lastSig = "";
   function renderBanner() {
+    const sig = bannerSig();
+    if (sig === lastSig) return;
+    lastSig = sig;
     clear(bannerHost);
-    lastSig = bannerSig();
     const st = state.status, soft = isSoftware(), boardOk = !!st.connected, kbOk = boardOk && !!state.keyboard.info?.present;
-    const offer = boardMissing() ? h("button", { type: "button", class: "btn sm", onclick: useWithoutBoard }, t("capture.use_without")) : null;
-    const total = state.cfg.layers.reduce((n, l) => n + Object.keys(l.keys).length, 0);
-    const step = (done, text, action) => h("li", { class: `step-row ${done ? "done" : ""}` }, h("span", { class: "tick" }, done ? ic("check", 13) : null), h("span", { class: "grow" }, text), action);
-    if (total === 0) {
-      const pack = step(false, t("setup.pack"), h("button", { type: "button", class: "btn sm primary", onclick: () => { location.hash = "#/gallery"; } }, t("setup.pack_cta")));
+    const step = (done, text, action) => h("li", { class: `step-row ${done ? "done" : ""}` }, h("span", { class: "tick" }, done ? ic("check", 12) : null), h("span", { class: "grow" }, text), action);
+    if (totalMacros() === 0) {
+      const pack = step(false, t("setup.pack"), h("a", { class: "btn sm primary", href: "#/gallery" }, t("setup.pack_cta")));
+      const offer = boardMissing() ? h("button", { type: "button", class: "btn sm", onclick: useWithoutBoard }, t("capture.use_without")) : null;
       const steps = soft ? [step(boardOk, boardOk ? t("setup.soft") : osText("setup.soft_off"), boardOk ? null : h("button", { type: "button", class: "btn sm", onclick: useBoard }, t("capture.use_board"))), pack]
         : [step(boardOk, boardOk ? t("setup.board_ok") : t(st.board_error === "outdated_firmware" ? "info.fw_old" : "setup.board"), offer),
-          step(kbOk, kbOk ? t("setup.kbd_ok") : t("setup.kbd"), kbOk ? h("button", { type: "button", class: "txtbtn", onclick: () => openKeyboardDrawer() }, t("info.details")) : null), pack];
-      bannerHost.append(h("div", { class: "setup" }, h("div", {}, h("h3", {}, t("setup.title")), h("p", { class: "dim" }, t(soft ? "setup.sub_soft" : "setup.sub"))), h("ol", {}, steps)));
+          step(kbOk, kbOk ? t("setup.kbd_ok") : t("setup.kbd"), kbOk ? h("button", { type: "button", class: "btn sm ghost", onclick: () => openKeyboardDrawer() }, t("info.details")) : null), pack];
+      bannerHost.append(h("section", { class: "setup", "aria-labelledby": "setup-title" }, h("div", {}, h("h2", { id: "setup-title" }, t("setup.title")), h("p", { class: "dim" }, t(soft ? "setup.sub_soft" : "setup.sub"))), h("ol", {}, steps)));
     } else if (soft) {
       if (!boardOk) bannerHost.append(hookDownCard());
     } else if (!boardOk && boardMissing()) {
       bannerHost.append(offerCard());
     } else if (!boardOk || !kbOk) {
-      bannerHost.append(h("div", { class: "banner" }, ic("alert", 18), h("p", {}, t(!boardOk ? "setup.warn_board" : "setup.warn_kbd")),
-        boardOk ? h("button", { type: "button", class: "btn sm", onclick: async () => { try { await api("/api/board", { method: "POST", body: { cmd: "reboot" } }); toast(t("setup.rebooting")); } catch (e) { toast(e.message, "bad"); } } }, t("setup.reboot")) : null));
+      bannerHost.append(h("div", { class: "banner", role: "status" }, ic("alert", 16), h("p", {}, t(!boardOk ? "setup.warn_board" : "setup.warn_kbd")),
+        boardOk ? h("button", { type: "button", class: "btn sm", onclick: guarded(async () => { await api("/api/board", { method: "POST", body: { cmd: "reboot" } }); toast(t("setup.rebooting")); }) }, t("setup.reboot")) : null));
     }
   }
 
@@ -120,70 +122,69 @@ export function workView(root) {
       const name = soft ? t("capture.sys_keyboard") : kbd.identity?.display || [info.mfr, info.prod].filter(Boolean).join(" ") || t("info.unnamed");
       const sure = kbd.layout ? kbd.layout.confident || kbd.layout.source === "user" : true;
       infoLine.append(...[h("b", {}, name), h("span", {}, layoutLabel(layoutId())), sure ? null : h("span", { class: "unsure" }, t("info.unconfirmed")),
-        h("span", {}, `${getLayout(layoutId()).keys.length} ${t("info.keys")}`), info.power_ma ? h("span", {}, `${info.power_ma} mA`) : null].filter(Boolean));
+        h("span", {}, `${getLayout(layoutId()).keys.length} ${t("info.keys")}`)].filter(Boolean));
     }
-    infoLine.append(h("button", { type: "button", onclick: () => openKeyboardDrawer() }, t("info.details")),
+    infoLine.append(h("button", { type: "button", class: "btn sm ghost", onclick: () => openKeyboardDrawer() }, t("info.details")),
       toggle(t("note.follow"), state.follow, async (v) => {
         state.follow = v;
         try { await api("/api/learn", { method: "POST", body: { on: v } }); } catch (e) { toast(e.message, "bad"); state.follow = false; renderInfo(); }
-      }, t("note.follow_help")));
+      }, null, t("note.follow")));
+    infoLine.lastChild.title = t("note.follow_help");
   }
 
   function renderDock() {
+    stopRecording();
+    const scroll = dock.scrollTop;
     clear(dock);
     dock.append(state.panel === "layer" && state.scope !== "global" ? layerDock() : keyDock());
+    dock.scrollTop = scroll;
   }
 
   function keyDock() {
     const id = state.selKey, usage = usageOf(id);
-    const L = getLayout(layoutId(), legendLang());
-    const k = L.keys.find((x) => x.usage === usage);
-    const name = k ? (k.legend.icon ? t("key.arrow") + " " + t("arrow." + k.legend.icon) : k.legend.main || id) : id;
+    const k = getLayout(layoutId(), legendLang()).keys.find((x) => x.usage === usage);
+    const name = keyName(usage);
     const kd = keyDef(id);
-    const scopeName = state.scope === "global" ? t("strip.global") : state.cfg.layers[state.scope].name;
-    const hasAction = kd && (kd.tap || kd.hold || kd.double);
     const tool = (label, icon, on, disabled, cls = "") => h("button", { type: "button", class: `tool ${cls}`, title: label, "aria-label": label, disabled, onclick: on }, ic(icon, 16));
 
-    const head = h("div", { class: "dock-head" },
-      h("span", { class: "cap-mini" }, k?.legend.icon ? ic(k.legend.icon, 15) : name),
-      h("div", { class: "keyname" }, h("span", { class: "t" }, t("key.title", { key: name })), h("span", { class: "s" }, scopeName)),
+    const head = h("header", { class: "dock-head" },
+      h("span", { class: "cap-mini", "aria-hidden": "true" }, k?.legend.icon ? ic(k.legend.icon, 14) : (k?.legend.main || id).slice(0, 6) || " "),
+      h("div", { class: "keyname" }, h("h2", {}, t("key.title", { key: name })), h("span", {}, scopeName())),
       h("div", { class: "acts" },
         tool(t("key.copy"), "copy", () => { state.clip = clone(kd); toast(t("key.copied")); renderDock(); }, !kd),
-        tool(t("key.paste"), "paste", () => { edit("", () => { keysOf()[id] = clone(state.clip); }); renderDock(); }, !state.clip),
-        tool(t("key.clear"), "trash", () => { edit("", () => { delete keysOf()[id]; }); state.testResult = null; renderDock(); }, !kd, "danger")));
+        tool(t("key.paste"), "paste", () => { edit("", () => { keysOf()[id] = clone(state.clip); }); renderKeyboard(); renderDock(); }, !state.clip),
+        tool(t("key.clear"), "trash", () => { edit("", () => { delete keysOf()[id]; }); renderDock(); }, !kd, "danger")));
 
-    const tabs = h("div", { class: "gtabs", role: "tablist" }, GESTURES.map((g) => h("button", { type: "button", role: "tab", class: "gtab", dataset: { g }, "aria-selected": String(gesture === g),
-      onclick: () => { gesture = g; renderDock(); } }, t("gesture." + g), kd?.[g] ? h("i", { class: "on" }) : null)));
     const inherited = state.scope !== "global" && !kd && state.cfg.global[id];
-    const notice = inherited ? h("div", { class: "notice" }, ic("globe", 17), h("p", {}, t("key.inherited")),
-      h("div", { class: "btns" },
-        h("button", { type: "button", class: "btn sm", onclick: () => { state.scope = "global"; renderAll(); } }, t("key.edit_global")),
-        h("button", { type: "button", class: "btn sm primary", onclick: () => { edit("", () => { keysOf()[id] = clone(state.cfg.global[id]); }); renderDock(); } }, t("key.override")))) : null;
     if (inherited) {
       const g = state.cfg.global[id];
       const rows = GESTURES.filter((x) => g[x]).map((x) => h("div", { class: "inh-row" }, h("span", { class: "k" }, t("gesture." + x)), h("span", { class: "v" }, t("type." + g[x].type), h("small", {}, describe(g[x])))));
-      return h("div", {}, head, notice, h("div", { class: "dock-body" }, h("div", { class: "group" }, h("h3", {}, t("key.inherited_title")), h("div", { class: "inh" }, rows))));
+      return h("div", {}, head, h("div", { class: "dock-body" },
+        h("div", { class: "notice" }, ic("globe", 16), h("p", {}, t("key.inherited")),
+          h("div", { class: "btns" },
+            h("button", { type: "button", class: "btn sm", onclick: () => { state.scope = "global"; renderAll(); } }, t("key.edit_global")),
+            h("button", { type: "button", class: "btn sm", onclick: () => { edit("", () => { keysOf()[id] = clone(state.cfg.global[id]); }); renderDock(); } }, t("key.override")))),
+        h("section", { class: "group" }, h("h3", {}, t("key.inherited_title")), h("div", { class: "inh" }, rows))));
     }
-    return h("div", {}, head, notice, h("div", { class: "dock-body" }, tabs, gesturePane(gesture, kd, id), lookGroup(kd, id)));
+    const tabs = h("div", { class: "gtabs", role: "tablist", "aria-label": t("sec.action") }, GESTURES.map((g) => h("button", { type: "button", role: "tab", class: "gtab", dataset: { g }, "aria-selected": String(gesture === g),
+      onclick: () => { gesture = g; renderDock(); dock.querySelector(`.gtab[data-g="${g}"]`)?.focus(); } }, t("gesture." + g), kd?.[g] ? h("i", { class: "on", "aria-label": t("gesture.set") }) : null)));
+    return h("div", {}, head, h("div", { class: "dock-body" }, tabs, gesturePane(gesture, kd, id), lookGroup(kd, id)));
   }
 
   function gesturePane(g, kd, id) {
     const a = kd?.[g];
     const help = g === "tap" && !a && (kd?.hold || kd?.double) ? t("gesture.tap_pass") : t("gesture." + g + "_help", { ms: g === "hold" ? state.cfg.settings.hold_ms : state.cfg.settings.double_ms });
     const pane = h("div", { class: "pane", role: "tabpanel" });
-    if (!a) pane.append(h("p", { class: "hint" }, help));
-    const sel = select("", a?.type || "", typeOptions(), (v) => {
+    pane.append(select("", a?.type || "", typeOptions(), (v) => {
       edit("", () => {
         const k = ensureKey(id);
         if (!v) { delete k[g]; pruneKey(id); } else { const prev = k[g], next = newAction(v); k[g] = { ...next, ...(prev?.confirm && wantsConfirm(next) ? { confirm: true } : {}) }; }
       });
-      state.testResult = null; renderKeyboard(); renderDock();
-    });
-    pane.append(sel);
+      renderKeyboard(); renderDock();
+    }, a ? "" : help, t("sec.action")));
     if (a) {
       const lonely = state.scope !== "global" && !state.cfg.global[id] ? { name: state.cfg.layers[state.scope].name, apply: () => makeGlobal(id) } : null;
-      pane.append(...actionFields(a, () => renderDock(), { gesture: g, lonely }));
-      pane.append(...actionExtras(a, () => renderDock()));
+      pane.append(...actionFields(a, () => renderDock(), { gesture: g, lonely }), ...actionExtras(a));
     }
     return pane;
   }
@@ -196,60 +197,60 @@ export function workView(root) {
   }
 
   function lookGroup(kd, id) {
-    const first = kd && (kd.tap || kd.hold || kd.double);
-    return h("div", { class: "group" }, h("h3", {}, t("sec.look")),
-      textInput(t("look.label"), kd?.label || "", (v) => { edit("label", () => { const k = ensureKey(id); if (v) k.label = v; else delete k.label; pruneKey(id); }); }, { max: 40, placeholder: first ? describe(first) : "" }),
-      field(t("look.color"), swatches(kd?.color || null, (v) => { edit("color", () => { const k = ensureKey(id); if (v) k.color = v; else delete k.color; pruneKey(id); }); })),
-      field(t("look.icon"), iconPicker(kd?.icon || null, (v) => { edit("", () => { const k = ensureKey(id); if (v) k.icon = v; else delete k.icon; pruneKey(id); }); })));
+    const first = firstAction(kd);
+    const set = (tag, key, v) => edit(tag, () => { const k = ensureKey(id); if (v) k[key] = v; else delete k[key]; pruneKey(id); });
+    return h("section", { class: "group" }, h("h3", {}, t("sec.look")),
+      textInput(t("look.label"), kd?.label || "", (v) => set("label", "label", v), { max: 40, placeholder: first ? describe(first) : "" }),
+      field(t("look.color"), swatches(kd?.color || null, (v) => set("color", "color", v))),
+      field(t("look.icon"), iconPicker(kd?.icon || null, (v) => set("", "icon", v))));
   }
 
   function layerDock() {
     const l = state.cfg.layers[state.scope], i = state.scope;
-    const head = h("div", { class: "dock-head" }, h("span", { class: "cap-mini" }, String(i + 1)), h("div", { class: "keyname" }, h("span", { class: "t" }, l.name), h("span", { class: "s" }, t("layer.title"))),
-      h("div", { class: "acts" }, h("button", { type: "button", class: "btn sm", onclick: () => { state.panel = "key"; renderDock(); } }, t("common.done"))));
-    const apps = h("div", { class: "stack", style: { gap: "8px" } });
+    const head = h("header", { class: "dock-head" }, h("span", { class: "cap-mini", "aria-hidden": "true" }, String(i + 1)), h("div", { class: "keyname" }, h("h2", {}, l.name), h("span", {}, t("layer.title"))),
+      h("div", { class: "acts" }, h("button", { type: "button", class: "btn sm", onclick: () => { state.panel = "key"; renderDock(); renderLayers(); } }, t("common.done"))));
+    const apps = h("div", { class: "stack tight" });
     const drawApps = () => {
       clear(apps);
-      const wrap = h("div", { class: "row wrap", style: { gap: "6px" } }, (l.auto_apps || []).map((n, k) => h("span", { class: "tag row", style: { gap: "6px" } }, n,
-        h("button", { type: "button", class: "tool", style: { height: "18px", padding: "0" }, "aria-label": t("common.remove"), onclick: () => { edit("", () => { l.auto_apps.splice(k, 1); }); drawApps(); } }, ic("x", 12)))));
-      const inp = h("input", { type: "text", placeholder: t("layer.auto_add"), spellcheck: false });
+      const list = l.auto_apps || [];
+      const inp = h("input", { type: "text", placeholder: t("layer.auto_add"), spellcheck: false, "aria-label": t("layer.auto_add") });
       inp.setAttribute("list", "apps");
-      const add = () => { const v = inp.value.trim(); if (v && !(l.auto_apps || []).includes(v)) { edit("", () => { (l.auto_apps ||= []).push(v); }); drawApps(); } };
+      const add = () => { const v = inp.value.trim(); if (v && !list.includes(v)) { edit("", () => { (l.auto_apps ||= []).push(v); }); drawApps(); apps.querySelector("input")?.focus(); } };
       inp.addEventListener("keydown", (e) => { if (e.key === "Enter") add(); });
       inp.addEventListener("change", add);
-      apps.append(wrap, inp, h("datalist", { id: "apps" }, state.appList.map((n) => h("option", { value: n }))), h("p", { class: "help" }, state.cfg.settings.auto_layer ? t("layer.auto_help") : t("layer.auto_off")));
+      apps.append(list.length ? h("ul", { class: "taglist" }, list.map((n, k) => h("li", { class: "tag" }, n,
+        h("button", { type: "button", class: "tag-x", "aria-label": `${t("common.remove")} ${n}`, onclick: () => { edit("", () => { l.auto_apps.splice(k, 1); }); drawApps(); } }, ic("x", 12))))) : null,
+        inp, h("p", { class: "help" }, state.cfg.settings.auto_layer ? t("layer.auto_help") : t("layer.auto_off")));
     };
     drawApps();
-    const move = (d) => { edit("", (c) => { const j = i + d; [c.layers[i], c.layers[j]] = [c.layers[j], c.layers[i]]; }); state.scope = i + d; renderAll(); };
-    const cols = h("div", { class: "dock-body" },
+    const move = (d) => { moveLayer(i, i + d); renderAll(); };
+    return h("div", {}, head, h("div", { class: "dock-body" },
       h("div", { class: "pane" },
         textInput(t("layer.name"), l.name, (v) => { edit("lname", () => { l.name = v || "-"; }); renderLayers(); }, { max: 30 }),
-        field(t("look.color"), swatches(l.color || null, (v) => { edit("lcolor", () => { l.color = v || ""; }); renderLayers(); renderKeyboard(); })),
+        field(t("look.color"), swatches(l.color || null, (v) => { edit("lcolor", () => { l.color = v || ""; }); })),
         field(t("look.icon"), iconPicker(l.icon || null, (v) => { edit("", () => { l.icon = v || ""; }); }))),
-      h("div", { class: "group" }, h("h3", {}, t("layer.auto")), apps),
-      h("div", { class: "group" }, h("h3", {}, t("layer.manage")),
+      h("section", { class: "group" }, h("h3", {}, t("layer.auto")), apps),
+      h("section", { class: "group" }, h("h3", {}, t("layer.manage")),
         h("div", { class: "row wrap" },
-          h("button", { type: "button", class: "btn sm", disabled: i === 0, onclick: () => move(-1) }, ic("arrow-left", 15), t("layer.left")),
-          h("button", { type: "button", class: "btn sm", disabled: i === layerCount() - 1, onclick: () => move(1) }, ic("arrow-right", 15), t("layer.right")),
-          h("button", { type: "button", class: "btn sm", disabled: layerCount() >= 9, onclick: () => { edit("", (c) => { const cp = clone(l); cp.name = t("layer.copy_of", { name: l.name }); c.layers.splice(i + 1, 0, cp); }); state.scope = i + 1; renderAll(); } }, ic("copy", 15), t("layer.duplicate")),
-          h("button", { type: "button", class: "btn sm", onclick: () => exportLayer(i) }, ic("download", 15), t("share.export_layer")),
-          h("button", { type: "button", class: "btn sm", onclick: importPack }, ic("upload", 15), t("share.import_btn")),
-          layerCount() > 1 && armed("layer.delete", () => { edit("", (c) => { c.layers.splice(i, 1); }); state.scope = Math.max(0, i - 1); state.panel = "key"; renderAll(); }, { small: true, icon: "trash" }))));
-    return h("div", {}, head, cols);
+          h("button", { type: "button", class: "btn sm", disabled: i === 0, onclick: () => move(-1) }, ic("arrow-left", 14), t("layer.left")),
+          h("button", { type: "button", class: "btn sm", disabled: i === layerCount() - 1, onclick: () => move(1) }, ic("arrow-right", 14), t("layer.right")),
+          h("button", { type: "button", class: "btn sm", disabled: !canAddLayer(), onclick: () => { const cp = clone(l); cp.name = t("layer.copy_of", { name: l.name }); addLayer(cp, i + 1); state.panel = "layer"; renderAll(); } }, ic("copy", 14), t("layer.duplicate")),
+          h("button", { type: "button", class: "btn sm", onclick: () => exportLayer(i) }, ic("download", 14), t("share.export_layer")),
+          h("button", { type: "button", class: "btn sm", onclick: importPack }, ic("upload", 14), t("share.import_btn"))),
+        layerCount() > 1 ? h("div", { class: "row" }, armed("layer.delete", () => { removeLayer(i); state.panel = "key"; renderAll(); }, { small: true, icon: "trash" })) : null)));
   }
 
   function renderAll() { renderLayers(); renderKeyboard(); renderInfo(); renderDock(); }
   renderAll();
-  const ro = new ResizeObserver(() => { if (kb) { kb.destroy(); renderKeyboard(); } });
-  ro.observe(stage);
 
+  const ARROWS = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0] };
   const onKey = (e) => {
-    if (state.view !== "keys" || document.querySelector(".scrim, .drawer-scrim")) return;
-    if (["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)) return;
-    const dirs = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0] };
-    if (dirs[e.key] && !e.metaKey && !e.ctrlKey && kb) { e.preventDefault(); selectKey(neighbor(kb.layout, usageOf(state.selKey), ...dirs[e.key])); return; }
+    if (state.view !== "keys" || modalOpen() || isTyping() || e.metaKey || e.ctrlKey || e.altKey) return;
+    const focus = document.activeElement;
+    if (focus && focus !== document.body && !focus.closest(".kb")) return;
+    if (ARROWS[e.key] && kb) { e.preventDefault(); const next = neighbor(kb.layout, usageOf(state.selKey), ...ARROWS[e.key]); selectKey(next); if (focus?.closest(".kb")) kb.caps.get(next)?.el.focus(); return; }
     const id = state.selKey;
-    if ((e.key === "Delete" || e.key === "Backspace") && keyDef(id)) { e.preventDefault(); edit("", () => { delete keysOf()[id]; }); renderDock(); return; }
+    if ((e.key === "Delete" || e.key === "Backspace") && keyDef(id)) { e.preventDefault(); edit("", () => { delete keysOf()[id]; }); renderDock(); toast(t("key.cleared", { key: keyName(usageOf(id)) })); }
   };
   document.addEventListener("keydown", onKey);
 
@@ -262,8 +263,8 @@ export function workView(root) {
       else if (topic === "watch" && state.follow) { const u = usageOf(detail.key); if (kb?.caps.has(u) && !kb.caps.get(u).k.mod) selectKey(u); }
     },
     unmount() {
+      stopRecording();
       document.removeEventListener("keydown", onKey);
-      ro.disconnect();
       kb?.destroy();
       if (state.follow) { state.follow = false; api("/api/learn", { method: "POST", body: { on: false } }).catch(() => {}); }
     },

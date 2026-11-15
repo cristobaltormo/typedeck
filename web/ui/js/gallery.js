@@ -1,102 +1,104 @@
-import { h, ic, clear } from "./dom.js";
+import { h, ic, clear, pageHead, emptyState } from "./dom.js";
 import { api } from "./api.js";
-import { t, lang } from "./i18n.js";
-import { keyboard, hex } from "./keyboard.js";
-import { legend, legendLang } from "./layouts.js";
+import { t, lang, pick } from "./i18n.js";
+import { keyboard } from "./keyboard.js";
+import { legendLang, keyName } from "./layouts.js";
 import { toast } from "./toast.js";
-import { state, edit, layerCount, layoutId, describe } from "./store.js";
+import { openModal } from "./modal.js";
+import { clone, hex, norm } from "./util.js";
+import { state, edit, layoutId, describe, firstAction, canAddLayer } from "./store.js";
+import { insertLayer } from "./layerops.js";
 import { importPack, exportEverything } from "./share.js";
 
-const pick = (v) => (v && typeof v === "object" ? v[lang()] || v.es : v);
-const clone = (o) => JSON.parse(JSON.stringify(o));
-const norm = (s) => (s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+const cache = new Map();
+function resolved(p) {
+  const key = `${p.id}|${layoutId()}|${lang()}`;
+  if (!cache.has(key)) cache.set(key, api("/api/packs/resolve", { method: "POST", body: { id: p.id, layout: layoutId(), lang: lang() } }).catch((e) => { cache.delete(key); throw e; }));
+  return cache.get(key);
+}
+
+const macroList = (r) => Object.entries({ ...r.global, ...r.layer.keys }).map(([id, kd]) => ({ u: parseInt(id, 16), kd })).filter((m) => firstAction(m.kd));
+const what = (kd) => kd.label || describe(firstAction(kd));
 
 export function galleryView(root) {
   const { categories, packs } = state.packs;
   let cat = "all", query = "";
-  const chips = h("div", { class: "cats", role: "tablist" });
+  const chips = h("div", { class: "cats", role: "group", "aria-label": t("gallery.categories") });
   const search = h("input", { type: "search", placeholder: t("gallery.search"), "aria-label": t("gallery.search"), spellcheck: false });
-  const list = h("div", { class: "rowlist" });
+  const list = h("div", { class: "packs" });
 
   const matches = (p) => (cat === "all" || p.category === cat) && (!query || norm([pick(p.name), pick(p.description), ...(p.apps || []), ...(p.tags || [])].join(" ")).includes(norm(query)));
 
   function drawChips() {
     clear(chips);
-    const mk = (id, label, n, icon) => chips.append(h("button", { type: "button", role: "tab", class: "cat", "aria-selected": String(cat === id), onclick: () => { cat = id; drawChips(); drawList(); } }, icon ? ic(icon, 15) : null, label, h("span", { class: "n" }, String(n))));
+    const mk = (id, label, n) => chips.append(h("button", { type: "button", class: "cat", "aria-pressed": String(cat === id), onclick: () => { cat = id; drawChips(); drawList(); } }, label, h("span", { class: "n" }, String(n))));
     mk("all", t("gallery.all"), packs.length);
-    for (const c of categories) { const n = packs.filter((p) => p.category === c.id).length; if (n) mk(c.id, pick(c.name), n, c.icon); }
+    for (const c of categories) { const n = packs.filter((p) => p.category === c.id).length; if (n) mk(c.id, pick(c.name), n); }
   }
-
-  async function resolved(p) {
-    return api("/api/packs/resolve", { method: "POST", body: { id: p.id, layout: layoutId(), lang: lang() } });
-  }
-
-  const keyLabel = (u) => { const l = legend(u, legendLang()); return l?.icon ? t("key.arrow") : (l?.main || "").trim() || hex(u); };
-  const macroList = (r) => Object.entries({ ...r.global, ...r.layer.keys }).map(([id, kd]) => ({ u: parseInt(id, 16), kd })).filter((m) => m.kd.tap || m.kd.hold || m.kd.double);
 
   function preview(p, r) {
     const get = (u) => ({ kd: r.layer.keys[hex(u)] || r.global[hex(u)] });
-    const kbd = keyboard(layoutId(), legendLang(), get, { crop: true, width: 380, maxU: 42, labels: false, titles: false, color: p.color });
-    const chips = macroList(r).slice(0, 6).map((m) => h("span", { class: "chip" }, h("span", { class: "keycap sm" }, keyLabel(m.u)), h("span", { class: "chip-text" }, m.kd.label || describe(m.kd.tap || m.kd.hold || m.kd.double))));
-    const more = macroList(r).length - chips.length;
+    const kbd = keyboard(layoutId(), legendLang(), get, { crop: true, width: 340, maxU: 40, labels: false, titles: false, color: p.color });
+    const macros = macroList(r);
+    const shown = macros.slice(0, 6).map((m) => h("li", { class: "chip" }, h("kbd", {}, keyName(m.u)), h("span", { class: "chip-text" }, what(m.kd))));
     return h("div", { class: "previewbox" },
-      h("button", { type: "button", class: "mini zoomable", title: t("gallery.enlarge"), "aria-label": t("gallery.enlarge"), onclick: () => enlarge(p, r) }, kbd.el, h("span", { class: "zoom-hint" }, ic("search", 14), t("gallery.enlarge"))),
-      h("div", { class: "chips" }, chips, more > 0 ? h("span", { class: "chip more" }, `+${more}`) : null));
+      h("button", { type: "button", class: "mini zoomable", "aria-label": `${t("gallery.enlarge")}: ${pick(p.name)}`, onclick: () => enlarge(p, r) }, kbd.el),
+      h("ul", { class: "chips" }, shown, macros.length > shown.length ? h("li", { class: "chip more" }, `+${macros.length - shown.length}`) : null));
   }
 
   function enlarge(p, r) {
     const get = (u) => ({ kd: r.layer.keys[hex(u)] || r.global[hex(u)] });
-    const close = () => { scrim.remove(); document.removeEventListener("keydown", onKey, true); };
-    const onKey = (e) => { if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); close(); } };
-    const rows = macroList(r).map((m) => h("tr", {}, h("td", {}, h("span", { class: "keycap sm" }, keyLabel(m.u))), h("td", {}, m.kd.label || describe(m.kd.tap || m.kd.hold || m.kd.double)), h("td", { class: "dim" }, t("type." + (m.kd.tap || m.kd.hold || m.kd.double).type))));
-    const scrim = h("div", { class: "scrim", onclick: (e) => { if (e.target === scrim) close(); } },
-      h("div", { class: "dialog wide", role: "dialog", "aria-modal": "true", "aria-label": pick(p.name) },
-        h("div", { class: "row", style: { gap: "10px" } }, h("h2", { class: "grow row" }, ic(p.icon, 18), pick(p.name)), h("button", { type: "button", class: "tool", "aria-label": t("common.done"), onclick: close }, ic("x", 16))),
-        h("div", { class: "mini big" }, keyboard(layoutId(), legendLang(), get, { crop: true, width: 760, maxU: 64, labels: true, titles: false, color: p.color }).el),
-        h("table", { class: "macro-table" }, h("tbody", {}, rows))));
-    document.addEventListener("keydown", onKey, true);
-    document.body.append(scrim);
+    const rows = macroList(r).map((m) => h("tr", {}, h("td", {}, h("kbd", {}, keyName(m.u))), h("td", {}, what(m.kd)), h("td", { class: "dim" }, t("type." + firstAction(m.kd).type))));
+    const panel = h("div", { class: "dialog wide" },
+      h("header", { class: "dialog-head" }, ic(p.icon, 18), h("h2", { class: "grow" }, pick(p.name)), h("button", { type: "button", class: "tool", "aria-label": t("common.close"), onclick: () => modal.close() }, ic("x", 16))),
+      h("div", { class: "mini big" }, keyboard(layoutId(), legendLang(), get, { crop: true, width: 760, maxU: 64, labels: true, titles: false, color: p.color }).el),
+      h("table", { class: "macro-table" }, h("tbody", {}, rows)));
+    const modal = openModal(panel, { label: pick(p.name) });
   }
 
   function drawList() {
     clear(list);
     const shown = packs.filter(matches);
-    if (!shown.length) { list.append(h("div", { class: "empty-state" }, h("p", {}, t("gallery.none")))); return; }
+    if (!shown.length) { list.append(emptyState("search", t("gallery.none"))); return; }
     for (const p of shown) {
-      const row = h("div", { class: "pack" });
-      const prev = h("div", { class: "preview" });
-      const apps = (p.apps || []).map((a) => h("span", { class: "tag" }, a));
+      const prev = h("div", { class: "preview" }, h("div", { class: "preview-wait" }));
       const notes = pick(p.notes);
-      row.append(prev, h("div", {}, h("h2", { class: "row" }, ic(p.icon, 17), pick(p.name)), h("p", {}, pick(p.description)),
-        h("div", { class: "row wrap", style: { gap: "6px", marginTop: "8px" } }, apps, h("span", { class: "faint", style: { fontSize: "12.5px" } }, t("gallery.macros", { n: p.macros.length }))),
-        notes ? h("details", { class: "notes" }, h("summary", {}, t("gallery.how")), h("p", {}, notes)) : null),
-        h("div", { class: "row" },
-          h("button", { type: "button", class: "btn primary", disabled: layerCount() >= 9, onclick: async () => add(p, "layer") }, ic("plus", 15), t("gallery.add")),
-          h("button", { type: "button", class: "btn", onclick: async () => add(p, "merge") }, t("gallery.merge"))));
-      list.append(row);
-      resolved(p).then((r) => { clear(prev).append(preview(p, r)); }).catch(() => {});
+      list.append(h("article", { class: "pack" }, prev,
+        h("div", { class: "pack-body" },
+          h("h2", {}, ic(p.icon, 16), pick(p.name)),
+          h("p", { class: "dim" }, pick(p.description)),
+          h("div", { class: "meta" }, (p.apps || []).map((a) => h("span", { class: "tag" }, a)), h("span", { class: "faint" }, t("gallery.macros", { n: p.macros.length }))),
+          notes ? h("details", { class: "notes" }, h("summary", {}, t("gallery.how")), h("p", {}, notes)) : null),
+        h("div", { class: "pack-actions" },
+          h("button", { type: "button", class: "btn primary", disabled: !canAddLayer(), title: canAddLayer() ? undefined : t("gallery.full"), onclick: () => add(p, "layer") }, ic("plus", 14), t("gallery.add")),
+          h("button", { type: "button", class: "btn", disabled: state.scope === "global", onclick: () => add(p, "merge") }, t("gallery.merge", { name: state.scope === "global" ? "-" : state.cfg.layers[state.scope].name })))));
+      resolved(p).then((r) => { if (prev.isConnected) clear(prev).append(preview(p, r)); }).catch(() => { if (prev.isConnected) clear(prev); });
     }
   }
 
   async function add(p, mode) {
+    if (mode === "merge" && state.scope === "global") return toast(t("gallery.pick_layer"), "bad");
     let r;
     try { r = await resolved(p); } catch (e) { return toast(e.message, "bad"); }
-    if (mode === "merge" && state.scope === "global") return toast(t("gallery.pick_layer"), "bad");
+    if (mode === "layer" && !canAddLayer()) return toast(t("gallery.full"), "bad");
     edit("", (cfg) => {
-      if (mode === "layer") cfg.layers.push(clone(r.layer)); else Object.assign(cfg.layers[state.scope].keys, clone(r.layer.keys));
+      if (mode === "layer") insertLayer(cfg, cfg.layers.length, clone(r.layer));
+      else Object.assign(cfg.layers[state.scope].keys, clone(r.layer.keys));
       for (const [k, kd] of Object.entries(r.global || {})) if (!cfg.global[k]) cfg.global[k] = clone(kd);
     });
-    if (mode === "layer") { state.scope = layerCount() - 1; state.panel = "key"; }
-    toast(mode === "layer" ? t("gallery.added", { name: r.layer.name }) : t("gallery.merged"));
+    if (mode === "layer") state.scope = state.cfg.layers.length - 1;
+    state.panel = "key";
+    toast(mode === "layer" ? t("gallery.added", { name: r.layer.name }) : t("gallery.merged", { name: state.cfg.layers[state.scope].name }));
     if (r.dropped) toast(t("gallery.dropped", { n: r.dropped }), "bad", 4200);
     location.hash = "#/keys";
   }
 
   search.addEventListener("input", () => { query = search.value; drawList(); });
-  root.append(h("div", { class: "page", style: { maxWidth: "1100px" } }, h("header", { class: "row wrap" }, h("div", { class: "grow" }, h("h1", {}, t("gallery.title")), h("p", {}, t("gallery.sub"))),
-      h("button", { type: "button", class: "btn", onclick: importPack }, ic("upload", 16), t("share.import_btn")),
-      h("button", { type: "button", class: "btn", onclick: exportEverything }, ic("download", 16), t("share.export_all"))),
-    h("div", { class: "gallery-tools" }, h("div", { class: "searchbox" }, ic("search", 16), search), chips), list));
+  root.append(h("div", { class: "page wide" },
+    pageHead(t("gallery.sub"),
+      h("button", { type: "button", class: "btn", onclick: importPack }, ic("upload", 14), t("share.import_btn")),
+      h("button", { type: "button", class: "btn", onclick: exportEverything }, ic("download", 14), t("share.export_all"))),
+    h("div", { class: "gallery-tools" }, h("label", { class: "searchbox" }, ic("search", 16), search), chips), list));
   drawChips(); drawList();
   return {};
 }

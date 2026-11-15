@@ -1,8 +1,5 @@
 import { icon } from "./icons.js";
 
-export const $ = (sel, root = document) => root.querySelector(sel);
-export const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
-
 export function h(tag, props = {}, ...kids) {
   const el = document.createElement(tag);
   for (const [k, v] of Object.entries(props || {})) {
@@ -16,7 +13,7 @@ export function h(tag, props = {}, ...kids) {
     }
     else if (k === "dataset") Object.assign(el.dataset, v);
     else if (k.startsWith("on") && typeof v === "function") el.addEventListener(k.slice(2), v);
-    else if (k in el && k !== "list") el[k] = v;
+    else if (k in el && k !== "list" && !k.includes("-")) el[k] = v;
     else el.setAttribute(k, v === true ? "" : v);
   }
   append(el, kids);
@@ -30,7 +27,7 @@ function append(el, kids) {
   }
 }
 
-export const ic = (name, size = 18) => {
+export const ic = (name, size = 16) => {
   const span = document.createElement("span");
   span.className = "ic";
   span.innerHTML = icon(name, size);
@@ -39,7 +36,12 @@ export const ic = (name, size = 18) => {
 
 export function clear(el) { el.replaceChildren(); return el; }
 
-export function debounce(fn, ms) {
-  let t;
-  return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); };
-}
+const TEXT_INPUTS = new Set(["text", "search", "url", "number", "password", "email", "tel"]);
+export const isTextField = (el) => !!el && (el.isContentEditable || el.tagName === "TEXTAREA" || (el.tagName === "INPUT" && TEXT_INPUTS.has(el.type)));
+export const isTyping = (el = document.activeElement) => isTextField(el) || el?.tagName === "SELECT";
+
+export const MOD = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent) ? "Cmd" : "Ctrl";
+
+export const pageHead = (lead, ...actions) => h("header", { class: "page-head" }, h("p", { class: "lead" }, lead), actions.flat().filter(Boolean).length ? h("div", { class: "actions" }, actions) : null);
+
+export const emptyState = (icon, text, action) => h("div", { class: "empty" }, icon ? ic(icon, 20) : null, h("p", {}, text), action || null);

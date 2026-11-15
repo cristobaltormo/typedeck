@@ -35,7 +35,7 @@
   <path d="M700 82H756" class="line"/>
 
   <rect x="470" y="200" width="260" height="92" rx="12" class="hot"/>
-  <text x="600" y="236" class="t">typedeck (Go)</text>
+  <text x="600" y="236" class="t">typedeck (Rust)</text>
   <text x="600" y="258" class="s">gestures, layers, actions, API</text>
   <text x="600" y="276" class="s">one static binary, about 11 MB</text>
 

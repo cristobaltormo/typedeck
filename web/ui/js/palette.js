@@ -1,55 +1,71 @@
-import { h, ic, clear } from "./dom.js";
-import { norm } from "./text.js";
+import { h, ic, clear, MOD } from "./dom.js";
+import { norm, usageOf } from "./util.js";
 import { t } from "./i18n.js";
-import { state, notify, edit, undo, redo, describe, layoutId } from "./store.js";
+import { state, notify, edit, undo, redo, describe, firstAction, addLayer, canAddLayer } from "./store.js";
 import { exportConfig } from "./settings.js";
 import { openKeyboardDrawer } from "./kbinfo.js";
-import { layout, legendLang } from "./layouts.js";
+import { keyName } from "./layouts.js";
+import { openModal, modalOpen } from "./modal.js";
 
-export function openPalette() {
-  if (document.querySelector(".scrim")) return;
+const VIEWS = ["keys", "gallery", "activity", "history", "sheet", "compat", "diag", "settings"];
+
+function commands() {
   const cmds = [];
-  const add = (label, icon, run, hint = "") => cmds.push({ label, icon, run, hint, key: label.toLowerCase() });
-  for (const id of ["keys", "gallery", "activity", "history", "sheet", "compat", "diag", "settings"]) add(t("pal.go", { name: t("nav." + id) }), "chevron", () => { location.hash = `#/${id}`; });
-  state.cfg.layers.forEach((l, i) => add(t("pal.layer", { name: l.name }), "layers", () => { state.scope = i; state.panel = "key"; location.hash = "#/keys"; notify("cfg", "replace"); }, `${i + 1}`));
+  const add = (label, icon, run, hint = "") => cmds.push({ label, icon, run, hint, key: norm(label) });
+  const goKeys = () => { location.hash = "#/keys"; notify("cfg", "replace"); };
+  for (const id of VIEWS) add(t("pal.go", { name: t("nav." + id) }), "chevron", () => { location.hash = `#/${id}`; });
+  state.cfg.layers.forEach((l, i) => add(t("pal.layer", { name: l.name }), "layers", () => { state.scope = i; state.panel = "key"; goKeys(); }, `${i + 1}`));
   add(t("pal.keyboard"), "keyboard", () => openKeyboardDrawer());
-  add(t("tool.undo"), "undo", undo, "Cmd Z"); add(t("tool.redo"), "redo", redo, "Cmd Shift Z");
-  add(t("strip.add"), "plus", () => { edit("", (c) => { if (c.layers.length < 9) c.layers.push({ name: t("layer.default_name", { n: c.layers.length + 1 }), color: "", icon: "", auto_apps: [], keys: {} }); }); state.scope = state.cfg.layers.length - 1; location.hash = "#/keys"; notify("cfg", "replace"); });
-  add(t("pal.theme"), "sun", () => edit("", (c) => { c.settings.theme = c.settings.theme === "dark" ? "light" : "dark"; }));
+  add(t("tool.undo"), "undo", undo, `${MOD} Z`);
+  add(t("tool.redo"), "redo", redo, `${MOD} Shift Z`);
+  if (canAddLayer()) add(t("pal.add_layer"), "plus", () => { addLayer(); state.panel = "layer"; goKeys(); });
+  add(t("pal.theme"), "sun", () => edit("", (c) => {
+    const dark = c.settings.theme === "dark" || (c.settings.theme !== "light" && matchMedia("(prefers-color-scheme: dark)").matches);
+    c.settings.theme = dark ? "light" : "dark";
+  }));
   add(t("io.export"), "download", exportConfig);
-  const L = layout(layoutId(), legendLang());
-  const keyName = (id) => { const k = L.keys.find((x) => x.usage === parseInt(id, 16)); return k ? (k.legend.icon ? t("key.arrow") : k.legend.main) : id; };
   const addKeys = (keys, scope, where) => {
     for (const [id, kd] of Object.entries(keys)) {
-      const a = kd.tap || kd.hold || kd.double;
+      const a = firstAction(kd);
       if (!a) continue;
-      add(t("pal.key", { key: keyName(id), what: kd.label || describe(a) || t("type." + a.type), where }), "keyboard", () => { state.scope = scope; state.selKey = id.toUpperCase(); state.panel = "key"; location.hash = "#/keys"; notify("cfg", "replace"); });
+      add(t("pal.key", { key: keyName(usageOf(id)), what: kd.label || describe(a) || t("type." + a.type), where }), "keyboard", () => { state.scope = scope; state.selKey = id.toUpperCase(); state.panel = "key"; goKeys(); });
     }
   };
   state.cfg.layers.forEach((l, i) => addKeys(l.keys, i, l.name));
-  addKeys(state.cfg.global, "global", t("strip.global"));
+  addKeys(state.cfg.global || {}, "global", t("strip.global"));
+  return cmds;
+}
 
-  const input = h("input", { type: "search", placeholder: t("pal.placeholder"), "aria-label": t("pal.placeholder"), autocomplete: "off" });
-  const list = h("ul", { role: "listbox" });
-  const scrim = h("div", { class: "scrim", onclick: (e) => { if (e.target === scrim) close(); } }, h("div", { class: "palette", role: "dialog", "aria-modal": "true" }, input, list));
+export function openPalette() {
+  if (modalOpen()) return;
+  const cmds = commands();
+  const input = h("input", { type: "text", role: "combobox", placeholder: t("pal.placeholder"), "aria-label": t("pal.placeholder"), "aria-expanded": "true", "aria-controls": "pal-list", autocomplete: "off", spellcheck: false });
+  const list = h("ul", { id: "pal-list", role: "listbox", "aria-label": t("tool.palette") });
+  const panel = h("div", { class: "palette" }, h("div", { class: "palette-input" }, ic("search", 16), input), list);
   let shown = [], sel = 0;
-  const close = () => { scrim.remove(); document.removeEventListener("keydown", onKey, true); };
-  const run = (c) => { close(); c.run(); };
+  const modal = openModal(panel, { label: t("tool.palette"), focus: input });
+  const run = (c) => { modal.close(); c.run(); };
+
+  function mark() {
+    [...list.children].forEach((li, i) => li.setAttribute("aria-selected", String(i === sel)));
+    const cur = list.children[sel];
+    if (cur?.id) { input.setAttribute("aria-activedescendant", cur.id); cur.scrollIntoView({ block: "nearest" }); } else input.removeAttribute("aria-activedescendant");
+  }
   function draw() {
-    const q = input.value.trim().toLowerCase();
-    shown = cmds.filter((c) => !q || norm(c.key).includes(norm(q))).slice(0, 40);
+    const q = norm(input.value.trim());
+    shown = cmds.filter((c) => !q || c.key.includes(q)).slice(0, 50);
     sel = Math.min(sel, Math.max(0, shown.length - 1));
     clear(list);
-    if (!shown.length) { list.append(h("div", { class: "none" }, t("pal.none"))); return; }
-    shown.forEach((c, i) => list.append(h("li", { role: "option", "aria-selected": String(i === sel), onclick: () => run(c), onmousemove: () => { if (sel !== i) { sel = i; draw(); } } }, ic(c.icon, 17), c.label, c.hint && h("small", {}, c.hint))));
+    if (!shown.length) { list.append(h("li", { class: "none", role: "presentation" }, t("pal.none"))); input.removeAttribute("aria-activedescendant"); return; }
+    shown.forEach((c, i) => list.append(h("li", { id: `pal-${i}`, role: "option", onclick: () => run(c), onpointermove: () => { if (sel !== i) { sel = i; mark(); } } },
+      ic(c.icon, 16), h("span", { class: "grow" }, c.label), c.hint ? h("kbd", {}, c.hint) : null)));
+    mark();
   }
-  function onKey(e) {
-    if (e.key === "Escape") { e.preventDefault(); close(); }
-    else if (e.key === "ArrowDown") { e.preventDefault(); sel = Math.min(sel + 1, shown.length - 1); draw(); list.children[sel]?.scrollIntoView({ block: "nearest" }); }
-    else if (e.key === "ArrowUp") { e.preventDefault(); sel = Math.max(sel - 1, 0); draw(); list.children[sel]?.scrollIntoView({ block: "nearest" }); }
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowDown") { e.preventDefault(); sel = Math.min(sel + 1, shown.length - 1); mark(); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); sel = Math.max(sel - 1, 0); mark(); }
     else if (e.key === "Enter" && shown[sel]) { e.preventDefault(); run(shown[sel]); }
-  }
+  });
   input.addEventListener("input", () => { sel = 0; draw(); });
-  document.addEventListener("keydown", onKey, true);
-  document.body.append(scrim); draw(); input.focus();
+  draw();
 }

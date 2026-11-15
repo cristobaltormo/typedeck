@@ -1,18 +1,12 @@
 import { api, token } from "./api.js";
 import { state, notify } from "./store.js";
+import { isTextField } from "./dom.js";
 
 let ws = null, retry = 0, onEvent = () => {}, onKey = () => {}, editing = false, recording = 0, keepAlive = null, reconnectTimer = null;
 
 export const isLive = () => !!ws && ws.readyState === WebSocket.OPEN;
 
-const EDITABLE_INPUT = new Set(["text", "search", "url", "number", "password", "email", "tel", ""]);
-function editable(el) {
-  if (!el) return false;
-  if (el.isContentEditable || el.tagName === "TEXTAREA") return true;
-  return el.tagName === "INPUT" && EDITABLE_INPUT.has((el.getAttribute("type") || "text").toLowerCase());
-}
-
-function wanted() { return recording > 0 || (document.hasFocus() && editable(document.activeElement)); }
+function wanted() { return recording > 0 || (document.hasFocus() && isTextField(document.activeElement)); }
 
 function post(on) {
   const msg = JSON.stringify({ t: "editing", on });
@@ -35,17 +29,24 @@ export function holdEditing(on) {
 
 function connect() {
   clearTimeout(reconnectTimer);
-  try { ws = new WebSocket(`ws://${location.host}/api/ws`, [`typedeck.${token}`]); } catch { return schedule(); }
-  ws.onopen = () => { retry = 0; state.live = true; notify("live"); if (editing) post(true); };
-  ws.onmessage = (m) => {
+  let sock;
+  try { sock = new WebSocket(`ws://${location.host}/api/ws`, [`typedeck.${token}`]); } catch { return schedule(); }
+  ws = sock;
+  sock.onopen = () => { retry = 0; state.live = true; notify("live"); if (editing) post(true); };
+  sock.onmessage = (m) => {
     let d; try { d = JSON.parse(m.data); } catch { return; }
     if (d.t === "event") onEvent(d.ev);
     else if (d.t === "key") onKey(d.k, d.d);
     else if (d.t === "hello") onEvent(null, d.last_id);
     else if (d.t === "focus") { window.focus(); flashTitle(); }
   };
-  ws.onclose = () => { ws = null; state.live = false; notify("live"); schedule(); };
-  ws.onerror = () => { try { ws.close(); } catch {  } };
+  sock.onclose = () => {
+    if (ws !== sock) return;
+    ws = null;
+    if (state.live) { state.live = false; notify("live"); }
+    schedule();
+  };
+  sock.onerror = () => sock.close();
 }
 
 function schedule() {
@@ -71,5 +72,6 @@ export function startLive(handler, keyHandler) {
   window.addEventListener("blur", refresh);
   window.addEventListener("focus", refresh);
   window.addEventListener("pagehide", () => { if (editing) post(false); });
+  document.addEventListener("visibilitychange", () => { if (!document.hidden && !ws) { retry = 0; connect(); } });
   connect();
 }

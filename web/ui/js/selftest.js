@@ -77,7 +77,7 @@ export async function run() {
     ok("only while held sets momentary", state.cfg.layers[0].keys["07"].hold.momentary === true && !$(".pane .notice"));
     selects()[1].value = "switch"; selects()[1].dispatchEvent(new Event("change", { bubbles: true })); await sleep(50);
     ok("a layer-only navigation key warns that it vanishes in other layers", !!$(".pane .notice") && !state.cfg.layers[0].keys["07"].hold.momentary);
-    $(".pane .notice .btn.primary").click(); await sleep(80);
+    $(".pane .notice .btn").click(); await sleep(80);
     ok("making it global moves the key to every layer", state.scope === "global" && state.cfg.global["07"]?.hold?.type === "layer" && !state.cfg.layers[0].keys["07"]);
     await setType("shell");
     ok("a command offers the double-press confirmation and a test", !!byText(".pane .switch", t("act.confirm")) && !!byText(".pane button", t("test.run")));
@@ -95,8 +95,9 @@ export async function run() {
 
     document.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true })); await sleep(60);
     ok("open the palette", !!$(".palette"));
+    ok("the palette takes the focus", document.activeElement === $(".palette input"));
     typeInto($(".palette input"), t("nav.settings").toLowerCase()); await sleep(40);
-    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true })); await sleep(140);
+    $(".palette input").dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true })); await sleep(140);
     ok("the palette navigates", location.hash === "#/settings" && !$(".palette"), location.hash);
 
     byText(".seg button", t("theme.dark")).click(); await sleep(50);
@@ -135,7 +136,7 @@ export async function run() {
     add.value = "if"; add.dispatchEvent(new Event("change", { bubbles: true })); await sleep(80);
     const cond = state.cfg.layers[0].keys["05"].tap.steps.at(-1);
     ok("add a condition to the sequence", cond?.type === "if" && cond.cond === "app", JSON.stringify(cond));
-    ok("the condition shows Then and Otherwise", !!byText("h3", t("cond.then")) && !!byText("h3", t("cond.else")));
+    ok("the condition shows Then and Otherwise", !!byText("h4", t("cond.then")) && !!byText("h4", t("cond.else")));
 
     const field = $('.pane input[type=text], .pane textarea');
     document.hasFocus = () => true;
@@ -156,16 +157,50 @@ export async function run() {
     location.hash = "#/activity"; await sleep(140);
     ok("activity loads", $$(".stat").length === 4);
     location.hash = "#/history"; await sleep(250);
-    ok("history has its own entry in the menu", !!byText(".navitem", t("nav.history")) && !!byText("h1", t("hist.title")));
+    ok("history has its own entry in the menu", !!byText(".navitem", t("nav.history")) && $(".pagetitle").textContent === t("nav.history"));
     ok("history explains how to turn it on and what happens to the data", !!$(".hist-switch .switch, .hist-switch input") && ($(".privacy")?.textContent || "").includes(t("hist.privacy")));
     location.hash = "#/diag"; await sleep(140);
     ok("diagnostics loads", !!byText("h2", t("diag.status")));
 
     location.hash = "#/keys"; await sleep(100);
-    byText(".status", "").click(); await sleep(100);
+    $(".status").focus(); $(".status").click(); await sleep(100);
     ok("the keyboard card opens", !!$(".drawer"));
     document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true })); await sleep(60);
-    ok("the card closes with Esc", !$(".drawer"));
+    ok("the card closes with Esc and gives the focus back", !$(".drawer") && document.activeElement === $(".status"));
+
+    const reopen = async () => { location.hash = "#/gallery"; await sleep(60); location.hash = "#/keys"; await sleep(120); };
+    state.scope = 0; state.selKey = "05"; state.panel = "key"; await reopen();
+    byText(".recorder button", t("rec.start")).click(); await sleep(60);
+    location.hash = "#/sheet"; await sleep(120);
+    const stray = new KeyboardEvent("keydown", { key: "x", code: "KeyX", bubbles: true, cancelable: true });
+    window.dispatchEvent(stray);
+    ok("leaving the view stops the recorder and keys work again", !stray.defaultPrevented);
+    ok("leaving the view while recording resumes capture", await editing(false));
+
+    while (state.cfg.layers.length < 3) { byText(".layer.add", t("strip.add")).click(); await sleep(60); }
+    state.scope = 0; state.selKey = "09"; state.panel = "key"; await reopen();
+    await setType("layer");
+    const target = () => selects().find((x) => [...x.options].some((o) => o.value === "next"));
+    target().value = "1"; target().dispatchEvent(new Event("change", { bubbles: true })); await sleep(60);
+    const moved = state.cfg.layers[1].name;
+    $$(".layerbar .layer")[1].click(); await sleep(60);
+    $(".layer-edit").click(); await sleep(60);
+    byText(".dock button", t("layer.left")).click(); await sleep(80);
+    ok("moving a layer keeps the layer actions pointing at it", state.cfg.layers[0].name === moved && state.cfg.layers[1].keys["09"]?.tap?.to === 0, JSON.stringify(state.cfg.layers[1].keys["09"]));
+
+    state.scope = 1; state.selKey = "09"; state.panel = "key"; await reopen();
+    $(".dock-head .tool").focus();
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Backspace", bubbles: true, cancelable: true })); await sleep(40);
+    ok("Backspace on a panel button does not clear the key", !!state.cfg.layers[1].keys["09"]);
+    document.activeElement.blur();
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Backspace", bubbles: true, cancelable: true })); await sleep(40);
+    ok("Backspace with the keyboard focused clears the key", !state.cfg.layers[1].keys["09"]);
+
+    location.hash = "#/settings"; await sleep(120);
+    byText(".seg button", "Español").click(); await sleep(120);
+    ok("switching the language redraws without reloading", $(".pagetitle").textContent === "Ajustes" && !!byText(".navitem", "Teclas"), $(".pagetitle").textContent);
+    byText(".seg button", "English").click(); await sleep(120);
+    ok("and back", $(".pagetitle").textContent === "Settings", $(".pagetitle").textContent);
   } catch (e) {
     ok("exception", false, e.stack || e.message);
   }

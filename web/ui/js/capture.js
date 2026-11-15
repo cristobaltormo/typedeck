@@ -2,7 +2,8 @@ import { h, ic } from "./dom.js";
 import { api } from "./api.js";
 import { t, tOS } from "./i18n.js";
 import { toast } from "./toast.js";
-import { state, notify } from "./store.js";
+import { openModal } from "./modal.js";
+import { state, notify, setKeyboard } from "./store.js";
 
 const MISSING_AFTER_MS = 8000;
 const bootAt = Date.now();
@@ -29,7 +30,7 @@ async function applyMode(mode, consent) {
   state.cfg.settings.capture = r.capture;
   const [st, kb] = await Promise.all([api("/api/status"), api("/api/keyboard")]);
   Object.assign(state.status, st);
-  state.keyboard = { connected: kb.connected, info: kb.info || null, prefs: kb.prefs || null, identity: kb.identity || null, layout: kb.layout || null };
+  setKeyboard(kb);
   notify("status"); notify("keyboard");
 }
 
@@ -37,32 +38,35 @@ export async function useBoard() {
   try { await applyMode("board", false); toast(t("capture.off_toast")); return true; } catch (e) { toast(e.message, "bad"); return false; }
 }
 
+let consentOpen = false;
 export function useWithoutBoard() {
+  if (consentOpen) return Promise.resolve(false);
+  consentOpen = true;
   return new Promise((resolve) => {
-    if (document.querySelector(".capture-consent")) { resolve(false); return; }
-    const finish = (ok) => { scrim.remove(); document.removeEventListener("keydown", onKey, true); resolve(ok); };
-    const enable = async () => {
-      try { await applyMode("software", true); toast(t("capture.on_toast")); finish(true); } catch (e) { toast(t("capture.failed", { error: e.message }), "bad", 5000); }
+    let ok = false;
+    const enable = async (e) => {
+      const btn = e.currentTarget;
+      btn.disabled = true;
+      try { await applyMode("software", true); toast(t("capture.on_toast")); ok = true; modal.close(); }
+      catch (err) { toast(t("capture.failed", { error: err.message }), "bad", 5000); btn.disabled = false; }
     };
-    const points = ["capture.c1", "capture.c2", "capture.c3", "capture.c4", "capture.c5"].map((k) => h("li", {}, osText(k)));
-    const scrim = h("div", { class: "scrim capture-consent", onclick: (e) => { if (e.target === scrim) finish(false); } },
-      h("div", { class: "palette consent", role: "dialog", "aria-modal": "true", "aria-label": t("capture.consent_title") },
-        h("h2", {}, t("capture.consent_title")), h("p", { class: "dim" }, osText("capture.consent_lead")), h("ul", {}, points),
-        h("div", { class: "row", style: { justifyContent: "flex-end", gap: "10px" } },
-          h("button", { type: "button", class: "btn", onclick: () => finish(false) }, t("common.cancel")),
-          h("button", { type: "button", class: "btn primary", onclick: enable }, t("capture.enable")))));
-    const onKey = (e) => { if (e.key === "Escape") { e.preventDefault(); finish(false); } };
-    document.addEventListener("keydown", onKey, true);
-    document.body.append(scrim);
+    const panel = h("div", { class: "dialog consent" },
+      h("header", { class: "dialog-head" }, h("h2", {}, t("capture.consent_title"))),
+      h("p", {}, osText("capture.consent_lead")),
+      h("ul", { class: "consent-list" }, ["capture.c1", "capture.c2", "capture.c3", "capture.c4", "capture.c5"].map((k) => h("li", {}, osText(k)))),
+      h("footer", { class: "dialog-foot" },
+        h("button", { type: "button", class: "btn", onclick: () => modal.close() }, t("common.cancel")),
+        h("button", { type: "button", class: "btn primary", onclick: enable }, t("capture.enable"))));
+    const modal = openModal(panel, { label: t("capture.consent_title"), onClose: () => { consentOpen = false; resolve(ok); } });
   });
 }
 
 export function offerCard() {
-  return h("div", { class: "banner" }, ic("alert", 18), h("p", {}, t("capture.missing")),
+  return h("div", { class: "banner", role: "status" }, ic("alert", 16), h("p", {}, t("capture.missing")),
     h("button", { type: "button", class: "btn sm primary", onclick: useWithoutBoard }, t("capture.use_without")));
 }
 
 export function hookDownCard() {
-  return h("div", { class: "banner" }, ic("alert", 18), h("p", {}, osText("capture.hook_down")),
+  return h("div", { class: "banner", role: "status" }, ic("alert", 16), h("p", {}, osText("capture.hook_down")),
     h("button", { type: "button", class: "btn sm", onclick: useBoard }, t("capture.use_board")));
 }
