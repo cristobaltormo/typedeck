@@ -1,4 +1,4 @@
-.PHONY: build platform macos-helpers dist archives packages release-files sums test lint fmt audit check firmware flash e2e-linux e2e-linux-capture e2e-desktop e2e-wine e2e-windows-capture e2e-windows-physical e2e-macos-capture e2e-windows e2e-linux-real measure selftest web-test screenshots clean
+.PHONY: build platform macos-helpers dist archives packages release-files test lint fmt audit check firmware flash e2e-linux e2e-linux-capture e2e-desktop e2e-wine e2e-windows-capture e2e-windows-physical e2e-macos-capture e2e-windows e2e-linux-real measure selftest web-test screenshots clean
 
 VERSION ?= $(shell git describe --tags --always 2>/dev/null || echo dev)
 export TYPEDECK_VERSION := $(VERSION)

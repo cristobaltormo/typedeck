@@ -62,9 +62,8 @@ The Linux machine needs `/tmp/tdenv.sh` exporting the session variables (`XDG_RU
 
 ## Releasing
 
-1. Move the Unreleased section of `CHANGELOG.md` under a new `## X.Y.Z - date` heading.
+1. Move the Unreleased section of `CHANGELOG.md` under a new `## X.Y.Z - date` heading and set `version` in `Cargo.toml` to X.Y.Z.
 2. Commit, then `git tag -s vX.Y.Z -m "Release X.Y.Z"` and push the tag.
 3. The Release workflow tests, builds the six binaries (each on its own system), the archives and the .deb and .rpm packages with one
    checksum file and a provenance attestation, and publishes them with the section of the changelog as the notes. A tag with a
    suffix, such as `v1.0.0-rc.1`, is published as a pre-release and does not become the latest release.
-4. Set `version` in `Cargo.toml` to the release number before tagging.
