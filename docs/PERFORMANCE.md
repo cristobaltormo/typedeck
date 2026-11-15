@@ -8,7 +8,7 @@ silicon Mac). The numbers come from the tests in `tests/e2e/hardware.py`, which 
 | Forwarding one keyboard report inside the board | about 0.13 ms on average, 0.2 ms at worst |
 | A captured key reaching the program and starting its action | a few milliseconds over the serial link |
 | Opening the editor from its key when it is already open | about 150 ms (the time the OS takes to run the tab lookup) |
-| Program memory when idle | about 11 MB resident, 0 % CPU |
+| Program memory when idle | about 3 MB resident, 0 % CPU (1.0; 0.9 in Go used about 12 MB) |
 | First load of the editor | about 100 KB |
 
 The board does not wait for the computer to type: reports are forwarded as they arrive, so typing feels the same with or without
@@ -27,7 +27,7 @@ Windows allows is the limit that matters.
 | What | Result |
 |---|---|
 | Hook callback per key (decision and queueing) | 16 to 52 µs on average, 0.8 to 1.5 ms at worst (limit: 300 ms) |
-| Program memory when idle | about 20 MB resident, 0 % CPU |
+| Program memory when idle | about 20 MB resident, 0 % CPU (measured with 0.9 in Go; 1.0 has not been measured there yet) |
 
 On macOS the helper times its tap callback the same way and the program shows it in `stats`; it has not been measured yet because the
 tap could not be installed on the machine used for development (the permissions need a click in System Settings). macOS disables a
@@ -52,3 +52,25 @@ stands for the real one and a second reader on the output of Typedeck's virtual 
 The spread of the worst cases is the virtual machine's scheduler, not the program. It was measured on a virtual machine and with
 virtual keyboards; the end-to-end check on X11 used the machine's emulated PS/2 keyboard, and nothing was measured on physical
 hardware.
+
+## 1.0 (Rust) against 0.9.1 (Go)
+
+Both release binaries on the same Linux machine (LXC on Proxmox, 4 vCPU, other load present), each against the simulated board of
+`tests/e2e/measure.py` (`make measure`): start-up until the editor answers, memory after warm-up, CPU over three minutes of idle
+time with the board connected (heartbeat every second), and a shortcut macro measured from the key-down written by the fake board to
+the `KEY` command it receives, 60 presses.
+
+| What | 0.9.1 (Go) | 1.0 (Rust) |
+|---|---|---|
+| Binary, Linux amd64 (static) | 8.2 MB | 3.6 MB |
+| Binary, Windows amd64 | 8.6 MB (each of the two `.exe`) | 2.2 MB (each of the two `.exe`, mingw build; the release is built with MSVC and may differ slightly) |
+| Start-up until the editor answers | 85 ms | 26 ms |
+| Resident memory when idle | 12.6 MB | 2.8 MB |
+| CPU when idle | 10 ms per minute | 3.3 ms per minute |
+| Threads | 10 | 12 |
+| Macro latency through the board, median | 0.23 ms | 0.22 ms |
+| Macro latency through the board, 95th percentile | 0.38 ms | 0.39 ms |
+
+The CPU figures are at the resolution of the kernel clock tick (10 ms), so they mean "almost nothing" for both; the latency is set by
+the serial link and the pseudo terminal, not by the program. The release profile uses `opt-level = "s"`, LTO and one codegen unit:
+with an I/O bound program the size gain costs nothing measurable in latency.

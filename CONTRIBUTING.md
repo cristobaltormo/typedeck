@@ -4,18 +4,21 @@ Bug reports with the output of `typedeck doctor` are the most useful thing you c
 
 ## Setup
 
-Go 1.24 or newer, and nothing else for the program: it has no dependencies. Arduino CLI with the `arduino:avr` core and the
-USB Host Shield Library 2.0 are needed to build the firmware.
+Rust 1.88 or newer (`rustup`). The program has few dependencies: `serde` and `serde_json` everywhere, `libc` on macOS and Linux,
+`windows-sys` on Windows and `ureq` with `rustls` for HTTPS on Linux. Arduino CLI with the `arduino:avr` core and the USB Host Shield
+Library 2.0 are needed to build the firmware.
 
 ```sh
-make check      # gofmt, go vet for the three systems, race-tested unit tests, editor module tests
+make check      # cargo fmt, clippy with warnings as errors, unit tests, editor module tests
+make audit      # known vulnerabilities in the dependencies (cargo-audit)
 make e2e-linux  # end to end on Linux with a simulated board
 make e2e-linux-capture  # software capture on Linux with uinput virtual keyboards; run it in a throwaway VM, it creates input devices
-make e2e-windows-capture  # software capture and the Go tests natively on a Windows virtual machine; keys are sent by the hypervisor
+make e2e-windows-capture  # software capture and the unit tests natively on a Windows virtual machine; keys are sent by the hypervisor
 make e2e-windows-physical  # on a real Windows PC with its own keyboard; asks you to press F6, lock and suspend
 make e2e-macos-capture  # on a real Mac with its own keyboard; asks you to press F6
 make selftest   # the editor in a headless Chromium (needs Chromium or Chrome)
-make dist       # six binaries with SHA256 sums
+make platform PLATFORM=linux-amd64   # one release binary (linux-amd64, linux-arm64, darwin-*, windows-*); CI builds each on its system
+make measure    # memory, idle CPU, start-up and macro latency against the simulated board
 make macos-helpers   # the two Swift helpers for macOS (needs a Mac with swiftc)
 make release-files   # plus the archives and the .deb and .rpm packages (needs nfpm)
 make screenshots  # regenerate docs/images
@@ -48,11 +51,12 @@ The Linux machine needs `/tmp/tdenv.sh` exporting the session variables (`XDG_RU
 
 ## Rules
 
-- Keep it dependency free. The binary is small and starts instantly, and that matters.
-- Everything OS specific goes behind `internal/platform`. A new system means a new implementation of that interface and its tests.
+- Keep dependencies few and small, and `cargo audit` clean without ignores. The binary is small and starts instantly, and that matters.
+- No async runtime: plain threads, one timer thread and blocking I/O with time-outs. `unsafe` stays in the platform modules.
+- Everything OS specific goes behind `src/platform` (the `Platform` trait) and, for key capture, `src/capture`. A new system means a new implementation of that trait and its tests.
 - Macros in the gallery (`scripts/gen-packs.py`) use only each application's own default shortcuts, and only letters, digits, arrows
   and function keys so they work on any keyboard layout. Say in the pack notes when something needs setting up.
-- `internal/packs/packs.json` and `docs/COMPATIBILITY.md` are generated; edit their sources and run the scripts.
+- `src/data/packs.json` and `docs/COMPATIBILITY.md` are generated; edit their sources and run the scripts.
 - Say in the pull request which hardware tests you ran.
 - Commit messages in English, imperative, with a body when the reason is not obvious.
 
@@ -60,5 +64,7 @@ The Linux machine needs `/tmp/tdenv.sh` exporting the session variables (`XDG_RU
 
 1. Move the Unreleased section of `CHANGELOG.md` under a new `## X.Y.Z - date` heading.
 2. Commit, then `git tag -s vX.Y.Z -m "Release X.Y.Z"` and push the tag.
-3. The Release workflow tests, builds the six binaries, the archives and the .deb and .rpm packages with one checksum file and a
-   provenance attestation, and publishes them with the section of the changelog as the notes.
+3. The Release workflow tests, builds the six binaries (each on its own system), the archives and the .deb and .rpm packages with one
+   checksum file and a provenance attestation, and publishes them with the section of the changelog as the notes. A tag with a
+   suffix, such as `v1.0.0-rc.1`, is published as a pre-release and does not become the latest release.
+4. Set `version` in `Cargo.toml` to the release number before tagging.

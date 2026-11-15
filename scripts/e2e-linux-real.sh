@@ -22,7 +22,8 @@ start_dev() { rs '. /tmp/tdenv.sh; (TYPEDECK_DEV=1 nohup typedeck >/tmp/td-dev.l
 
 step "build and deploy"
 VERSION="$(git describe --tags --always)-linux"
-GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -trimpath -ldflags "-s -w -X main.version=$VERSION" -o /tmp/typedeck-linux ./cmd/typedeck || exit 1
+TYPEDECK_VERSION=$VERSION CC_x86_64_unknown_linux_musl=${CC_x86_64_unknown_linux_musl:-gcc} cargo build --release --locked --target x86_64-unknown-linux-musl --bin typedeck || exit 1
+cp target/x86_64-unknown-linux-musl/release/typedeck /tmp/typedeck-linux
 stop_program
 scp -q -i "$KEY" /tmp/typedeck-linux "$HOST:/tmp/typedeck-new"
 scp -q -i "$KEY" tests/e2e/linux_testbox.py "$HOST:/tmp/linux_testbox.py"
@@ -31,14 +32,14 @@ echo "deployed $VERSION"
 
 step "unit tests compiled for Linux, run on the machine"
 rm -rf /tmp/lt && mkdir /tmp/lt
-for p in $(go list ./... 2>/dev/null); do go test -c -o "/tmp/lt/$(basename "$p").test" "$p" 2>/dev/null; done
+t=$(CC_x86_64_unknown_linux_musl=${CC_x86_64_unknown_linux_musl:-gcc} cargo test --locked --target x86_64-unknown-linux-musl --lib --no-run --message-format=json 2>/dev/null | python3 -c "import sys, json; print([m['executable'] for m in map(json.loads, sys.stdin) if m.get('executable')][-1])") && cp "$t" /tmp/lt/typedeck.test
 rs "rm -rf /tmp/lt /tmp/ltrepo; mkdir -p /tmp/lt /tmp/ltrepo/a/b" >/dev/null
 scp -q -i "$KEY" /tmp/lt/*.test "$HOST:/tmp/lt/"
 scp -q -i "$KEY" -r examples "$HOST:/tmp/ltrepo/"
 for t in $(ls /tmp/lt | sed 's/.test$//'); do
-  out=$(rs "cd /tmp/ltrepo/a/b && /tmp/lt/$t.test" | tail -1)
+  out=$(rs "cd /tmp/ltrepo/a/b && /tmp/lt/$t.test 2>&1" | grep "^test result" | tail -1)
   printf '%-10s %s\n' "$t" "$out"
-  [ "$out" = "PASS" ] || FAIL=$((FAIL + 1))
+  case "$out" in "test result: ok"*) ;; *) FAIL=$((FAIL + 1)) ;; esac
 done
 
 step "hardware tests (program in development mode)"

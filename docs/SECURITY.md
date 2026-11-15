@@ -77,7 +77,7 @@ leaves it empty. OBS listens on `127.0.0.1` unless changed in its settings.
 ## Known limits
 
 Anyone who already has a session on your computer can read the binary and the configuration, which only holds what you put in the
-macros: do not put passwords in text actions. The security tests are in `internal/server/server_test.go`.
+macros: do not put passwords in text actions. The security tests are in `src/server/tests.rs`.
 
 ## Reporting a vulnerability
 

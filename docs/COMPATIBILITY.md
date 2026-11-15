@@ -1,6 +1,6 @@
 # Compatibility
 
-Generated from `internal/setup/compat.json`; do not edit by hand. The Compatibility page of the editor shows the same table next to your real setup.
+Generated from `src/data/compat.json`; do not edit by hand. The Compatibility page of the editor shows the same table next to your real setup.
 
 Status: **Tested**, **Should work**, **Planned**, **Not supported**. *Tested* means it was run on real hardware or a real machine; *Should work* means the code path is shared or simulated but not seen on that exact setup.
 

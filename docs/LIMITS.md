@@ -8,6 +8,12 @@ With the board there are six simultaneous keys (boot protocol, confirmed on the 
 mouse or system keys. Behind a KVM switch the keyboard can go missing after a power cut; the firmware recovers it by itself in under a minute and
 [Hardware](HARDWARE.md) explains how to avoid it.
 
+The board only holds back the keys that have a macro while the program sends its heartbeat once a second. If the program closes or
+crashes, those keys go back to typing their own character within 5 seconds (the firmware timeout), and keys the program was holding are
+released at the same moment. During those seconds the keys with a macro do nothing. The heartbeat comes from the connection to the board,
+not from the part that runs the macros, so a program that is frozen but still alive keeps the keys held back; Typedeck exits on an
+internal error instead of carrying on half working, so that the heartbeat stops. Plugging the keyboard straight into the computer always works.
+
 ## Without the board: Windows software capture
 
 - Windows does not show the hook keys typed into windows running as administrator or the UAC screen while Typedeck runs as a normal

@@ -11,7 +11,7 @@ Every key can do more than type: tap, hold or double tap, layers, app launchers,
 [![CI](https://github.com/cristobaltormo/typedeck/actions/workflows/ci.yml/badge.svg)](https://github.com/cristobaltormo/typedeck/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/cristobaltormo/typedeck?sort=semver)](https://github.com/cristobaltormo/typedeck/releases)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Go](https://img.shields.io/badge/go-1.24%2B-00ADD8?logo=go&logoColor=white)](go.mod)
+[![Rust](https://img.shields.io/badge/rust-1.88%2B-B7410E?logo=rust&logoColor=white)](Cargo.toml)
 [![Platforms](https://img.shields.io/badge/macOS%20%7C%20Linux%20%7C%20Windows-supported-lightgrey)](docs/COMPATIBILITY.md)
 
 [Quick start](#quick-start) · [Documentation](#documentation) · [Releases](https://github.com/cristobaltormo/typedeck/releases) · [Changelog](CHANGELOG.md) · [Español](README.es.md)
@@ -34,7 +34,7 @@ Macro pads are a second device on your desk, and most keyboard tools only work o
 - **Fifteen kinds of action.** Application, link, command, SSH, web request, shortcut, text, sequence, condition, media, system, typing history, OBS Studio, timer, layer and popup. The list is in [docs/MACROS.md](docs/MACROS.md).
 - **Record, then edit.** Type a sequence and Typedeck turns it into steps, with your pauses as wait steps you can retime, reorder and duplicate.
 - **A gallery of 38 packs** for OBS Studio, Discord, Zoom, Meet, Teams, Slack, Photoshop, Figma, Premiere, VS Code, Git, smart home, study and more, laid out on the keys your keyboard really has.
-- **Light on resources.** One static Go binary with no dependencies: about 11 MB of RAM and no CPU when idle, and about 0.13 ms to forward a key inside the board.
+- **Light on resources.** One small static binary (3.6 MB on Linux): about 3 MB of RAM and no CPU when idle, and about 0.13 ms to forward a key inside the board.
 - **Private by design.** The editor listens only on `127.0.0.1`, Typedeck makes no network connection of its own, has no telemetry and loads nothing from the internet. See [security](docs/SECURITY.md).
 - **macOS, Linux and Windows.** The tests run on the three on every push.
 
@@ -126,7 +126,7 @@ On Windows, in PowerShell:
 Invoke-WebRequest https://github.com/cristobaltormo/typedeck/releases/latest/download/typedeck-windows-amd64.exe -OutFile typedeck.exe
 ```
 
-Builds exist for Linux (amd64, arm64), macOS (Intel and Apple silicon) and Windows (amd64 and arm64), each with a checksum in `SHA256SUMS` and a build provenance attestation. Or build it: `go install github.com/cristobaltormo/typedeck/cmd/typedeck@latest`.
+Builds exist for Linux (amd64, arm64), macOS (Intel and Apple silicon) and Windows (amd64 and arm64), each with a checksum in `SHA256SUMS` and a build provenance attestation. Or build it: `cargo install --locked --git https://github.com/cristobaltormo/typedeck --bin typedeck`.
 
 ### 2. Flash the board (once, skip it without a board)
 
@@ -158,7 +158,7 @@ The first screen of the editor walks you through the keyboard it found and its l
 | What | Result |
 |---|---|
 | Forwarding one keyboard report inside the board | about 0.13 ms |
-| Program memory when idle | about 11 MB, 0 % CPU |
+| Program memory when idle | about 3 MB, 0 % CPU |
 | First load of the editor | about 100 KB, no framework |
 
 How to measure your own setup is in [docs/PERFORMANCE.md](docs/PERFORMANCE.md).

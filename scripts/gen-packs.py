@@ -328,7 +328,7 @@ P("launcher", "work", "keyboard", AMBER, ("Lanzador con Bloq Mayús", "Launcher 
   tags=["lanzador", "launcher", "bloq mayus", "caps"], notes=("Las letras se colocan sobre el teclado alfabético: C, V, T, S, D, F, N, M, W. Se puede cambiar la tecla de cada app en el editor.", "Letters are placed on the alphabet keys. You can change each app's key in the editor."))
 
 out = {"categories": [{"id": i, "icon": ic, "name": {"es": es, "en": en}} for (i, ic, es, en) in categories], "packs": packs}
-dst = os.path.join(os.path.dirname(__file__), "..", "internal", "packs", "packs.json")
+dst = os.path.join(os.path.dirname(__file__), "..", "src", "data", "packs.json")
 with open(dst, "w", encoding="utf-8") as f:
     json.dump(out, f, indent=1, ensure_ascii=False)
 print(len(packs), "paquetes en", len(categories), "categorias,", sum(len(p["macros"]) for p in packs), "macros")

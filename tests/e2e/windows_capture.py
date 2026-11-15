@@ -201,24 +201,22 @@ def scenario_unconsented():
     kill_typedeck()
 
 
-def scenario_native_go_tests():
+def scenario_native_tests():
     root = os.path.abspath(os.path.join(HERE, "..", ".."))
     ssh(f"New-Item -ItemType Directory -Force {DIR}\\wt | Out-Null")
-    for pkg in ("board", "capture", "config"):
-        out = os.path.join(tempfile.gettempdir(), f"td-{pkg}.test.exe")
-        env = dict(os.environ, GOOS="windows", GOARCH="amd64", CGO_ENABLED="0")
-        built = subprocess.run(["go", "test", "-c", "-o", out, f"./internal/{pkg}"], cwd=root, env=env, capture_output=True)
-        if built.returncode != 0:
-            check(f"the {pkg} tests build for Windows", False, built.stderr.decode()[-200:])
-            continue
-        scp(out, f"{DIR}\\wt\\{pkg}.test.exe")
-        os.unlink(out)
-        tail = ssh(f"cmd /c \"cd /d {DIR}\\wt && {pkg}.test.exe -test.count=2 2>&1\"").strip().splitlines()[-1:]
-        check(f"the {pkg} package tests pass natively on Windows", tail == ["PASS"], " ".join(tail))
+    built = subprocess.run(["cargo", "test", "--locked", "--target", "x86_64-pc-windows-gnu", "--lib", "--no-run", "--message-format=json"], cwd=root, capture_output=True)
+    exes = [m["executable"] for m in map(json.loads, built.stdout.decode().splitlines()) if m.get("executable")]
+    if built.returncode != 0 or not exes:
+        check("the unit tests build for Windows", False, built.stderr.decode()[-200:])
+        return
+    scp(exes[-1], f"{DIR}\\wt\\typedeck.test.exe")
+    for module in ("board", "capture", "config"):
+        tail = [l for l in ssh(f"cmd /c \"cd /d {DIR}\\wt && typedeck.test.exe {module}:: 2>&1\"").splitlines() if l.startswith("test result")]
+        check(f"the {module} tests pass natively on Windows", bool(tail) and tail[-1].startswith("test result: ok"), " ".join(tail))
 
 
 def run():
-    scenario_native_go_tests()
+    scenario_native_tests()
     scenario_unconsented()
     deploy(config())
     start_sink()

@@ -40,7 +40,8 @@ open_chrome() {
 
 step "build and deploy"
 VERSION="$(git describe --tags --always)-win"
-GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -trimpath -ldflags "-s -w -X main.version=$VERSION -H=windowsgui" -o /tmp/typedeck-win.exe ./cmd/typedeck || exit 1
+TYPEDECK_VERSION=$VERSION cargo build --release --locked --target x86_64-pc-windows-gnu --bin typedeck || exit 1
+cp target/x86_64-pc-windows-gnu/release/typedeck.exe /tmp/typedeck-win.exe
 stop_program
 scp -q /tmp/typedeck-win.exe "$WIN_HOST:$(echo "$WIN_DIR" | sed 's|\\|/|g')/typedeck.exe" || exit 1
 win "if not exist $WIN_TMP mkdir $WIN_TMP" >/dev/null
@@ -51,18 +52,19 @@ echo "deployed $VERSION"
 
 step "unit tests compiled for Windows, run on the machine"
 rm -rf /tmp/wt && mkdir /tmp/wt
-for p in $(go list ./... 2>/dev/null); do GOOS=windows GOARCH=amd64 go test -c -o "/tmp/wt/$(basename "$p").test.exe" "$p" 2>/dev/null; done
+t=$(cargo test --locked --target x86_64-pc-windows-gnu --lib --no-run --message-format=json 2>/dev/null | python3 -c "import sys, json; print([m['executable'] for m in map(json.loads, sys.stdin) if m.get('executable')][-1])") && cp "$t" /tmp/wt/typedeck.test.exe
 win "rmdir /S /Q C:\\typedeck\\wt & mkdir C:\\typedeck\\wt C:\\typedeck\\a\\b" >/dev/null
 scp -q /tmp/wt/*.exe "$WIN_HOST:C:/typedeck/wt/"
 scp -q -r examples "$WIN_HOST:C:/typedeck/"
 for t in $(ls /tmp/wt | sed 's/.test.exe//'); do
-  out=$(win "cd C:\\typedeck\\a\\b && C:\\typedeck\\wt\\$t.test.exe" | tail -1)
+  out=$(win "cd C:\\typedeck\\a\\b && C:\\typedeck\\wt\\$t.test.exe 2>&1" | grep "^test result" | tail -1)
   printf '%-10s %s\n' "$t" "$out"
-  [ "$out" = "PASS" ] || FAIL=$((FAIL + 1))
+  case "$out" in "test result: ok"*) ;; *) FAIL=$((FAIL + 1)) ;; esac
 done
 
 step "lifecycle: single instance, orderly stop, scheduled task, install and uninstall"
-GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -trimpath -ldflags "-s -w" -o /tmp/typedeck-win-cli.exe ./cmd/typedeck || exit 1
+cargo build --release --locked --target x86_64-pc-windows-gnu --bin typedeck-cli || exit 1
+cp target/x86_64-pc-windows-gnu/release/typedeck-cli.exe /tmp/typedeck-win-cli.exe
 scp -q /tmp/typedeck-win-cli.exe "$WIN_HOST:C:/typedeck/typedeck-cli.exe"
 scp -q tests/e2e/windows_lifecycle.ps1 "$WIN_HOST:C:/typedeck/lifecycle.ps1"
 out=$(interactive lifecycle lifecycle.ps1 "-Exe $WIN_DIR\\typedeck.exe -CliExe $WIN_TMP\\typedeck-cli.exe -Dir $WIN_TMP\\life")
@@ -70,7 +72,8 @@ echo "$out" | grep -E "^(PASS|FAIL|all |[0-9]+ lifecycle)"
 echo "$out" | grep -q "all lifecycle checks passed" || FAIL=$((FAIL + 1))
 
 step "Windows platform actions: clipboard, app toggle, popups, soft keys (interactive session)"
-GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go test -c -o /tmp/platform-win.test.exe ./internal/platform || exit 1
+test_exe=$(cargo test --locked --target x86_64-pc-windows-gnu --lib --no-run --message-format=json 2>/dev/null | python3 -c "import sys, json; print([m['executable'] for m in map(json.loads, sys.stdin) if m.get('executable')][-1])") || exit 1
+cp "$test_exe" /tmp/platform-win.test.exe
 scp -q /tmp/platform-win.test.exe "$WIN_HOST:C:/typedeck/platform.test.exe"
 scp -q tests/e2e/windows_platform.ps1 "$WIN_HOST:C:/typedeck/platform.ps1"
 scp -q tests/e2e/windows_testbox.ps1 "$WIN_HOST:C:/typedeck/windows_testbox.ps1"

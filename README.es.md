@@ -11,7 +11,7 @@ Cada tecla puede hacer más que escribir: pulsar, mantener o doble pulsación, c
 [![CI](https://github.com/cristobaltormo/typedeck/actions/workflows/ci.yml/badge.svg)](https://github.com/cristobaltormo/typedeck/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/cristobaltormo/typedeck?sort=semver)](https://github.com/cristobaltormo/typedeck/releases)
 [![Licencia: MIT](https://img.shields.io/badge/licencia-MIT-blue.svg)](LICENSE)
-[![Go](https://img.shields.io/badge/go-1.24%2B-00ADD8?logo=go&logoColor=white)](go.mod)
+[![Rust](https://img.shields.io/badge/rust-1.88%2B-B7410E?logo=rust&logoColor=white)](Cargo.toml)
 [![Sistemas](https://img.shields.io/badge/macOS%20%7C%20Linux%20%7C%20Windows-soportados-lightgrey)](docs/COMPATIBILITY.md)
 
 [Empezar](#empezar) · [Documentación](#documentación) · [Versiones](https://github.com/cristobaltormo/typedeck/releases) · [Cambios](CHANGELOG.md) · [English](README.md)
@@ -34,7 +34,7 @@ Los teclados de macros son un segundo aparato en la mesa, y la mayoría de herra
 - **Quince tipos de acción.** Aplicación, enlace, comando, SSH, petición web, atajo, texto, secuencia, condición, multimedia, sistema, historial de tecleo, OBS Studio, temporizador, capa y aviso. La lista está en [docs/MACROS.md](docs/MACROS.md) (en inglés).
 - **Graba y luego edita.** Teclea una secuencia y Typedeck la convierte en pasos, con tus pausas como pasos de espera que puedes reajustar, reordenar y duplicar.
 - **Una galería de 38 paquetes** para OBS Studio, Discord, Zoom, Meet, Teams, Slack, Photoshop, Figma, Premiere, VS Code, Git, domótica, estudio y más, colocados en las teclas que tu teclado tiene de verdad.
-- **Ligero.** Un solo binario estático de Go sin dependencias: unos 11 MB de RAM y nada de CPU en reposo, y unos 0,13 ms para reenviar una tecla dentro de la placa.
+- **Ligero.** Un solo binario estático y pequeño (3,6 MB en Linux): unos 3 MB de RAM y nada de CPU en reposo, y unos 0,13 ms para reenviar una tecla dentro de la placa.
 - **Privado por diseño.** El editor solo escucha en `127.0.0.1`, Typedeck no hace ninguna conexión de red por su cuenta, no tiene telemetría y no carga nada de internet. Mira [seguridad](docs/SECURITY.md).
 - **macOS, Linux y Windows.** Las pruebas se ejecutan en los tres en cada subida.
 
@@ -126,7 +126,7 @@ En Windows, en PowerShell:
 Invoke-WebRequest https://github.com/cristobaltormo/typedeck/releases/latest/download/typedeck-windows-amd64.exe -OutFile typedeck.exe
 ```
 
-Hay versiones para Linux (amd64, arm64), macOS (Intel y Apple silicon) y Windows (amd64 y arm64), cada una con su suma en `SHA256SUMS` y una atestación de procedencia. O compílalo: `go install github.com/cristobaltormo/typedeck/cmd/typedeck@latest`.
+Hay versiones para Linux (amd64, arm64), macOS (Intel y Apple silicon) y Windows (amd64 y arm64), cada una con su suma en `SHA256SUMS` y una atestación de procedencia. O compílalo: `cargo install --locked --git https://github.com/cristobaltormo/typedeck --bin typedeck`.
 
 ### 2. Grabar la placa (una vez; sin placa, sáltalo)
 
@@ -158,7 +158,7 @@ La primera pantalla del editor te guía por el teclado que ha encontrado y su di
 | Qué | Resultado |
 |---|---|
 | Reenviar un informe de teclado dentro de la placa | unos 0,13 ms |
-| Memoria del programa en reposo | unos 11 MB, 0 % de CPU |
+| Memoria del programa en reposo | unos 3 MB, 0 % de CPU |
 | Primera carga del editor | unos 100 KB, sin framework |
 
 Cómo medir tu propia instalación está en [docs/PERFORMANCE.md](docs/PERFORMANCE.md).

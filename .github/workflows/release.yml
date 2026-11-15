@@ -9,7 +9,19 @@ permissions:
   id-token: write
   attestations: write
 
+env:
+  CARGO_TERM_COLOR: always
+
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+      - run: make lint test
+
   macos-helpers:
     runs-on: macos-latest
     steps:
@@ -18,25 +30,68 @@ jobs:
         run: make macos-helpers
       - uses: actions/upload-artifact@v7
         with:
-          name: macos-helpers
+          name: build-macos-helpers
           path: |
             dist/typedeck-capture-macos
             dist/typedeck-hud-macos
+          if-no-files-found: error
+
+  build:
+    needs: test
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { platform: linux-amd64, target: x86_64-unknown-linux-musl, os: ubuntu-latest, zig: true }
+          - { platform: linux-arm64, target: aarch64-unknown-linux-musl, os: ubuntu-latest, zig: true }
+          - { platform: darwin-amd64, target: x86_64-apple-darwin, os: macos-latest }
+          - { platform: darwin-arm64, target: aarch64-apple-darwin, os: macos-latest }
+          - { platform: windows-amd64, target: x86_64-pc-windows-msvc, os: windows-latest }
+          - { platform: windows-arm64, target: aarch64-pc-windows-msvc, os: windows-latest }
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - if: matrix.zig
+        uses: mlugg/setup-zig@v2
+        with:
+          version: 0.14.1
+      - if: matrix.zig
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-zigbuild
+      - name: Build
+        shell: bash
+        env:
+          TYPEDECK_VERSION: ${{ github.ref_name }}
+        run: |
+          if [ "${{ matrix.zig }}" = true ]; then build="cargo zigbuild"; else build="cargo build"; fi
+          case "${{ matrix.platform }}" in windows-*) exe=.exe; bins="--bin typedeck --bin typedeck-cli" ;; *) exe=""; bins="--bin typedeck" ;; esac
+          $build --release --locked --target ${{ matrix.target }} $bins
+          mkdir -p dist
+          cp target/${{ matrix.target }}/release/typedeck$exe dist/typedeck-${{ matrix.platform }}$exe
+          if [ -n "$exe" ]; then cp target/${{ matrix.target }}/release/typedeck-cli.exe dist/typedeck-cli-${{ matrix.platform }}.exe; fi
+      - uses: actions/upload-artifact@v7
+        with:
+          name: build-${{ matrix.platform }}
+          path: dist/typedeck-*
+          if-no-files-found: error
 
   release:
-    needs: macos-helpers
+    needs: [build, macos-helpers]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-go@v7
+      - uses: taiki-e/install-action@v2
         with:
-          go-version-file: go.mod
-      - name: Tests
-        run: go test ./...
-      - name: Install nfpm
-        env:
-          GOTOOLCHAIN: auto
-        run: go install github.com/goreleaser/nfpm/v2/cmd/nfpm@v2.47.0
+          tool: nfpm
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: build-*
+          path: dist
+          merge-multiple: true
       - uses: arduino/setup-arduino-cli@v2
       - name: Build the firmware
         run: |
@@ -45,14 +100,7 @@ jobs:
           arduino-cli lib install "USB Host Shield Library 2.0@1.7.0" "HID-Project@2.8.4"
           arduino-cli compile --fqbn arduino:avr:leonardo --output-dir /tmp/typedeck-fw firmware
           fw=$(sed -n 's/^#define FW_VERSION "\(.*\)"/\1/p' firmware/firmware.ino)
-          mkdir -p dist
           cp /tmp/typedeck-fw/firmware.ino.hex "dist/typedeck-firmware-$fw.hex"
-      - uses: actions/download-artifact@v8
-        with:
-          name: macos-helpers
-          path: dist
-      - name: Build the binaries
-        run: make dist VERSION=${{ github.ref_name }}
       - name: Build the archives and packages
         run: make release-files VERSION=${{ github.ref_name }} PREBUILT=1 REQUIRE_MACOS_HELPERS=1
       - name: Release notes from the changelog
@@ -69,4 +117,9 @@ jobs:
       - name: Publish
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "${{ github.ref_name }}" dist/typedeck-* dist/typedeck_* dist/SHA256SUMS --notes-file notes.md --title "${{ github.ref_name }}"
+        run: |
+          flags=""
+          case "$GITHUB_REF_NAME" in
+            *-*) flags="--prerelease --latest=false" ;;
+          esac
+          gh release create "$GITHUB_REF_NAME" dist/typedeck-* dist/typedeck_* dist/SHA256SUMS --notes-file notes.md --title "$GITHUB_REF_NAME" $flags

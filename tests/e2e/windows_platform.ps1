@@ -1,7 +1,7 @@
 param(
   [Parameter(Mandatory = $true)][string]$TestExe,
   [Parameter(Mandatory = $true)][string]$Dir,
-  [string]$Run = "TestE2E"
+  [string]$Run = "platform::"
 )
 New-Item -ItemType Directory -Force $Dir | Out-Null
 $box = Join-Path $PSScriptRoot "windows_testbox.ps1"
@@ -20,7 +20,7 @@ Start-Sleep -Seconds 1
 $env:TYPEDECK_E2E_DIR = $Dir
 $env:APPDATA = Join-Path $Dir "roaming"
 $env:LOCALAPPDATA = Join-Path $Dir "local"
-& $TestExe "-test.v" "-test.run" $Run 2>&1 | ForEach-Object { $_ }
+& $TestExe $Run "--include-ignored" "--test-threads=1" 2>&1 | ForEach-Object { if ($_ -match "^test result: ok") { "PASS" } elseif ($_ -match "^test result: FAILED") { "FAIL" } else { $_ } }
 $code = $LASTEXITCODE
 Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
 Get-Process | Where-Object { $_.MainWindowTitle -eq "Typedeck test box" } | Stop-Process -Force -ErrorAction SilentlyContinue

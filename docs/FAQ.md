@@ -52,7 +52,7 @@ history is off by default, local, capped and deletable, and it is the only thing
 
 **Can it run on a Raspberry Pi, or without Arduino?**
 The board has to be an ATmega32U4 (Leonardo, Micro) or something compatible with the sketch, except with software capture
-(Windows, macOS, Linux), which needs no hardware. The Go program runs wherever Go does, including a Raspberry Pi.
+(Windows, macOS, Linux), which needs no hardware. The program builds for Linux on arm64 too (a static binary is in every release), so a Raspberry Pi works.
 
 **Why not QMK or a macro keyboard?**
 Those need a keyboard you can flash. Typedeck leaves the keyboard you already have as it is and adds the macros between it and the
@@ -64,7 +64,7 @@ Settings, Export configuration, or export a layer from its panel and import it o
 **Why is there no Docker image or npm package?**
 Typedeck has to open the board's serial port, launch applications, read the front window, type into the desktop and use the clipboard,
 all on the host. A container cannot reach any of that without giving up what makes it a container, and an npm package would only wrap
-the same Go binary. Releases ship the binary itself, archives, and `.deb` and `.rpm` packages instead; `go install` works too.
+the same binary. Releases ship the binary itself, archives, and `.deb` and `.rpm` packages instead; `cargo install` works too.
 
 **Where are my files?**
 macOS and Linux `~/.config/typedeck`, Windows `%APPDATA%\typedeck`. The configuration is one

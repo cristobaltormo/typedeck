@@ -2,11 +2,11 @@
 import json, os
 
 root = os.path.join(os.path.dirname(__file__), "..")
-data = json.load(open(os.path.join(root, "internal", "setup", "compat.json"), encoding="utf-8"))
+data = json.load(open(os.path.join(root, "src", "data", "compat.json"), encoding="utf-8"))
 legend = data["status_legend"]
 out = [
     "# Compatibility", "",
-    "Generated from `internal/setup/compat.json`; do not edit by hand. The Compatibility page of the editor shows the same table "
+    "Generated from `src/data/compat.json`; do not edit by hand. The Compatibility page of the editor shows the same table "
     "next to your real setup.", "",
     "Status: " + ", ".join(f"**{v['en']}**" for v in legend.values()) + ". *Tested* means it was run on real hardware or a real "
     "machine; *Should work* means the code path is shared or simulated but not seen on that exact setup.", "",

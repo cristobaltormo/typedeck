@@ -28,11 +28,13 @@ Invoke-WebRequest https://github.com/cristobaltormo/typedeck/releases/latest/dow
 The `typedeck-cli-windows-amd64.exe` next to it is the same program for terminals (see Set it up below); the zip archives have both.
 
 There are builds for Linux (amd64, arm64), macOS (Intel and Apple silicon) and Windows (amd64 and arm64), each with a checksum in
-`SHA256SUMS` and a build provenance attestation (`gh attestation verify <file> --repo cristobaltormo/typedeck`). To build it yourself you need Go 1.24 or newer:
+`SHA256SUMS` and a build provenance attestation (`gh attestation verify <file> --repo cristobaltormo/typedeck`). To build it yourself you need Rust 1.88 or newer:
 
 ```sh
-go install github.com/cristobaltormo/typedeck/cmd/typedeck@latest
+cargo install --locked --git https://github.com/cristobaltormo/typedeck --bin typedeck
 ```
+
+On Windows that gives `typedeck.exe` without a console; add `--bin typedeck-cli` for the terminal one.
 
 Flash the board once. Each release attaches the ready-made firmware, `typedeck-firmware-<number>.hex`, and `arduino-cli` uploads it on
 Windows, Linux and macOS alike:

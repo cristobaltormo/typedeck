@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import json, os, pty, re, subprocess, sys, tempfile, threading, time, tty, urllib.request
+import json, os, pty, re, shutil, subprocess, sys, tempfile, threading, time, tty, urllib.request
 
 BIN = sys.argv[1]
 home = tempfile.mkdtemp(prefix="typedeck-e2e-")
@@ -100,8 +100,10 @@ try:
     ex = [e for e in evs if e["kind"] == "exec" and e["key"] == "08"]
     check("an OBS action without OBS fails with a clear message", ex and ex[-1]["ok"] is False and "WebSocket" in ex[-1].get("output", ""), ex[-1:] if ex else evs[-3:])
 
+    scheme = subprocess.run(["gsettings", "get", "org.gnome.desktop.interface", "color-scheme"], capture_output=True, text=True).stdout.strip().strip("'") if shutil.which("gsettings") else ""
     r = api("/api/test", {"type": "system", "cmd": "darkmode"})
-    check("a system command without a desktop answers with an error, without hanging", r["ok"] is False and r["ms"] < 5000, r)
+    if scheme: subprocess.run(["gsettings", "set", "org.gnome.desktop.interface", "color-scheme", scheme])
+    check("a system command without a desktop answers without hanging (an error unless gsettings works)", (r["ok"] is False or bool(scheme)) and r["ms"] < 5000, r)
     r = api("/api/test", {"type": "app", "app": "NoExisteEstaApp", "mode": "open"})
     check("opening a missing app gives a clear error", r["ok"] is False and "NoExisteEstaApp" in r["output"], r)
     r = api("/api/test", {"type": "url", "url": "https://example.com"})

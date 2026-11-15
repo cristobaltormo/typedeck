@@ -3,9 +3,14 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 CHROME="${CHROME:-$(command -v chromium || command -v chromium-browser || command -v google-chrome || true)}"
 [ -x "$CHROME" ] || { echo "Chromium or Chrome not found (set CHROME)"; exit 1; }
-make -s build
+if [ -z "${TYPEDECK_BIN:-}" ]; then
+  cargo build --release --locked --bin typedeck
+  TYPEDECK_BIN=target/release/typedeck
+fi
+[ -x "$TYPEDECK_BIN" ] || { echo "$TYPEDECK_BIN is not an executable"; exit 1; }
 HOME_DIR=$(mktemp -d)
-trap 'kill $PID 2>/dev/null || true; rm -rf "$HOME_DIR"' EXIT
+PID=""
+trap '[ -n "$PID" ] && kill "$PID" 2>/dev/null || true; rm -rf "$HOME_DIR"' EXIT
 mkdir -p "$HOME_DIR/typedeck"
 python3 - "$HOME_DIR/typedeck" <<'PY'
 import json, sys, time
@@ -24,9 +29,9 @@ for ch in text:
     t += 120 + (u * 13) % 160
 open(d + "/keystrokes.jsonl", "w").write("\n".join(json.dumps(e) for e in entries) + "\n")
 PY
-(XDG_CONFIG_HOME="$HOME_DIR" HOME="$HOME_DIR" ./dist/typedeck >/dev/null 2>&1 & echo $! > "$HOME_DIR/pid")
+(XDG_CONFIG_HOME="$HOME_DIR" HOME="$HOME_DIR" "$TYPEDECK_BIN" >/dev/null 2>&1 & echo $! > "$HOME_DIR/pid")
 PID=$(cat "$HOME_DIR/pid")
-sleep 2
+for _ in $(seq 50); do [ -s "$HOME_DIR/typedeck/config.json" ] && break; sleep 0.1; done
 python3 - "$HOME_DIR/typedeck/config.json" <<'PY'
 import json, sys
 p = sys.argv[1]
@@ -35,11 +40,13 @@ c["settings"]["key_history"] = True
 c["settings"]["theme"] = "light"
 json.dump(c, open(p, "w"))
 PY
-kill $PID; sleep 1
-(XDG_CONFIG_HOME="$HOME_DIR" HOME="$HOME_DIR" ./dist/typedeck >/dev/null 2>&1 & echo $! > "$HOME_DIR/pid")
+kill $PID; while kill -0 $PID 2>/dev/null; do sleep 0.1; done
+rm -f "$HOME_DIR/typedeck/port"
+(XDG_CONFIG_HOME="$HOME_DIR" HOME="$HOME_DIR" "$TYPEDECK_BIN" >/dev/null 2>&1 & echo $! > "$HOME_DIR/pid")
 PID=$(cat "$HOME_DIR/pid")
-sleep 2
-shot() { "$CHROME" --headless=new --no-sandbox --disable-gpu --hide-scrollbars --window-size="$2" --virtual-time-budget=9000 --screenshot="docs/images/$1.png" "http://127.0.0.1:7788/$3" >/dev/null 2>&1; }
+for _ in $(seq 50); do [ -s "$HOME_DIR/typedeck/port" ] && break; sleep 0.1; done
+PORT=$(cat "$HOME_DIR/typedeck/port")
+shot() { "$CHROME" --headless=new --no-sandbox --disable-gpu --hide-scrollbars --window-size="$2" --virtual-time-budget=9000 --screenshot="docs/images/$1.png" "http://127.0.0.1:$PORT/$3" >/dev/null 2>&1; }
 shot editor 1440,900 "?scene=default"
 shot editor-light 1440,900 "?scene=light"
 shot sequence 1440,900 "?scene=seq"

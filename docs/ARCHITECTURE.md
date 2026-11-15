@@ -5,7 +5,7 @@
                                                      |  ^
                                          CDC serial  |  |  events / commands
                                                      v  |
-                                              typedeck (Go)  <-- editor (127.0.0.1:7788)
+                                              typedeck (Rust) <-- editor (127.0.0.1:7788)
                                               actions, layers, gestures, stats
 ```
 
@@ -14,7 +14,7 @@
 | Part | Language | Job | Why there |
 |---|---|---|---|
 | `firmware/` | C++ (Arduino) | Reads the keyboard, forwards it to the computer, captures keys that have a macro, injects keystrokes | This is the part that has to be instant: about 130 µs per report, never through the computer |
-| `cmd/`, `internal/` | Go | Gestures, layers, actions, API, statistics | One static binary, no dependencies, about 11 MB resident, 0 % CPU when idle |
+| `src/` | Rust | Gestures, layers, actions, API, statistics | One static binary, few dependencies, about 3 MB resident, 0 % CPU when idle |
 | `web/ui/` | HTML, CSS and JS, no dependencies | The editor | About 100 KB on first load, no framework, nothing fetched from the network |
 | `macos/hud/` | Swift | Floating popup on macOS | A native window that only exists while it is shown |
 | `macos/capture/` | Swift | Software capture on macOS (`typedeck-capture`) | Started and watched by the program, it ends when the program's standard input closes |
@@ -32,29 +32,35 @@ program (Windows), a helper process with an event tap (macOS) or a grab of the k
                           the same engine, layers, gestures, actions and editor
 ```
 
-## Packages
+## Modules
 
-| Package | Responsibility |
+One crate: `src/lib.rs` holds the modules, `src/main.rs` is `typedeck` (a windowless program on Windows) and `src/bin/typedeck-cli.rs` the
+same program with a console. No async runtime: the serial reader, the heartbeat, the HTTP connections, the keyboard readers and the
+hook each have a thread that blocks with a time-out, every hold, double press and delayed save is an entry of one timer thread
+(`timer`), and the engine sends mask, key reporting and layer changes through one worker that coalesces them. `build.rs` embeds
+`web/ui/` and, for Windows, writes the manifest, version information and icon as a resource file.
+
+| Module | Responsibility |
 |---|---|
-| `internal/capture` | Where key events come from. `Source` is the interface the engine, the server and `main` depend on; `board.Board` implements it for the hardware and `SoftwareSource` for the keyboard hook. The `Selector` holds both, switches between them at run time and keeps the idle one silent. Also the hook state machine (`Filter`), the scancode to HID usage tables, the Windows backend, the macOS backend (`darwin_*.go`, which drives the Swift helper) and the Linux backend (`backend_linux.go` and `linux_*.go`, plain `syscall` and `ioctl`, no cgo), with the evdev to HID usage table in `evdev_codes.go` |
-| `internal/board` | Serial link to the board: detection by `WHO`, heartbeat, capture mask, events, `INFO`, `SYS`, `BUS`. Native serial ports for macOS, Linux and Windows |
-| `internal/engine` | Gestures, layers, per-application layers, debounce, statistics |
-| `internal/actions` | Runs the actions. Sends keys through the board and delegates everything OS-specific to `platform` |
-| `internal/platform` | One implementation per OS (macOS, Linux, Windows): launch and quit apps, front window, software keys, clipboard, sleep, lock, notifications, floating popup, auto-start service. macOS key compensation lives here |
-| `internal/obs` | A minimal RFC 6455 WebSocket client and the obs-websocket 5 requests, no dependencies |
-| `internal/layouts` | Physical layouts (100, 80, 75, 65, 60 %, ISO and ANSI, numpad) and the algorithm that guesses which one a keyboard has from the keys observed |
-| `internal/kbdb` | Brand and model: the name the keyboard reports, vendor by VID, verified models, form factor from name keywords |
-| `internal/setup` | Setup summary, layout choice and compatibility checks (`/api/setup`) |
-| `internal/packs` | Gallery packs, laid out on the keys the keyboard really has, adapted per OS |
-| `internal/config` | Schema v3, migration from v1 and v2, validation, backups and recovery |
-| `internal/hid` | USB key tables, text layouts (US, Spanish for macOS, Linux and Windows) and a report descriptor parser |
-| `internal/server` | Loopback HTTP server: static editor and JSON API, a WebSocket for live events, the editing flag and macro file review |
-| `internal/keylog` | The optional typing history: key, time and duration in a local file, retention, summary and the text rebuilt from the presses |
+| `capture` | Where key events come from. `Source` is the trait the engine, the server and `cli` depend on; `board.Board` implements it for the hardware and `SoftwareSource` for the keyboard hook. The `Selector` holds both, switches between them at run time and keeps the idle one silent. Also the hook state machine (`Filter`), the scancode to HID usage tables, the Windows backend, the macOS backend (`capture/mac.rs`, which drives the Swift helper and is tested on every system against a fake helper) and the Linux backend (`capture/linux/`, `libc` and `ioctl`), with the evdev to HID usage table in `evdev_codes.rs` |
+| `board` | Serial link to the board: detection by `WHO`, heartbeat, capture mask, events, `INFO`, `SYS`, `BUS`. Native serial ports for macOS, Linux and Windows |
+| `engine` | Gestures, layers, per-application layers, debounce, statistics |
+| `actions` | Runs the actions. Sends keys through the board and delegates everything OS-specific to `platform` |
+| `platform` | The `Platform` trait, one implementation per OS (macOS, Linux, Windows): launch and quit apps, front window, software keys, clipboard, sleep, lock, notifications, floating popup, auto-start service. macOS key compensation lives here |
+| `obs`, `ws` | A minimal RFC 6455 WebSocket client (and the frames the server uses) and the obs-websocket 5 requests; SHA-1, SHA-256 and base64 are in `crypto` |
+| `layouts` | Physical layouts (100, 80, 75, 65, 60 %, ISO and ANSI, numpad) and the algorithm that guesses which one a keyboard has from the keys observed |
+| `kbdb` | Brand and model: the name the keyboard reports, vendor by VID, verified models, form factor from name keywords |
+| `setup` | Setup summary, layout choice and compatibility checks (`/api/setup`) |
+| `packs` | Gallery packs, laid out on the keys the keyboard really has, adapted per OS |
+| `config` | Schema v3, migration from v1 and v2, validation, backups and recovery |
+| `hid` | USB key tables, text layouts (US, Spanish for macOS, Linux and Windows) and a report descriptor parser |
+| `server` | Loopback HTTP/1.1 server on the standard library: static editor and JSON API, a WebSocket for live events, the editing flag and macro file review |
+| `keylog` | The optional typing history: key, time and duration in a local file, retention, summary and the text rebuilt from the presses |
 
 ## How the layout is decided
 
 1. What the user picked for that keyboard (VID:PID).
-2. A verified model in `internal/kbdb/db.json` (needs exact vendor and product: generic controller PIDs are reused).
+2. A verified model in `src/data/db.json` (needs exact vendor and product: generic controller PIDs are reused).
 3. The form factor in the keyboard name ("TKL", "60 %", "75 %"...).
 4. ISO or ANSI from the keyboard type the OS records, when it records one.
 
@@ -73,22 +79,22 @@ Enter instead of `0x32`; that is accounted for.
 
 ## Software capture
 
-`capture.Source` is what the engine needs from whatever feeds it, and it is made of two small interfaces: `Capturer` (a capture mask in
-with `SyncMask`, key events out as `D`, `U`, `P`, `R` with the HID usage and the modifier byte exactly as the board sends them, "report
-every key" with `Keys`, connection state, `Pause` and `Resume`) and `Injector` (`Tap`, `TapHeld`, `Consumer`). What only the board has is
-a separate interface each, found with a type assertion where it is used: `LayerSetter` (the layer for the board's LEDs), `Commander`,
-`RawDoer` and `SysReporter`. The software source implements `Commander` for `ping` and `stats` only. Nothing in the engine knows which
-source is behind it.
+The `capture::Source` trait is what the engine needs from whatever feeds it: a capture mask in with `sync_mask`, key events out as
+`D`, `U`, `P`, `R` with the HID usage and the modifier byte exactly as the board sends them, "report every key" with `keys`, connection
+state, `pause` and `resume`, and injection with `tap`, `tap_held` and `consumer`. What only the board has (`set_layer` for the board's
+LEDs, `command`, `raw` and `sys`) are trait methods with a default that does nothing or answers that the board is needed, so the board
+overrides them and the software source does not. The software source answers `command` for `ping` and `stats` only. Nothing in the
+engine knows which source is behind it.
 
-The `Selector` holds both sources and routes to the active one. `Select` is serialised, and if the software source cannot start it
-goes back to the board by itself (the engine also tells the user with a notice). `Pause` and `Resume` go to both sources, so a mode
+The `Selector` holds both sources and routes to the active one. `select` is serialised, and if the software source cannot start it
+goes back to the board by itself (the engine also tells the user with a notice). `pause` and `resume` go to both sources, so a mode
 change between them can never leave one paused. The software source tells the engine about state changes (connected, disconnected)
-through the same goroutine that delivers key events, in order, and retries a failed start with a growing delay (4 s, doubling up to
+through the same thread that delivers key events, in order, and retries a failed start with a growing delay (4 s, doubling up to
 2 minutes) instead of every 4 s, which on Linux would have created a virtual keyboard each time and on macOS launched the helper.
 
-`config.Settings.Capture` chooses the source: `board` (the default, and what every existing configuration gets) or `software`. It is a
-different setting from `Input`, which only decides how typed output leaves the program (`auto`, `hardware` or `software`); with
-software capture the editor hides `Input` because the program always sends its own keys. Software capture never turns on by itself and
+`settings.capture` in the configuration chooses the source: `board` (the default, and what every existing configuration gets) or `software`. It is a
+different setting from `input`, which only decides how typed output leaves the program (`auto`, `hardware` or `software`); with
+software capture the editor hides `input` because the program always sends its own keys. Software capture never turns on by itself and
 the configuration endpoint ignores changes to it: the editor asks for explicit consent and calls `POST /api/capture`, because a
 keyboard hook looks exactly like a keylogger. That call also writes `capture-consent.json` (date and version of the text), outside
 `config.json` so a backup or an imported file cannot carry it; the engine turns a `software` mode without that record into `board` at
@@ -96,21 +102,21 @@ start-up, restore and every configuration change. When no board shows up for a f
 
 How the Windows backend works:
 
-1. One goroutine locked to an OS thread installs a `WH_KEYBOARD_LL` hook and runs a message loop. The hook callback is created once
-   (every `syscall.NewCallback` takes a slot that is never released). The hook handle and the thread id belong to that thread's
-   own state, and `Start` always waits for it to be ready or finished: if it takes more than 3 s the thread is cancelled and
-   `Start` returns an error, so no orphan hook is left behind. If the hook cannot be reinstalled the thread ends, the backend stops
+1. A dedicated thread installs a `WH_KEYBOARD_LL` hook and runs a message loop. The hook callback is a plain `extern "system"`
+   function, so nothing is allocated per installation. The hook handle and the thread id belong to that thread's own state, and
+   starting always waits for it to be ready or finished: if it takes more than 3 s the thread is cancelled and the start returns an
+   error, so no orphan hook is left behind. If the hook cannot be reinstalled the thread ends, the backend stops
    being alive and the supervisor starts it again.
 2. The callback must return in well under 300 ms or Windows removes the hook, so it only reads the mask (four atomic words), takes a
-   short lock to update a per-key state table and pushes the event into a buffered channel without ever blocking. A pump goroutine
-   delivers the events to the engine. Measured, the callback takes a few microseconds.
+   short lock to update a per-key state table and pushes the event into a bounded queue without ever blocking. A pump thread
+   delivers the events to the engine. A panic inside the callback is caught and the key is let through. Measured, the callback takes a few microseconds.
 3. Events marked `LLKHF_INJECTED` (including the program's own `SendInput`, which also carries a private `dwExtraInfo`) are ignored, so
    injecting a key can never loop. Only keys in the active mask are swallowed. A swallowed key-down also swallows its auto-repeats and
    its key-up even if the mask changed in between, and a key the system already saw going down keeps passing until it is released, so
    no key is ever left stuck. Keys outside the mask pass without the program reading them unless "report every key" is on, which has the
    same rules as `KEYS 1` on the board when the board is the source (editor open, detecting keys or history on). With software capture it
    is stricter: only while detecting keys or with the history on, because otherwise any open WebSocket would be enough to make the program read every key.
-4. `scancode` plus the extended flag becomes a HID usage with an own table (`capture/scancodes.go`) and back for injection. Details that
+4. `scancode` plus the extended flag becomes a HID usage with an own table (`capture/scancodes.rs`) and back for injection. Details that
    matter: the key next to Enter is reported as `0x31`, as many ISO controllers do; Pause, Num Lock and Print Screen are told apart
    by virtual key because they share scancodes; the fake shifts Windows invents around the navigation keys and the phantom left Ctrl of
    Alt Gr (scancode `0x21D`) are ignored, so Alt Gr is just right Alt.
@@ -118,15 +124,15 @@ How the Windows backend works:
    system turns them into characters exactly as with a physical key, modifiers go down in one call and come up in another after the
    hold time, and text the layout cannot type goes out with `KEYEVENTF_UNICODE`.
 6. Fail-open: the hook belongs to the process, so killing it leaves the keyboard normal at once. Lock, disconnect and suspend arrive
-   through one path only, the tray window of the program (`internal/platform`), which calls `Pause` on the selector: the filter lets
+   through one path only, the tray window of the program (`platform/windows/shell.rs`), which calls `Pause` on the selector: the filter lets
    everything pass and releases what it holds. `Resume` brings it back and asks the backend to install the hook again. A
    watchdog checks every 5 s, only while you are using the computer and the hook has been silent for 10 s, by injecting an unassigned
    virtual key with a private marker and reinstalling the hook if it does not see it.
 
 ### macOS backend
 
-Go cannot call CoreGraphics without cgo and the binary stays `CGO_ENABLED=0`, so the tap lives in `macos/capture/capture.swift`, built
-as `typedeck-capture` and found next to the `typedeck` binary (symlinks resolved). `capture.macBackend` starts it with `run`, in the
+The program does not link CoreGraphics (and the helper keeps its macOS permissions across upgrades because it does not change), so the tap lives in `macos/capture/capture.swift`, built
+as `typedeck-capture` and found next to the `typedeck` binary (symlinks resolved). `capture::MacBackend` starts it with `run`, in the
 same spirit as the board protocol: plain text lines, one command or event per line.
 
 | Program to helper | Meaning |
@@ -138,16 +144,16 @@ same spirit as the board protocol: plain text lines, one command or event per li
 | Helper to program | Meaning |
 |---|---|
 | `READY <ansi\|iso\|jis>` or `ERR permission accessibility=0\|1 input_monitoring=0\|1` | first line; the helper exits with status 3 on `ERR` |
-| `D <code> <flags hex>`, `U`, `P`, `R <code>` | the events of `capture.Filter`, with the device flags of the modifiers on `D` |
+| `D <code> <flags hex>`, `U`, `P`, `R <code>` | the events of `capture::Filter`, with the device flags of the modifiers on `D` |
 | `KBTYPE <layout>`, `TAPOFF <reason>`, `TAPON`, `LAT <n> <avg us> <max us>` | keyboard layout change, tap disabled and re-enabled, callback timing |
 
-1. The table of key codes lives only in Go (`capture/darwin_keymap.go`): the program converts the usage mask to a code mask and the
+1. The table of key codes lives only in the program (`capture/mac.rs`): the program converts the usage mask to a code mask and the
    events back, so the helper knows nothing about HID and the table is tested on any system. The two keys that ISO keyboards add
    (`0x35` and `0x64`) swap codes 10 and 50 depending on the layout type macOS reports, the same crossing
-   `platform/darwin_quirks.go` compensates when typing; the layout comes from the helper (`READY` and `KBTYPE`).
+   `platform/macquirks.rs` compensates when typing; the layout comes from the helper (`READY` and `KBTYPE`).
 2. The decision runs in the helper, in the tap callback, with the same state machine as `Filter` (held, swallowed, reported): only
-   codes in the mask are swallowed and reported, everything else passes without being sent anywhere. `Filter.Observe` feeds the helper's
-   events into the Go filter, so `Release`, the event channel and `dropped` are shared with Windows, and `Filter.Changed` tells the
+   codes in the mask are swallowed and reported, everything else passes without being sent anywhere. `Filter::observe` feeds the helper's
+   events into the filter, so `release_all`, the event queue and `dropped` are shared with Windows, and `Filter::changed` tells the
    backend to send a new `CFG` when the mask, report-all or pause change.
 3. A swallowed modifier (`flagsChanged`) hides its flag from the events that follow, since macOS computes flags before the tap.
    Caps Lock arrives as one `flagsChanged` per toggle: a masked Caps Lock is reported as `D` then `U`, swallowed, and the HID Caps Lock
@@ -157,7 +163,7 @@ same spirit as the board protocol: plain text lines, one command or event per li
    chunks of at most 16 UTF-16 units; media keys are `systemDefined` events. Typedeck's own `AdaptStroke` compensation (modifier
    remap and key swap of the board's keyboard) is skipped in software mode because those quirks belong to the board.
 5. Fail-open: the tap belongs to the helper. The helper exits when its standard input closes (the program died or stopped it) and on
-   `QUIT`; the backend sends `QUIT`, closes the pipe and kills it after 2 s. When it dies, `Filter.Release` lets go of held keys. macOS
+   `QUIT`; the backend sends `QUIT`, closes the pipe and kills it after 2 s (it does the same when the helper closes its output). When it dies, `Filter::release_all` lets go of held keys. macOS
    disables a slow tap (`tapDisabledByTimeout`) or one interrupted by the user; the helper releases what it held, enables it again,
    and reports `TAPOFF` and `TAPON`. It also does so after wake and unlock, and a 3 s timer checks `tapIsEnabled`. If macOS keeps the
    tap disabled the helper reports `ERR` and exits, and the program retries every 4 s as with any failed start.
@@ -175,7 +181,7 @@ same spirit as the board protocol: plain text lines, one command or event per li
 ### Linux backend
 
 Linux has no hook API, but every keyboard is an evdev node, so the backend works under the compositor and X11 and Wayland behave the
-same. No library and no cgo: `syscall` and `ioctl` with the numbers of the generic Linux layout (checked by a test).
+same. No input library: `libc` system calls and `ioctl` with the numbers of the generic Linux layout (checked by a test).
 
 ```
  keyboard --> /dev/input/eventN (grabbed, EVIOCGRAB) --> typedeck --> /dev/uinput "Typedeck virtual keyboard" --> libinput, X, console
@@ -204,7 +210,7 @@ same. No library and no cgo: `syscall` and `ioctl` with the numbers of the gener
    on (value 2), which would double them; the console and the desktops repeat as with a real keyboard. Using one device for all
    keyboards also puts the program's own keystrokes in the same queue as the typed ones, in order. The price is that settings that
    match a keyboard by name see `Typedeck virtual keyboard` instead.
-5. The same rules as the other backends: `Filter.Handle` decides on the press (value 1) and the release (value 0). A press that was
+5. The same rules as the other backends: `Filter::handle` decides on the press (value 1) and the release (value 0). A press that was
    swallowed keeps swallowing its auto-repeats (value 2) and its release even if the mask changed or the filter paused in between,
    and a press that was passed on keeps passing, so a key can never be left stuck on the virtual keyboard. Keys with no HID usage
    (most media keys) are passed on without being looked at.
@@ -234,7 +240,7 @@ running there; devices that another program already grabbed (a remapper such as 
 remapper's own virtual keyboard is grabbed instead, since it is the one the desktop sees); a keyboard held down for the whole of the
 start-up never gets grabbed.
 
-Porting it to another system means implementing `capture.Backend` (start and stop a global key tap feeding a `capture.Filter`, inject
+Porting it to another system means implementing the `capture::Backend` trait (start and stop a global key tap feeding a `capture::Filter`, inject
 keys, media keys and text, report checks for `doctor`) and nothing else: the selection, the engine, the editor and the tests of the
 state machine are already shared.
 
@@ -267,8 +273,8 @@ computer (US, and Spanish for macOS, Linux or Windows) and the OS layer adapts t
 
 ## Platform layer
 
-`platform.Current` is chosen at build time (`darwin.go`, `linux.go`, `windows.go`). Everything the rest of the program needs
-from the OS goes through that interface, so adding a system means implementing it once. Linux discovers applications from
+`platform::get()` returns the implementation chosen at build time (`platform/macos.rs`, `platform/linux/`, `platform/windows/`). Everything the rest of the program needs
+from the OS goes through that trait, so adding a system means implementing it once. Linux discovers applications from
 `.desktop` files and the focused window from Hyprland, Sway or X11 (xprop, then xdotool); Windows uses user32 and kernel32
 directly (no PowerShell), a scheduled task for auto-start, and its own popup window instead of system notifications.
 
@@ -282,8 +288,9 @@ Details that are easy to break:
 - On macOS the board's keyboard type is 40 (ANSI) or 41 (ISO). With ANSI and an ISO layout, macOS swaps the two keys that do not
   exist on ANSI (usages `0x35` and `0x64`), which the key compensation undoes.
 - Windows builds use the GUI subsystem so the program starts with the session without opening a window; on start it reattaches
-  to the parent console so output redirected over ssh or into files still works. Console windows of child processes are hidden, and
-  `cmd /C` commands are passed raw because Go escapes quotes for the C runtime, which `cmd.exe` does not understand. Quoting for
+  to the parent console (and points standard output and error at it when they were not redirected) so output redirected over ssh or
+  into files still works. Closing that console, signing out or shutting down gives the program up to 4 s to save before Windows ends it. Console windows of child processes are hidden, and
+  `cmd /S /C` commands are passed raw (`raw_arg`) because the usual quoting is for the C runtime, which `cmd.exe` does not understand. Quoting for
   `cmd.exe` drops quotes, `%` and `^` because those are the characters that stay active inside double quotes.
 - Quitting an application on Windows asks nicely: `taskkill` by executable first, then `WM_CLOSE` to every visible window whose
   title matches, because Store apps ignore `taskkill` without `/F`.
@@ -299,7 +306,7 @@ Details that are easy to break:
 - It listens to both keyboard interfaces: endpoint 1 is the boot keyboard and endpoint 2 carries the reports that have an id (media
   keys, system control, the full keyboard, the mouse).
 - `HOLD <usage>` keeps a key down until `RELEASE`. Each `HOLD` re-arms an 8 s deadline and the key is also released when the heartbeat
-  stops, so a crashed host cannot leave a key stuck. Held keys are kept apart from the injected ones because `tapKey` clears those.
+  stops, so a crashed host cannot leave a key stuck. Held keys are kept apart from the injected ones because the firmware's `tapKey` clears those.
 - When no keyboard shows up the board restarts through the bootloader, as the Arduino core does to upload a sketch: it waits there for
   about 8 s and then starts the sketch. After a power cut (a KVM switch) neither resetting the shield chip nor an immediate restart
   recovers the keyboard, but this does. It happens at most 3 times in a row unless a keyboard was ever seen, and the counters survive the
@@ -318,8 +325,8 @@ Details that are easy to break:
 - One copy per configuration folder: the mutex is `Local\Typedeck-<hash of the configuration folder>`, so tests can run with their own
   `APPDATA` next to a real copy.
 - The serial port is opened with `FILE_FLAG_OVERLAPPED`. A synchronous handle serialises I/O: a read waiting for its 100 ms timeout
-  would hold back the heartbeat or a mask update written from another goroutine. Each direction owns its buffer and its
-  `OVERLAPPED`, kept on the heap because the kernel writes into them. A write that completes short is an `io.ErrShortWrite`.
+  would hold back the heartbeat or a mask update written from another thread. Each direction owns its buffer and its
+  `OVERLAPPED`, kept on the heap because the kernel writes into them. A write that completes short is an error (`WriteZero`).
 - Ports are chosen by USB vendor and product id from `HKLM\SYSTEM\CurrentControlSet\Enum\USB`, crossed with `SERIALCOMM` so
   that stale entries of unplugged boards are ignored. Probing other serial devices could reset them.
 - Typed text is pasted with delayed clipboard rendering: the clipboard only receives the text when the target program asks for it
@@ -331,8 +338,8 @@ Details that are easy to break:
   window in front: the layout id comes from the high word of the HKL and the variants (`0xF0xx`) are resolved in the registry, and
   only the Spanish (Spain) layout `0000040A` selects `es-win`.
 - The executable carries a manifest (as invoker, Windows 10 and 11, per monitor DPI v2, long paths, UTF-8 code page), version
-  information and the icon, generated by `packaging/windows/mkres` into `cmd/typedeck/rsrc_windows_<arch>.syso` by `make winres`; there
-  are no new dependencies in the binary. The icon is the project logo (`packaging/windows/typedeck.svg`) in `typedeck.ico`.
+  information and the icon, written by `build.rs` from `packaging/windows/` (a `.res` file for the MSVC linker, a COFF object for the GNU one) and linked into both
+  executables; no tool or dependency is needed. The icon is the project logo (`packaging/windows/typedeck.svg`) in `typedeck.ico`.
 
 ## Security
 

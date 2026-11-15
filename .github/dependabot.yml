@@ -11,14 +11,14 @@ updates:
     groups:
       actions:
         patterns: ["*"]
-  - package-ecosystem: gomod
+  - package-ecosystem: cargo
     directory: /
     schedule:
       interval: monthly
     open-pull-requests-limit: 5
     commit-message:
       prefix: "deps"
-    labels: [dependencies, go]
+    labels: [dependencies, rust]
     groups:
-      go-modules:
+      cargo:
         patterns: ["*"]
