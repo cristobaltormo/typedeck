@@ -1,0 +1,4 @@
+name: typedeck
+paths-ignore:
+  - "src/**/tests.rs"
+  - "tests/**"
