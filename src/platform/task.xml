@@ -2,6 +2,7 @@
 <Task version="1.2" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
   <RegistrationInfo>
     <Description>Starts Typedeck when you sign in.</Description>
+    <SecurityDescriptor>{SDDL}</SecurityDescriptor>
   </RegistrationInfo>
   <Triggers>
     <LogonTrigger>

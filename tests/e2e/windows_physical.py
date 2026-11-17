@@ -40,7 +40,7 @@ def api(method, path, body=None):
 
 
 def interactive(name, cmd):
-    ssh(f"schtasks /Create /TN {name} /SC ONCE /ST 23:59 /IT /F /TR {DIR}\\{cmd} & schtasks /Run /TN {name}")
+    ssh(f"schtasks /Create /TN {name} /SC ONCE /ST 23:59 /IT /F /TR \"conhost.exe --headless cmd /c {DIR}\\{cmd}\" & schtasks /Run /TN {name}")
 
 
 def drop(name):

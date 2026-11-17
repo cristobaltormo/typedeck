@@ -25,9 +25,12 @@ stop_program() { win "taskkill /F /IM typedeck.exe" >/dev/null; sleep 2; }
 start_task() { win "schtasks /Run /TN $1" >/dev/null; sleep 5; }
 interactive() {
   win "del $WIN_TMP\\$1.txt" >/dev/null
-  make_task tdint "powershell -NoProfile -ExecutionPolicy Bypass -File $WIN_TMP\\$2 $3 > $WIN_TMP\\$1.txt 2>&1"
+  make_task tdint "conhost.exe --headless cmd /c powershell -NoProfile -ExecutionPolicy Bypass -File $WIN_TMP\\$2 $3 > $WIN_TMP\\$1.txt 2>&1"
   win "schtasks /Run /TN tdint" >/dev/null
-  for _ in $(seq 120); do sleep 1; win "schtasks /Query /TN tdint /FO LIST" | grep -q "Status: *Ready" && break; done
+  for _ in $(seq 120); do
+    sleep 1
+    win "if exist $WIN_TMP\\$1.txt powershell -NoProfile -Command (Get-ScheduledTask tdint).State" | grep -qx "Ready" && break
+  done
   win "type $WIN_TMP\\$1.txt"
   win "schtasks /Delete /TN tdint /F" >/dev/null
 }
@@ -83,7 +86,7 @@ echo "$out" | grep -q "^FAIL" && FAIL=$((FAIL + 1))
 echo "$out" | grep -q "^PASS" || FAIL=$((FAIL + 1))
 
 step "hardware tests (program in development mode)"
-make_task tddev "cmd /c set TYPEDECK_DEV=1&& $WIN_DIR\\typedeck.exe"
+make_task tddev "conhost.exe --headless cmd /c set TYPEDECK_DEV=1&& $WIN_DIR\\typedeck.exe"
 start_task tddev
 tunnel_up && wait_editor || { echo "the editor is not reachable"; exit 1; }
 TYPEDECK_REMOTE=1 run python3 tests/e2e/hardware.py
@@ -96,7 +99,7 @@ run python3 tests/e2e/windows_real.py focus
 
 step "editor self test in Chrome on Windows"
 win "del C:\\typedeck\\st.html" >/dev/null
-win "\"$CHROME\" --headless=new --disable-gpu --user-data-dir=C:\\typedeck\\chrome-test --virtual-time-budget=60000 --dump-dom \"http://127.0.0.1:$PORT/?selftest\" > C:\\typedeck\\st.html" >/dev/null
+win "\"$CHROME\" --headless=new --disable-gpu --window-size=1440,900 --user-data-dir=C:\\typedeck\\chrome-test --virtual-time-budget=60000 --dump-dom \"http://127.0.0.1:$PORT/?selftest\" > C:\\typedeck\\st.html" >/dev/null
 scp -q "$WIN_HOST:C:/typedeck/st.html" /tmp/st.html
 grep -o '<pre id="selftest">.*</pre>' /tmp/st.html | sed 's/<[^>]*>//g' | python3 -c "
 import sys, json, html

@@ -4,7 +4,7 @@ use std::time::Duration;
 use windows_sys::Win32::System::DataExchange::{EmptyClipboard, IsClipboardFormatAvailable, RegisterClipboardFormatW, SetClipboardData};
 
 use super::clipboard::{HISTORY, Open, alloc, exclude_from_history, set_text};
-use super::front::{close_windows, top_windows, windows_of_image};
+use super::front::{bring_to_front, close_windows, top_windows, windows_of_image};
 use super::reg::wide;
 use super::*;
 
@@ -30,7 +30,25 @@ fn wait_box(dir: &Path, want: &str) -> String {
     got
 }
 
+fn focus_box() {
+    let w = top_windows().into_iter().find(|w| w.title == "Typedeck test box").expect("the test box is open");
+    for _ in 0..10 {
+        if front::foreground().0 as isize == w.hwnd {
+            return;
+        }
+        bring_to_front(w.hwnd);
+        std::thread::sleep(Duration::from_millis(200));
+        if front::foreground().0 as isize == w.hwnd {
+            let _ = input::send_combo(&[], 0x1B);
+            std::thread::sleep(Duration::from_millis(200));
+            return;
+        }
+    }
+    panic!("the test box could not be brought to the front, nothing was typed");
+}
+
 fn clear_box() {
+    focus_box();
     let _ = input::send_combo(&["ctrl"], u16::from(b'A'));
     let _ = input::send_combo(&[], 0x08);
     std::thread::sleep(Duration::from_millis(400));

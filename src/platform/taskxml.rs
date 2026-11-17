@@ -18,8 +18,14 @@ fn xml_text(s: &str) -> String {
     out
 }
 
-pub fn task_xml(user: &str, exe: &str) -> String {
-    TEMPLATE.replace("{USER}", &xml_text(user)).replace("{EXE}", &xml_text(exe))
+pub fn task_xml(user: &str, sid: &str, exe: &str) -> String {
+    let sid_ok = sid.starts_with("S-1-") && sid[4..].chars().all(|c| c.is_ascii_digit() || c == '-');
+    let template = if sid_ok {
+        TEMPLATE.replace("{SDDL}", &format!("D:(A;;FA;;;SY)(A;;FA;;;BA)(A;;FA;;;{sid})"))
+    } else {
+        TEMPLATE.replace("    <SecurityDescriptor>{SDDL}</SecurityDescriptor>\n", "")
+    };
+    template.replace("{USER}", &xml_text(user)).replace("{EXE}", &xml_text(exe))
 }
 
 pub fn utf16_with_bom(s: &str) -> Vec<u8> {

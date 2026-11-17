@@ -143,7 +143,7 @@ fn lnk_targets() {
 
 #[test]
 fn task_xml_has_no_limits() {
-    let x = task_xml(r"PC\ana & co", r"C:\Program Files\Typedeck\typedeck.exe");
+    let x = task_xml(r"PC\ana & co", "S-1-5-21-1-2-3-1001", r"C:\Program Files\Typedeck\typedeck.exe");
     for want in [
         "<ExecutionTimeLimit>PT0S</ExecutionTimeLimit>",
         "<DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries>",
@@ -159,6 +159,11 @@ fn task_xml_has_no_limits() {
     }
     assert_eq!(x.matches(r"<UserId>PC\ana &amp; co</UserId>").count(), 2);
     assert_eq!(utf16_with_bom("aé"), vec![0xFF, 0xFE, b'a', 0, 0xE9, 0]);
+    assert!(x.contains("<SecurityDescriptor>D:(A;;FA;;;SY)(A;;FA;;;BA)(A;;FA;;;S-1-5-21-1-2-3-1001)</SecurityDescriptor>"));
+    for bad in ["", "S-1-5)(A;;FA;;;WD", "x"] {
+        let y = task_xml("u", bad, "e");
+        assert!(!y.contains("SecurityDescriptor") && !y.contains("{SDDL}"), "{bad}");
+    }
 }
 
 #[test]

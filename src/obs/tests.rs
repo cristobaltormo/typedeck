@@ -138,6 +138,6 @@ fn probe_and_errors() {
     assert!(run(&c, "nope", "").is_err());
     assert!(active(&c, "stream").is_ok());
     let err = run(&cfg(1, ""), "stream", "").unwrap_err();
-    assert!(err.contains("WebSocket") && err.contains("refused"), "{err}");
+    assert!(err.starts_with("could not connect to OBS") && err.contains("WebSocket"), "{err}");
     assert_eq!(host_port("::1", 0), "[::1]:4455");
 }

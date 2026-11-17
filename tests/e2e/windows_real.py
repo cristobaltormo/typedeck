@@ -20,7 +20,7 @@ class Box:
     def check(self, n, c, x=""): self.res.append(bool(c)); print(("PASS  " if c else "FAIL  ") + n + (f"   [{x}]" if x and not c else ""), flush=True)
     def open(self):
         self.sh("taskkill /F /FI \"WINDOWTITLE eq Typedeck test box\"")
-        api("/api/test", {"type": "shell", "cmd": f'start "" powershell -NoProfile -ExecutionPolicy Bypass -File {TESTBOX}', "show_output": False})
+        api("/api/test", {"type": "shell", "cmd": f'start "" conhost.exe --headless powershell -NoProfile -ExecutionPolicy Bypass -File {TESTBOX}', "show_output": False})
         for _ in range(25):
             time.sleep(0.6)
             self.sh('powershell -NoProfile -Command "$w=New-Object -ComObject WScript.Shell; $w.SendKeys(\'%\'); Start-Sleep -Milliseconds 200; [void]$w.AppActivate(\'Typedeck test box\')"')
@@ -96,9 +96,11 @@ def run_desktop():
         time.sleep(1)
         r = api("/api/test", {"type": "app", "app": "powershell", "mode": "toggle"}); time.sleep(1.2)
         b.check("toggle: with the app in front it minimizes it", r["ok"] and "powershell" not in front(), (r, front()))
-        r = api("/api/test", {"type": "app", "app": "Typedeck test box", "mode": "quit"}); time.sleep(2)
+        r = api("/api/test", {"type": "app", "app": "Typedeck test box", "mode": "quit"})
+        b.check("closing matches the program, not a window title", not r["ok"], r)
+        r = api("/api/test", {"type": "app", "app": "powershell", "mode": "quit"}); time.sleep(2)
         left = sh('tasklist /FI "WINDOWTITLE eq Typedeck test box" /NH')
-        b.check("close the app by its window title (WM_CLOSE)", r["ok"] and "powershell" not in left.lower(), (r, left))
+        b.check("close the app by its program (WM_CLOSE)", r["ok"] and "powershell" not in left.lower(), (r, left))
     finally:
         b.close(); api("/api/config", orig)
     print(f"\n{sum(b.res)}/{len(b.res)}")

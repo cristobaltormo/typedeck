@@ -6,7 +6,7 @@ param(
 New-Item -ItemType Directory -Force $Dir | Out-Null
 $box = Join-Path $PSScriptRoot "windows_testbox.ps1"
 if (-not (Test-Path $box)) { $box = Join-Path $Dir "windows_testbox.ps1" }
-$proc = Start-Process powershell -ArgumentList "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $box, "-Dir", $Dir -PassThru
+$proc = Start-Process conhost.exe -ArgumentList "--headless", "powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $box, "-Dir", $Dir -PassThru
 $shell = New-Object -ComObject WScript.Shell
 $ready = $false
 for ($i = 0; $i -lt 25 -and -not $ready; $i++) {

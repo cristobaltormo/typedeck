@@ -1,5 +1,24 @@
 # Changelog
 
+## Unreleased
+
+Found by testing 1.0.0-rc.2 on a real Windows 11 PC with the board.
+
+### Windows
+- `typedeck install` creates the scheduled task again when the environment does not name the account, as over SSH, where
+  `USERDOMAIN` is `WORKGROUP`: the account now comes from the process token, as it did in 0.9.1, instead of falling back to a Run
+  entry and starting a copy that died with the session.
+- `typedeck uninstall` can remove a scheduled task that was created from an administrator terminal: the task gives the user who
+  installed it full control, so a normal terminal no longer gets "Access denied" and leaves the task behind.
+
+### Tests
+- The interactive Windows tests no longer depend on the system language, and run their consoles through `conhost --headless`, so no
+  Windows Terminal window takes the focus from the test box.
+- The Windows platform tests bring the test box to the front before typing, and stop without typing anything if they cannot.
+- The editor self test on Windows and on a real Linux machine runs Chrome at 1440x900, as in CI, so the drag tests reach every key.
+- The OBS test no longer expects an English error message, and `windows_real.py` checks that closing an app matches the program,
+  not a window title, as it does since 0.9.0.
+
 ## 1.0.0-rc.2 - 2026-11-17
 
 Found by testing 1.0.0-rc.1 on a real Mac with the board; both macOS fixes were already wrong in 0.9.1.

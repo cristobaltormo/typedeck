@@ -53,7 +53,7 @@ run python3 tests/e2e/linux_real.py focus
 run python3 tests/e2e/linux_real.py desktop
 
 step "editor self test in Chrome on the machine"
-rs 'rm -f /tmp/st.html; google-chrome --headless=new --no-sandbox --disable-gpu --user-data-dir=/tmp/chrome-test --virtual-time-budget=60000 --dump-dom "http://127.0.0.1:7788/?selftest" > /tmp/st.html 2>/dev/null; rm -rf /tmp/chrome-test' >/dev/null
+rs 'rm -f /tmp/st.html; google-chrome --headless=new --no-sandbox --disable-gpu --window-size=1440,900 --user-data-dir=/tmp/chrome-test --virtual-time-budget=60000 --dump-dom "http://127.0.0.1:7788/?selftest" > /tmp/st.html 2>/dev/null; rm -rf /tmp/chrome-test' >/dev/null
 scp -q -i "$KEY" "$HOST:/tmp/st.html" /tmp/st.html
 grep -o '<pre id="selftest">.*</pre>' /tmp/st.html | sed 's/<[^>]*>//g' | python3 -c "
 import sys, json, html

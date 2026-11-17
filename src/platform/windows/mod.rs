@@ -281,7 +281,49 @@ fn autostart_installed() -> (bool, &'static str) {
     (false, "")
 }
 
+fn token_user() -> Option<(String, String)> {
+    use windows_sys::Win32::Foundation::{HLOCAL, LocalFree};
+    use windows_sys::Win32::Security::Authorization::ConvertSidToStringSidW;
+    use windows_sys::Win32::Security::{GetTokenInformation, LookupAccountSidW, SID_NAME_USE, TOKEN_QUERY, TOKEN_USER, TokenUser};
+    use windows_sys::Win32::System::Threading::{GetCurrentProcess, OpenProcessToken};
+    unsafe {
+        let mut token: HANDLE = std::ptr::null_mut();
+        if OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &mut token) == 0 {
+            return None;
+        }
+        let mut buf = vec![0u64; 64];
+        let mut len = 0u32;
+        let ok = GetTokenInformation(token, TokenUser, buf.as_mut_ptr().cast(), (buf.len() * 8) as u32, &mut len);
+        CloseHandle(token);
+        if ok == 0 {
+            return None;
+        }
+        let sid = (*(buf.as_ptr() as *const TOKEN_USER)).User.Sid;
+        let (mut name, mut domain) = ([0u16; 256], [0u16; 256]);
+        let (mut name_len, mut domain_len) = (name.len() as u32, domain.len() as u32);
+        let mut kind: SID_NAME_USE = 0;
+        if LookupAccountSidW(std::ptr::null(), sid, name.as_mut_ptr(), &mut name_len, domain.as_mut_ptr(), &mut domain_len, &mut kind) == 0 {
+            return None;
+        }
+        let name = String::from_utf16_lossy(&name[..name_len as usize]);
+        let domain = String::from_utf16_lossy(&domain[..domain_len as usize]);
+        let mut text: *mut u16 = std::ptr::null_mut();
+        let sid_text = if ConvertSidToStringSidW(sid, &mut text) != 0 && !text.is_null() {
+            let n = (0..).take_while(|&i| *text.add(i) != 0).count();
+            let s = String::from_utf16_lossy(std::slice::from_raw_parts(text, n));
+            LocalFree(text as HLOCAL);
+            s
+        } else {
+            String::new()
+        };
+        Some((if domain.is_empty() { name } else { format!(r"{domain}\{name}") }, sid_text))
+    }
+}
+
 fn user_name() -> String {
+    if let Some((u, _)) = token_user() {
+        return u;
+    }
     match (env_var("USERDOMAIN"), env_var("USERNAME")) {
         (Some(d), Some(u)) => format!(r"{d}\{u}"),
         (None, Some(u)) => u,
@@ -290,7 +332,8 @@ fn user_name() -> String {
 }
 
 fn create_task(exe: &Path) -> Result<(), String> {
-    let xml = super::utf16_with_bom(&super::task_xml(&user_name(), &exe.display().to_string()));
+    let sid = token_user().map(|(_, sid)| sid).unwrap_or_default();
+    let xml = super::utf16_with_bom(&super::task_xml(&user_name(), &sid, &exe.display().to_string()));
     let mut n = [0u8; 8];
     let _ = crate::crypto::random(&mut n);
     let path = std::env::temp_dir().join(format!("typedeck-task-{}.xml", crate::crypto::hex(&n)));
@@ -528,6 +571,16 @@ mod tests {
         let apps = apps::parse_store_apps("Calculator|Microsoft.WindowsCalculator_8wekyb3d8bbwe!App\nUninstall Foo|X!Y\nNotepad|notepad.exe\n|x!y\n");
         assert_eq!(apps.len(), 1);
         assert_eq!(apps[0].name, "Calculator");
+    }
+
+    #[test]
+    fn task_user_comes_from_the_token() {
+        let (u, sid) = token_user().expect("account of the process token");
+        assert!(sid.starts_with("S-1-5-"), "{sid}");
+        let (_, name) = u.rsplit_once('\\').unwrap_or(("", &u));
+        assert!(!name.is_empty(), "{u}");
+        assert_ne!(u.split('\\').next(), Some("WORKGROUP"), "{u}");
+        assert_eq!(user_name(), u);
     }
 
     #[test]
