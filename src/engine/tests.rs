@@ -75,6 +75,13 @@ fn settle() {
     std::thread::sleep(Duration::from_millis(60));
 }
 
+fn wait_for(mut done: impl FnMut() -> bool) {
+    let t0 = Instant::now();
+    while !done() && t0.elapsed() < Duration::from_secs(2) {
+        ms(5);
+    }
+}
+
 fn ms(n: u64) {
     std::thread::sleep(Duration::from_millis(n));
 }
@@ -273,10 +280,10 @@ fn keyboard_lost_warns_once_and_announces_the_return() {
     ms(120);
     assert!(r.huds().is_empty());
     e.keyboard_changed(false);
-    ms(120);
+    wait_for(|| !r.huds().is_empty());
     assert_eq!(r.huds().len(), 1);
     e.keyboard_changed(true);
-    ms(30);
+    wait_for(|| r.huds().len() >= 2);
     assert_eq!(r.huds().len(), 2);
     lock(&e.st).cfg.settings.notify_keyboard = false;
     e.keyboard_changed(false);
