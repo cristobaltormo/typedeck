@@ -30,13 +30,20 @@ make screenshots  # regenerate docs/images
 They are not part of CI. `tests/e2e/hardware.py` runs against a real board on the machine it is plugged into, with Typedeck started
 with `TYPEDECK_DEV=1`; set `TYPEDECK_EXPECT_VID` and `TYPEDECK_EXPECT_PID` to also check the keyboard behind the board.
 `make e2e-windows` and `make e2e-linux-real` deploy a build to another machine over ssh and run everything there, typing only
-into a window of their own:
+into a window of their own. The other targets drive a machine that already runs Typedeck:
 
 | Variable | Used by | Meaning |
 |---|---|---|
-| `WIN_HOST` | e2e-windows | ssh alias of the Windows machine (default `windows`) |
-| `WIN_DIR` | e2e-windows | folder where Typedeck is installed there, for example `C:\Users\me\typedeck` |
+| `WIN_HOST` | e2e-windows, e2e-windows-physical, e2e-windows-capture | ssh alias of the Windows machine (default `windows`) |
+| `WIN_DIR` | e2e-windows | folder the test build is copied to, for example `C:\Users\me\typedeck-test`; the last step points the scheduled task at it, so use a folder of its own or install the release again afterwards |
 | `WIN_COM_PORT` | e2e-windows | serial port of the board, for example `COM3` |
+| `WIN_VMID` | e2e-windows-capture | Proxmox id of the Windows virtual machine whose keyboard the hypervisor drives |
+| `BOARD`, `LOCK`, `SUSPEND` | e2e-windows-physical | `BOARD=1` tests the board instead of software capture, `LOCK=0` skips locking the PC, `SUSPEND=1` adds a suspend |
+| `GATE` | e2e-windows-physical | a file the test waits for before asking for each key press, so a person can be told when to press |
+| `MAC_HOST` | e2e-macos-capture, e2e-macos-typing, flash | ssh alias of the Mac (default `mac`) |
+| `PRESS` | e2e-macos-capture | `PRESS=board` lets the board press F6 over USB, so nobody has to be at the Mac |
+| `TYPEDECK_SERIAL_GLOB` | `hardware.py` run on the machine with the board | its serial port (default `/dev/cu.usbmodem*`) |
+| `TYPEDECK_REMOTE` | `hardware.py` | `1` when the program runs on another machine reached through a tunnel to port 7788; skips the local serial checks |
 | `LINUX_HOST` | e2e-linux-real | `user@host` of the Linux machine |
 | `LINUX_KEY` | e2e-linux-real | ssh key (default `~/.ssh/id_ed25519`) |
 | `LINUX_SUDO_FILE` | e2e-linux-real | optional file holding the sudo password; without it sudo must not ask |
@@ -48,7 +55,7 @@ unprivileged user for the permission-error check, default `nobody`), `LINUX_CAPT
 check the second error) and `LINUX_CAPTURE_DISPLAY` (an X display with `xclip`, for the paste check) are optional.
 
 The Linux machine needs `/tmp/tdenv.sh` exporting the session variables (`XDG_RUNTIME_DIR`, `DISPLAY` or `WAYLAND_DISPLAY`,
-`DBUS_SESSION_BUS_ADDRESS`). `make flash` flashes through a Mac reachable as `MAC_HOST` (default `mac`).
+`DBUS_SESSION_BUS_ADDRESS`). `make flash` flashes through the Mac named by `MAC_HOST`.
 
 ## Rules
 

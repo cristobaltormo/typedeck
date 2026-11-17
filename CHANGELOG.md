@@ -1,11 +1,24 @@
 # Changelog
 
+## Unreleased
+
+### Windows
+- The scheduled task keeps its security descriptor even when the account name of the token cannot be resolved.
+
+### Docs
+- macOS: `typedeck` needs the Accessibility permission again after every upgrade that replaces it (docs/INSTALL.md,
+  docs/TROUBLESHOOTING.md). The compatibility table and docs/ARCHITECTURE.md reflect the 1.0 tests on a real Mac and a real Windows PC.
+
+### Tests
+- `WIN_HOST` defaults to `windows` in every Windows test, `WIN_VMID` has to be given, and CONTRIBUTING.md lists every test variable.
+
 ## 1.0.0 - 2026-11-17
 
 The program is rewritten in Rust. Configuration, backups, `capture-consent.json`, the typing history, macro files, the HTTP API and
 WebSocket on 127.0.0.1:7788, the serial protocol with firmware 15, the command line and the services (`io.github.cristobaltormo.typedeck`
 with the move from `cc.cristobal.typedeck`, the systemd user unit, the `Typedeck` scheduled task) are the same, so an upgrade keeps
-everything and 0.9.1 can be put back over it. The macOS helpers and the firmware are unchanged.
+everything and 0.9.1 can be put back over it. The macOS helpers and the firmware are unchanged, so they keep their permissions; the
+`typedeck` binary itself is new, so on macOS give it the Accessibility permission again after upgrading (see docs/INSTALL.md).
 
 Before the release it was tried on a real Mac and a real Windows 11 PC with the board; what that found is fixed under macOS
 and Windows below (both macOS fixes and the uninstall one were already wrong in 0.9.1).

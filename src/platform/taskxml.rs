@@ -19,7 +19,7 @@ fn xml_text(s: &str) -> String {
 }
 
 pub fn task_xml(user: &str, sid: &str, exe: &str) -> String {
-    let sid_ok = sid.starts_with("S-1-") && sid[4..].chars().all(|c| c.is_ascii_digit() || c == '-');
+    let sid_ok = sid.len() > 4 && sid.starts_with("S-1-") && sid[4..].chars().all(|c| c.is_ascii_digit() || c == '-');
     let template = if sid_ok {
         TEMPLATE.replace("{SDDL}", &format!("D:(A;;FA;;;SY)(A;;FA;;;BA)(A;;FA;;;{sid})"))
     } else {

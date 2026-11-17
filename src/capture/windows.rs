@@ -58,7 +58,6 @@ fn handle_key(msg: WPARAM, k: &KBDLLHOOKSTRUCT) -> bool {
     swallow
 }
 
-// Windows silently removes a low-level hook whose callback is slow, so it only consults the filter and never blocks.
 unsafe extern "system" fn key_proc(code: i32, wparam: WPARAM, lparam: LPARAM) -> LRESULT {
     if code == HC_ACTION as i32 && lparam != 0 {
         let k = unsafe { &*(lparam as *const KBDLLHOOKSTRUCT) };

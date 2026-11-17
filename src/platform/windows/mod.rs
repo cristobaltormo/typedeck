@@ -281,7 +281,7 @@ fn autostart_installed() -> (bool, &'static str) {
     (false, "")
 }
 
-fn token_user() -> Option<(String, String)> {
+fn token_user() -> (Option<String>, String) {
     use windows_sys::Win32::Foundation::{HLOCAL, LocalFree};
     use windows_sys::Win32::Security::Authorization::ConvertSidToStringSidW;
     use windows_sys::Win32::Security::{GetTokenInformation, LookupAccountSidW, SID_NAME_USE, TOKEN_QUERY, TOKEN_USER, TokenUser};
@@ -289,24 +289,16 @@ fn token_user() -> Option<(String, String)> {
     unsafe {
         let mut token: HANDLE = std::ptr::null_mut();
         if OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &mut token) == 0 {
-            return None;
+            return (None, String::new());
         }
         let mut buf = vec![0u64; 64];
         let mut len = 0u32;
         let ok = GetTokenInformation(token, TokenUser, buf.as_mut_ptr().cast(), (buf.len() * 8) as u32, &mut len);
         CloseHandle(token);
         if ok == 0 {
-            return None;
+            return (None, String::new());
         }
         let sid = (*(buf.as_ptr() as *const TOKEN_USER)).User.Sid;
-        let (mut name, mut domain) = ([0u16; 256], [0u16; 256]);
-        let (mut name_len, mut domain_len) = (name.len() as u32, domain.len() as u32);
-        let mut kind: SID_NAME_USE = 0;
-        if LookupAccountSidW(std::ptr::null(), sid, name.as_mut_ptr(), &mut name_len, domain.as_mut_ptr(), &mut domain_len, &mut kind) == 0 {
-            return None;
-        }
-        let name = String::from_utf16_lossy(&name[..name_len as usize]);
-        let domain = String::from_utf16_lossy(&domain[..domain_len as usize]);
         let mut text: *mut u16 = std::ptr::null_mut();
         let sid_text = if ConvertSidToStringSidW(sid, &mut text) != 0 && !text.is_null() {
             let n = (0..).take_while(|&i| *text.add(i) != 0).count();
@@ -316,12 +308,20 @@ fn token_user() -> Option<(String, String)> {
         } else {
             String::new()
         };
-        Some((if domain.is_empty() { name } else { format!(r"{domain}\{name}") }, sid_text))
+        let (mut name, mut domain) = ([0u16; 256], [0u16; 256]);
+        let (mut name_len, mut domain_len) = (name.len() as u32, domain.len() as u32);
+        let mut kind: SID_NAME_USE = 0;
+        if LookupAccountSidW(std::ptr::null(), sid, name.as_mut_ptr(), &mut name_len, domain.as_mut_ptr(), &mut domain_len, &mut kind) == 0 {
+            return (None, sid_text);
+        }
+        let name = String::from_utf16_lossy(&name[..name_len as usize]);
+        let domain = String::from_utf16_lossy(&domain[..domain_len as usize]);
+        (Some(if domain.is_empty() { name } else { format!(r"{domain}\{name}") }), sid_text)
     }
 }
 
-fn user_name() -> String {
-    if let Some((u, _)) = token_user() {
+fn user_name(account: Option<String>) -> String {
+    if let Some(u) = account {
         return u;
     }
     match (env_var("USERDOMAIN"), env_var("USERNAME")) {
@@ -332,8 +332,8 @@ fn user_name() -> String {
 }
 
 fn create_task(exe: &Path) -> Result<(), String> {
-    let sid = token_user().map(|(_, sid)| sid).unwrap_or_default();
-    let xml = super::utf16_with_bom(&super::task_xml(&user_name(), &sid, &exe.display().to_string()));
+    let (account, sid) = token_user();
+    let xml = super::utf16_with_bom(&super::task_xml(&user_name(account), &sid, &exe.display().to_string()));
     let mut n = [0u8; 8];
     let _ = crate::crypto::random(&mut n);
     let path = std::env::temp_dir().join(format!("typedeck-task-{}.xml", crate::crypto::hex(&n)));
@@ -501,7 +501,6 @@ impl Platform for Windows {
     fn shell(&self, cmd: &str) -> Command {
         use std::os::windows::process::CommandExt;
         let mut c = command("cmd.exe");
-        // cmd.exe does not follow the usual argument quoting, so the command line is passed verbatim.
         c.raw_arg(format!("/S /C \"{cmd}\""));
         c
     }
@@ -575,12 +574,13 @@ mod tests {
 
     #[test]
     fn task_user_comes_from_the_token() {
-        let (u, sid) = token_user().expect("account of the process token");
+        let (account, sid) = token_user();
+        let u = account.expect("account of the process token");
         assert!(sid.starts_with("S-1-5-"), "{sid}");
         let (_, name) = u.rsplit_once('\\').unwrap_or(("", &u));
         assert!(!name.is_empty(), "{u}");
         assert_ne!(u.split('\\').next(), Some("WORKGROUP"), "{u}");
-        assert_eq!(user_name(), u);
+        assert_eq!(user_name(Some(u.clone())), u);
     }
 
     #[test]

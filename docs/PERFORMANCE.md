@@ -29,9 +29,9 @@ Windows allows is the limit that matters.
 | Hook callback per key (decision and queueing) | 16 to 52 µs on average, 0.8 to 1.5 ms at worst (limit: 300 ms) |
 | Program memory when idle | about 20 MB resident, 0 % CPU (measured with 0.9 in Go; 1.0 has not been measured there yet) |
 
-On macOS the helper times its tap callback the same way and the program shows it in `stats`; it has not been measured yet because the
-tap could not be installed on the machine used for development (the permissions need a click in System Settings). macOS disables a
-tap whose callback is too slow, so the number to watch there is the worst case.
+On macOS the helper times its tap callback the same way and the program shows it in `stats`. The tap runs on a real Mac (macOS 27,
+Apple Silicon) with the permissions granted, but its callback time has not been recorded here yet. macOS disables a tap whose callback
+is too slow, so the number to watch there is the worst case.
 
 `POST /api/board` with `{"cmd":"stats"}` (the Diagnostics page) returns the number of keys seen, `avg_us` and `max_us` of the callback
 and `dropped`, the events lost because the program fell behind (should stay 0).

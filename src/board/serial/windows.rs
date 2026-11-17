@@ -77,7 +77,6 @@ fn configure(h: HANDLE) -> io::Result<()> {
     };
     unsafe {
         SetCommTimeouts(h, &t);
-        // The Leonardo's USB serial only sends once the host raises DTR.
         EscapeCommFunction(h, SETDTR);
         PurgeComm(h, 0xF);
     }

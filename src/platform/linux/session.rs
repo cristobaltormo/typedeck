@@ -37,7 +37,6 @@ pub fn discover_session_in(dir: &Path) -> Vec<(String, String)> {
     found
 }
 
-// A service started before the desktop session does not inherit its variables, so they are found in the runtime directory and kept in our own overlay instead of mutating the process environment.
 pub fn discover_session() {
     {
         let mut c = lock(&CHECKED);

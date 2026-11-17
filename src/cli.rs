@@ -147,7 +147,6 @@ extern "C" fn on_signal(_sig: libc::c_int) {
     }
 }
 
-// A handler that only writes to a pipe keeps the signal mask untouched, so programs started by actions can still be stopped.
 #[cfg(unix)]
 fn watch_signals() -> i32 {
     use std::os::fd::IntoRawFd;

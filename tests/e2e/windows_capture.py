@@ -4,8 +4,8 @@ import json, os, re, subprocess, sys, tempfile, threading, time
 BIN = sys.argv[1]
 HERE = os.path.dirname(os.path.abspath(__file__))
 HELPERS = os.path.join(HERE, "windows_capture")
-VM = os.environ.get("WIN_HOST", "ci-windows")
-VMID = os.environ.get("WIN_VMID", "141")
+VM = os.environ.get("WIN_HOST", "windows")
+VMID = os.environ.get("WIN_VMID") or sys.exit("set WIN_VMID, the Proxmox id of the Windows virtual machine")
 DIR = "C:\\td-capture"
 results = []
 

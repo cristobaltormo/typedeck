@@ -142,7 +142,6 @@ pub fn constant_eq(a: &[u8], b: &[u8]) -> bool {
     a.iter().zip(b).fold(0u8, |acc, (x, y)| acc | (x ^ y)) == 0
 }
 
-// The getrandom symbol of a static musl build can resolve to null, so the system call is made directly.
 #[cfg(target_os = "linux")]
 pub fn random(buf: &mut [u8]) -> std::io::Result<()> {
     let mut done = 0;

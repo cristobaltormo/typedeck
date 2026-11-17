@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import json, os, subprocess, sys, tempfile, time
 
-HOST = os.environ.get("WIN_HOST", "win")
+HOST = os.environ.get("WIN_HOST", "windows")
 DIR = "C:\\td-phys"
 HERE = os.path.dirname(os.path.abspath(__file__))
 HELPERS = os.path.join(HERE, "windows_physical")

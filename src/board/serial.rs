@@ -225,7 +225,6 @@ mod unix {
         Ok((fds[0].revents != 0, fds[1].revents != 0))
     }
 
-    // poll() does not work on macOS character devices, so the serial port waits with select().
     #[cfg(target_os = "macos")]
     fn wait(fd: i32, stop: i32, write: bool, timeout_ms: i32) -> io::Result<(bool, bool)> {
         unsafe {

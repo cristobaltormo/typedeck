@@ -62,6 +62,11 @@ typedeck install    # start with your session (typedeck uninstall removes it)
   `xattr -dr com.apple.quarantine <folder>` once. Software capture asks for **Accessibility** and **Input Monitoring** for
   `typedeck-capture` the first time you turn it on (never before); if you miss the prompt, add it by hand in System Settings, Privacy
   & Security, with the `+` button, choosing the file next to `typedeck`. `typedeck doctor` says which one is missing.
+  `typedeck` itself needs **Accessibility** to paste text the layout cannot type (such as `€`) and to send shortcuts without the
+  board. That permission is tied to the exact binary, which is not signed with a developer identity, so after replacing `typedeck`
+  with a new version remove its entry with `-`, add `~/.local/share/typedeck/typedeck` again with `+` and restart it with
+  `launchctl kickstart -k gui/$(id -u)/io.github.cristobaltormo.typedeck`. The helpers keep their permissions when a release leaves
+  them unchanged, as 1.0 did.
 - **Linux:** copy `packaging/linux/70-typedeck.rules` to `/etc/udev/rules.d/` so your user can open the board without the `dialout`
   group. Install `xdg-utils` and `libnotify-bin`; `xdotool` (X11) or `wtype` (Wayland) only matter when the board is not connected.
   Logs: `journalctl --user -u typedeck`.

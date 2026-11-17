@@ -76,7 +76,6 @@ fn send(method: &str, url: &str, body: Option<&str>) -> Result<String, String> {
     finish(status, &buf)
 }
 
-// curl is part of every supported macOS and Windows release and uses the system certificate store.
 #[cfg(not(target_os = "linux"))]
 fn curl_args(method: &str, url: &str, body: Option<&str>, out: &std::path::Path) -> Vec<std::ffi::OsString> {
     let mut a: Vec<std::ffi::OsString> = Vec::new();

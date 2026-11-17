@@ -292,12 +292,23 @@ Details that are easy to break:
   into files still works. Closing that console, signing out or shutting down gives the program up to 4 s to save before Windows ends it. Console windows of child processes are hidden, and
   `cmd /S /C` commands are passed raw (`raw_arg`) because the usual quoting is for the C runtime, which `cmd.exe` does not understand. Quoting for
   `cmd.exe` drops quotes, `%` and `^` because those are the characters that stay active inside double quotes.
-- Quitting an application on Windows asks nicely: `taskkill` by executable first, then `WM_CLOSE` to every visible window whose
-  title matches, because Store apps ignore `taskkill` without `/F`.
+- Quitting an application on Windows matches the program, never a window title: `WM_CLOSE` to the visible windows of its executable,
+  then `taskkill` without `/F`. Store apps are closed with `WM_CLOSE` to the `ApplicationFrameWindow` titled with the app's name
+  from its shortcut, because they ignore `taskkill` without `/F`.
 - The Windows serial port is opened raw at 115200 baud with DTR asserted, because the board only talks when DTR is on; reads time
   out after 100 ms and loop so closing the port never waits on a blocked read. Ports are listed from the registry
   (`HKLM\HARDWARE\DEVICEMAP\SERIALCOMM`, usbser.sys only), skipping Bluetooth and real ports that could stall the probe.
 - When the per-application rules change, they are evaluated again against the window that is already in front.
+- On macOS the serial port waits with `select()`, because `poll()` does not work on character devices there.
+- On Unix the signal handler only writes to a pipe, so the signal mask is left alone and programs started by actions can still be
+  stopped with Ctrl+C or `kill`.
+- On Linux random bytes come from the `getrandom` system call made directly, because the libc symbol of a static musl build can
+  resolve to null.
+- A Linux service started before the desktop session does not inherit its variables (`WAYLAND_DISPLAY`, `DISPLAY`,
+  `SWAYSOCK`, `HYPRLAND_INSTANCE_SIGNATURE`, `XDG_SESSION_TYPE`): they are found in the runtime directory and kept in an overlay that is
+  passed to every command, instead of changing the process environment while other threads read it.
+- The HTTP action uses rustls on Linux and the system `curl` on macOS and Windows, which ship with every supported release and use
+  the system certificate store, so no TLS library is compiled in there.
 
 ## Firmware notes
 
@@ -322,6 +333,10 @@ Details that are easy to break:
   `WM_QUERYENDSESSION`/`WM_ENDSESSION`, `WM_POWERBROADCAST` and session change messages. `taskkill` without `/F` only closes
   processes that have a visible window, which is why that window is shown but has no size. On close or sign out the board mask is
   released and the statistics are saved; on lock or suspend the mask is released and taken again afterwards.
+- `typedeck install` writes the scheduled task from an XML template. The account comes from the process token (`LookupAccountSidW`),
+  not from `USERDOMAIN`, which is `WORKGROUP` over SSH. The task carries a security descriptor that gives full control to SYSTEM, the
+  administrators and the installing user's SID, because a task created from an elevated terminal could otherwise only be removed by an
+  elevated one. If the task cannot be created the program falls back to a `Run` entry.
 - One copy per configuration folder: the mutex is `Local\Typedeck-<hash of the configuration folder>`, so tests can run with their own
   `APPDATA` next to a real copy.
 - The serial port is opened with `FILE_FLAG_OVERLAPPED`. A synchronous handle serialises I/O: a read waiting for its 100 ms timeout

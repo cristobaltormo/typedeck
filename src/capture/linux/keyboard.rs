@@ -66,7 +66,6 @@ impl Keyboard {
             return;
         }
         self.drain();
-        // A key held while the grab starts would reach the desktop as pressed and never released.
         if let Err(e) = ioctl_val(self.fd.as_raw_fd(), EVIOCGRAB, 1) {
             crate::log!("capture: cannot take {}: {e}", self.path);
             s.grab_failed(&self.path, &e);

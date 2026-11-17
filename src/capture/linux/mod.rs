@@ -77,7 +77,6 @@ impl Backend for LinuxBackend {
         }
         let s = Session::start(f.clone(), self.lat.clone())?;
         *g = Some(s.clone());
-        // Ctrl+Z in the terminal that started typedeck would freeze it while it holds the keyboard.
         sys::ignore_tstp(true);
         let inject = self.inject.clone();
         let weak = Arc::downgrade(&s);
