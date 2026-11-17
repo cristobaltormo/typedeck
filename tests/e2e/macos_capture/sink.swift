@@ -13,12 +13,20 @@ final class Delegate: NSObject, NSApplicationDelegate {
         window.level = .floating
         view = NSTextView(frame: window.contentView!.bounds)
         view.autoresizingMask = [.width, .height]
+        view.isRichText = false
+        view.isAutomaticQuoteSubstitutionEnabled = false
+        view.isAutomaticDashSubstitutionEnabled = false
+        view.isAutomaticTextReplacementEnabled = false
+        view.isAutomaticSpellingCorrectionEnabled = false
+        view.isContinuousSpellCheckingEnabled = false
+        view.isAutomaticTextCompletionEnabled = false
+        view.smartInsertDeleteEnabled = false
         window.contentView!.addSubview(view)
         window.makeKeyAndOrderFront(nil)
         window.makeFirstResponder(view)
         NSApp.activate(ignoringOtherApps: true)
         NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [self] event in
-            events.append("\(event.keyCode)")
+            events.append("\(event.keyCode)" + (event.modifierFlags.contains(.command) ? "+cmd" : ""))
             return event
         }
         Timer.scheduledTimer(withTimeInterval: 0.2, repeats: true) { [self] _ in
@@ -30,6 +38,19 @@ final class Delegate: NSObject, NSApplicationDelegate {
 
 let app = NSApplication.shared
 app.setActivationPolicy(.regular)
+let menu = NSMenu()
+let appItem = NSMenuItem()
+appItem.submenu = NSMenu()
+appItem.submenu!.addItem(withTitle: "Quit", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+let editItem = NSMenuItem()
+editItem.submenu = NSMenu(title: "Edit")
+for (title, action, key) in [("Cut", #selector(NSText.cut(_:)), "x"), ("Copy", #selector(NSText.copy(_:)), "c"),
+                             ("Paste", #selector(NSText.paste(_:)), "v"), ("Select All", #selector(NSText.selectAll(_:)), "a")] {
+    editItem.submenu!.addItem(withTitle: title, action: action, keyEquivalent: key)
+}
+menu.addItem(appItem)
+menu.addItem(editItem)
+app.mainMenu = menu
 let delegate = Delegate()
 app.delegate = delegate
 app.run()

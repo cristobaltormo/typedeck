@@ -15,7 +15,8 @@ make e2e-linux  # end to end on Linux with a simulated board
 make e2e-linux-capture  # software capture on Linux with uinput virtual keyboards; run it in a throwaway VM, it creates input devices
 make e2e-windows-capture  # software capture and the unit tests natively on a Windows virtual machine; keys are sent by the hypervisor
 make e2e-windows-physical  # on a real Windows PC with its own keyboard; asks you to press F6, lock and suspend
-make e2e-macos-capture  # on a real Mac with its own keyboard; asks you to press F6
+make e2e-macos-capture  # on a real Mac with its own keyboard; asks you to press F6 (PRESS=board: the board presses it over USB)
+make e2e-macos-typing  # on a real Mac with the board: text and shortcuts through the board and the software path
 make selftest   # the editor in a headless Chromium (needs Chromium or Chrome)
 make platform PLATFORM=linux-amd64   # one release binary (linux-amd64, linux-arm64, darwin-*, windows-*); CI builds each on its system
 make measure    # memory, idle CPU, start-up and macro latency against the simulated board

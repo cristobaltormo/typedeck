@@ -349,6 +349,16 @@ fn stroke_plans() {
     assert_eq!(consumer_key_type(0x999), None);
 }
 
+#[test]
+fn injection_follows_the_spanish_iso_tables_whatever_the_keyboard_type() {
+    let layout = inject_layout(Some("es-iso"), LAYOUT_ANSI);
+    assert_eq!(layout, LAYOUT_ISO);
+    assert_eq!(stroke_plan(Stroke::new(0x64, 0), &layout).unwrap().0[0].code, CODE_GRAVE);
+    assert_eq!(stroke_plan(Stroke::new(0x35, 0), &layout).unwrap().0[0].code, CODE_ISO_SECTION);
+    assert_eq!(inject_layout(Some("us"), LAYOUT_ANSI), LAYOUT_ANSI);
+    assert_eq!(inject_layout(None, "jis"), "jis");
+}
+
 #[cfg(target_os = "macos")]
 fn real_helper() -> Option<PathBuf> {
     std::env::var_os("TYPEDECK_CAPTURE_HELPER").map(PathBuf::from)

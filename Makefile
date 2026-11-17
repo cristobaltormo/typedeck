@@ -1,4 +1,4 @@
-.PHONY: build platform macos-helpers dist archives packages release-files test lint fmt audit check firmware flash e2e-linux e2e-linux-capture e2e-desktop e2e-wine e2e-windows-capture e2e-windows-physical e2e-macos-capture e2e-windows e2e-linux-real measure selftest web-test screenshots clean
+.PHONY: build platform macos-helpers dist archives packages release-files test lint fmt audit check firmware flash e2e-linux e2e-linux-capture e2e-desktop e2e-wine e2e-windows-capture e2e-windows-physical e2e-macos-capture e2e-macos-typing e2e-windows e2e-linux-real measure selftest web-test screenshots clean
 
 VERSION ?= $(shell git describe --tags --always 2>/dev/null || echo dev)
 export TYPEDECK_VERSION := $(VERSION)
@@ -119,8 +119,11 @@ e2e-windows-capture:  ## software capture on a Windows virtual machine with keys
 e2e-windows-physical:  ## software capture on a real Windows PC with its own keyboard, lock and suspend (WIN_HOST; asks you to press F6; SUSPEND=1 adds suspend)
 	python3 tests/e2e/windows_physical.py
 
-e2e-macos-capture:    ## software capture on a real Mac with its own keyboard (MAC_HOST; asks you to press F6; the helper needs Accessibility and Input Monitoring)
+e2e-macos-capture:    ## software capture on a real Mac with its own keyboard (MAC_HOST; asks you to press F6, or PRESS=board to let the board press it; the helper needs Accessibility and Input Monitoring)
 	python3 tests/e2e/macos_capture.py
+
+e2e-macos-typing:     ## text and shortcuts typed through the board and the software path into a window of its own on a real Mac (MAC_HOST)
+	python3 tests/e2e/macos_typing.py
 
 e2e-windows:          ## full test run on a Windows machine with the board (WIN_HOST, WIN_DIR, WIN_COM_PORT)
 	scripts/e2e-windows.sh

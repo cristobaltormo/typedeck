@@ -74,6 +74,12 @@ fn mod_name(u: u8) -> &'static str {
     }
 }
 
+fn pasteboard(name: &str) -> Command {
+    let mut c = command(name);
+    c.env_remove("LC_ALL").env("LC_CTYPE", "UTF-8");
+    c
+}
+
 fn osascript(script: &str) -> Result<String, String> {
     run(Duration::from_secs(10), "", "osascript", &["-e", script])
 }
@@ -232,17 +238,15 @@ impl Platform for Mac {
 
     fn paste(&self, text: &str) -> Result<(), String> {
         let old = self.clipboard();
-        run(Duration::from_secs(3), text, "pbcopy", &[])?;
+        super::run_command(pasteboard("pbcopy"), Duration::from_secs(3), text)?;
         let r = osascript("tell application \"System Events\" to keystroke \"v\" using {command down}");
         std::thread::sleep(Duration::from_millis(300));
-        let _ = run(Duration::from_secs(3), &old, "pbcopy", &[]);
+        let _ = super::run_command(pasteboard("pbcopy"), Duration::from_secs(3), &old);
         r.map(|_| ())
     }
 
     fn clipboard(&self) -> String {
-        let mut c = command("pbpaste");
-        c.stderr(Stdio::null());
-        super::run_command(c, Duration::from_secs(3), "").unwrap_or_default()
+        super::run_command(pasteboard("pbpaste"), Duration::from_secs(3), "").unwrap_or_default()
     }
 
     fn soft_media(&self, cmd: &str, step: i64) -> Result<String, String> {

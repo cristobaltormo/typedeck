@@ -196,6 +196,10 @@ pub struct KeyStep {
     pub flags: u64,
 }
 
+pub fn inject_layout(typing: Option<&str>, keyboard: &str) -> String {
+    if typing == Some("es-iso") { LAYOUT_ISO.into() } else { keyboard.into() }
+}
+
 pub fn stroke_plan(s: Stroke, layout: &str) -> Result<(Vec<KeyStep>, Vec<KeyStep>), String> {
     let mut acc = 0u64;
     let mut mods = Vec::new();
@@ -419,6 +423,10 @@ impl MacBackend {
         lock(&self.layout).clone()
     }
 
+    fn inject_layout(&self) -> String {
+        inject_layout(cfg!(target_os = "macos").then(|| crate::platform::get().system_layout()).as_deref(), &self.current_layout())
+    }
+
     fn send(&self, lines: &[String]) -> Result<(), String> {
         let proc = lock(&self.run).as_ref().map(|r| r.proc.clone());
         match proc {
@@ -554,7 +562,7 @@ impl Backend for MacBackend {
         if s.usage == 0x39 && s.mods == 0 {
             return self.send(&["CAPS".into()]);
         }
-        let (down, up) = stroke_plan(s, &self.current_layout())?;
+        let (down, up) = stroke_plan(s, &self.inject_layout())?;
         if down.is_empty() {
             return Ok(());
         }

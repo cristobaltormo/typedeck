@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import json, os, re, subprocess, sys, time, urllib.request, glob, select, termios, signal
+import atexit, json, os, re, subprocess, sys, time, urllib.request, glob, select, termios, signal
 
 BASE = "http://127.0.0.1:7788"
 html = urllib.request.urlopen(BASE + "/").read().decode()
@@ -39,6 +39,11 @@ def wait_events(since, pred, timeout=3):
 def osa(script):
     return subprocess.run(["osascript", "-e", script], capture_output=True, text=True, timeout=15).stdout.strip()
 
+try:
+    raw("PING")
+except urllib.error.HTTPError:
+    sys.exit("start Typedeck with TYPEDECK_DEV=1 first: this test drives the board through /api/dev/raw")
+
 st = api("/api/status")
 check("the board is connected", st["connected"] and int(st["firmware"]) >= 4, st)
 kb = api("/api/keyboard")
@@ -66,6 +71,7 @@ for p in packs:
         bad.append(p["id"])
 check(f"all {len(packs)} packs are laid out on your keyboard", not bad, bad)
 cfg0 = api("/api/config")
+atexit.register(lambda: api("/api/config", cfg0))
 r = api("/api/packs/resolve", {"id": packs[0]["id"], "layout": "full-iso", "lang": "es"})
 trial = json.loads(json.dumps(cfg0)); trial["layers"].append(r["layer"])
 check("an applied pack produces a configuration the server accepts", api("/api/config", trial).get("ok"))
@@ -214,6 +220,8 @@ print("      internal latency:", s)
 REMOTE = bool(os.environ.get("TYPEDECK_REMOTE"))
 pid = None if REMOTE else subprocess.run(["pgrep", "-x", "typedeck"], capture_output=True, text=True).stdout.split()[0]
 os.kill(int(pid), signal.SIGSTOP) if pid else None
+if pid:
+    atexit.register(lambda: os.kill(int(pid), signal.SIGCONT))
 if not REMOTE:
     time.sleep(7)
     port = glob.glob(os.environ.get("TYPEDECK_SERIAL_GLOB", "/dev/cu.usbmodem*"))[0]

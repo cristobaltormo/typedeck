@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.0.0-rc.2 - 2026-11-17
+
+Found by testing 1.0.0-rc.1 on a real Mac with the board; both macOS fixes were already wrong in 0.9.1.
+
+### macOS
+- Text that goes in through the clipboard (characters the layout cannot type with keys, such as `€`) is no longer garbled into
+  Mac Roman when Typedeck runs as a launch agent, and the clipboard it puts back afterwards keeps its accents: `pbcopy` and `pbpaste`
+  run with a UTF-8 locale instead of the empty one launchd gives.
+- With software capture and the Spanish ISO layout, `<`, `>`, `\`, `º` and `ª` come out right when the keyboard reports itself as
+  ANSI, as the board does: injected keys follow the layout tables instead of the type of the last physical keyboard.
+
+### Tests
+- `tests/e2e/macos_typing.py` (`make e2e-macos-typing`) types the same texts as the Windows test through the board and through the
+  software path into a window of its own, and checks Command shortcuts.
+- `PRESS=board make e2e-macos-capture` lets the board press F6 over USB, so the software capture test runs with nobody at the Mac.
+- `tests/e2e/hardware.py` puts the configuration back and resumes the program when it stops half way, and says when Typedeck was
+  not started with `TYPEDECK_DEV=1`. The test window has an Edit menu, so Command+A and Command+X work in it, and no text substitutions.
+
 ## 1.0.0-rc.1 - 2026-11-15
 
 The program is rewritten in Rust. Configuration, backups, `capture-consent.json`, the typing history, macro files, the HTTP API and
