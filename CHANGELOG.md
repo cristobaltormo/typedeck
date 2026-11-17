@@ -1,48 +1,14 @@
 # Changelog
 
-## Unreleased
-
-Found by testing 1.0.0-rc.2 on a real Windows 11 PC with the board.
-
-### Windows
-- `typedeck install` creates the scheduled task again when the environment does not name the account, as over SSH, where
-  `USERDOMAIN` is `WORKGROUP`: the account now comes from the process token, as it did in 0.9.1, instead of falling back to a Run
-  entry and starting a copy that died with the session.
-- `typedeck uninstall` can remove a scheduled task that was created from an administrator terminal: the task gives the user who
-  installed it full control, so a normal terminal no longer gets "Access denied" and leaves the task behind.
-
-### Tests
-- The interactive Windows tests no longer depend on the system language, and run their consoles through `conhost --headless`, so no
-  Windows Terminal window takes the focus from the test box.
-- The Windows platform tests bring the test box to the front before typing, and stop without typing anything if they cannot.
-- The editor self test on Windows and on a real Linux machine runs Chrome at 1440x900, as in CI, so the drag tests reach every key.
-- The OBS test no longer expects an English error message, and `windows_real.py` checks that closing an app matches the program,
-  not a window title, as it does since 0.9.0.
-
-## 1.0.0-rc.2 - 2026-11-17
-
-Found by testing 1.0.0-rc.1 on a real Mac with the board; both macOS fixes were already wrong in 0.9.1.
-
-### macOS
-- Text that goes in through the clipboard (characters the layout cannot type with keys, such as `€`) is no longer garbled into
-  Mac Roman when Typedeck runs as a launch agent, and the clipboard it puts back afterwards keeps its accents: `pbcopy` and `pbpaste`
-  run with a UTF-8 locale instead of the empty one launchd gives.
-- With software capture and the Spanish ISO layout, `<`, `>`, `\`, `º` and `ª` come out right when the keyboard reports itself as
-  ANSI, as the board does: injected keys follow the layout tables instead of the type of the last physical keyboard.
-
-### Tests
-- `tests/e2e/macos_typing.py` (`make e2e-macos-typing`) types the same texts as the Windows test through the board and through the
-  software path into a window of its own, and checks Command shortcuts.
-- `PRESS=board make e2e-macos-capture` lets the board press F6 over USB, so the software capture test runs with nobody at the Mac.
-- `tests/e2e/hardware.py` puts the configuration back and resumes the program when it stops half way, and says when Typedeck was
-  not started with `TYPEDECK_DEV=1`. The test window has an Edit menu, so Command+A and Command+X work in it, and no text substitutions.
-
-## 1.0.0-rc.1 - 2026-11-15
+## 1.0.0 - 2026-11-17
 
 The program is rewritten in Rust. Configuration, backups, `capture-consent.json`, the typing history, macro files, the HTTP API and
 WebSocket on 127.0.0.1:7788, the serial protocol with firmware 15, the command line and the services (`io.github.cristobaltormo.typedeck`
 with the move from `cc.cristobal.typedeck`, the systemd user unit, the `Typedeck` scheduled task) are the same, so an upgrade keeps
 everything and 0.9.1 can be put back over it. The macOS helpers and the firmware are unchanged.
+
+Before the release it was tried on a real Mac and a real Windows 11 PC with the board; what that found is fixed under macOS
+and Windows below (both macOS fixes and the uninstall one were already wrong in 0.9.1).
 
 ### Resources
 - On Linux the release binary is 3.6 MB instead of 8.2 MB and uses about 2.8 MB of memory when idle instead of 12.6 MB; it starts in
@@ -96,12 +62,37 @@ everything and 0.9.1 can be put back over it. The macOS helpers and the firmware
   show the text "null"; the density setting is applied; saves reach the program in the order they were made; after a reconnection
   the editor fetches the configuration, status and keyboard again.
 
+### macOS
+- Text that goes in through the clipboard (characters the layout cannot type with keys, such as `€`) is no longer garbled into
+  Mac Roman when Typedeck runs as a launch agent, and the clipboard it puts back afterwards keeps its accents: `pbcopy` and `pbpaste`
+  run with a UTF-8 locale instead of the empty one launchd gives.
+- With software capture and the Spanish ISO layout, `<`, `>`, `\`, `º` and `ª` come out right when the keyboard reports itself as
+  ANSI, as the board does: injected keys follow the layout tables instead of the type of the last physical keyboard.
+
+### Windows
+- `typedeck install` creates the scheduled task again when the environment does not name the account, as over SSH, where
+  `USERDOMAIN` is `WORKGROUP`: the account now comes from the process token, as it did in 0.9.1, instead of falling back to a Run
+  entry and starting a copy that died with the session.
+- `typedeck uninstall` can remove a scheduled task that was created from an administrator terminal: the task gives the user who
+  installed it full control, so a normal terminal no longer gets "Access denied" and leaves the task behind.
+
 ### Tests
-- 214 unit tests on Linux (180 of them also run for Windows) ported from the Go suite and extended (configuration, gestures, layers, capture filter and selector, software capture,
+- 215 unit tests on Linux (181 of them also run for Windows) ported from the Go suite and extended (configuration, gestures, layers, capture filter and selector, software capture,
   the macOS backend against a fake helper, Linux key handling, the board protocol against a fake firmware, OBS against a fake server,
   the HTTP API and WebSocket, SHA-1, SHA-256 and base64 vectors), plus 9 interactive Windows checks as ignored tests, and an
   integration test (debug builds) that a panic in a worker thread ends the program with status 70 instead of leaving it half running.
 - `tests/e2e/measure.py` (`make measure`) measures memory, CPU, start-up and macro latency against the simulated board.
+- `tests/e2e/macos_typing.py` (`make e2e-macos-typing`) types the same texts as the Windows test through the board and through the
+  software path into a window of its own, and checks Command shortcuts.
+- `PRESS=board make e2e-macos-capture` lets the board press F6 over USB, so the software capture test runs with nobody at the Mac.
+- `tests/e2e/hardware.py` puts the configuration back and resumes the program when it stops half way, and says when Typedeck was
+  not started with `TYPEDECK_DEV=1`. The test window has an Edit menu, so Command+A and Command+X work in it, and no text substitutions.
+- The interactive Windows tests no longer depend on the system language, and run their consoles through `conhost --headless`, so no
+  Windows Terminal window takes the focus from the test box.
+- The Windows platform tests bring the test box to the front before typing, and stop without typing anything if they cannot.
+- The editor self test on Windows and on a real Linux machine runs Chrome at 1440x900, as in CI, so the drag tests reach every key.
+- The OBS test no longer expects an English error message, and `windows_real.py` checks that closing an app matches the program,
+  not a window title, as it does since 0.9.0.
 
 ## 0.9.1 - 2026-11-11
 
